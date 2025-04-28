@@ -8,9 +8,9 @@ App to help with learning text material by answering closed and open questions r
 - Make OPENAI API requests
 - Prepare prompts for generating questions and answers
 - Detect forbidden text
+- Handle API errors
 
 ### TODO
-- Handle errors
 - Allow multiple correct answers
 - Method of checking if given open answer is correct (%-based)
 - Frontend (React)
@@ -41,7 +41,7 @@ App to help with learning text material by answering closed and open questions r
     ```bash
     cd Backend
     ```
-    
+
     ```bash
     pip install -r requirements.txt
     ```
