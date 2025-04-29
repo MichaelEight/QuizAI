@@ -11,7 +11,7 @@ App to help with learning text material by answering closed and open questions r
 - Handle API errors
 
 ### TODO
-- Allow multiple correct answers
+- Allow multiple correct answers (fix prompt)
 - Method of checking if given open answer is correct (%-based)
 - Frontend (React)
 - Communication frontend-backend
