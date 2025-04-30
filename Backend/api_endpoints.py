@@ -1,13 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 from api_requests_BO import generate_questions, check_open_answer
 
-app = Flask(__name__)
+api_blueprint = Blueprint('api', __name__)
 
-@app.route('/hello', methods=["GET"])
+@api_blueprint.route('/hello', methods=["GET"])
 def api_hello():
     return jsonify({"message": "Hello world!"})
 
-@app.route('/generate_questions', methods=["POST"])
+@api_blueprint.route('/generate_questions', methods=["POST"])
 def api_generate_questions():
     data = request.get_json()
 
@@ -24,7 +24,7 @@ def api_generate_questions():
     
     return jsonify(result)
 
-@app.route('/check_open_answer', methods=["POST"])
+@api_blueprint.route('/check_open_answer', methods=["POST"])
 def api_check_open_answer():
     data = request.get_json()
 
@@ -40,5 +40,5 @@ def api_check_open_answer():
 
     return jsonify({"status": "error", "message": "Not implemented yet!"})     
 
-if __name__ == '__main__':
-    app.run(debug=True)
+def register_endpoints(app):
+    app.register_blueprint(api_blueprint)
