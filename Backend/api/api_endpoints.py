@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from api_requests_BO import generate_questions, check_open_answer
+from Backend.services.api_requests_BO import generate_questions, check_open_answer
 
 api_blueprint = Blueprint('api', __name__)
 

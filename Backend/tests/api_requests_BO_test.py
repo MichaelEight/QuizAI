@@ -1,4 +1,4 @@
-from api_requests_BO import get_dev_prompt
+from ..services.api_requests_BO import get_dev_prompt
 
 print(get_dev_prompt(2, 2, True, True))
 print()

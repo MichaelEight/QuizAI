@@ -1,4 +1,4 @@
-from questions_types import Instructions
+from Backend.utils.questions_types import Instructions
 
 def get_sys_prompt(questions_amount, type_of_question):
     instruction = Instructions.get_instruction(type_of_question)

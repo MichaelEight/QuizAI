@@ -1,8 +1,8 @@
 import json
-from api_requests_DAO import make_api_request
-from questions_types import QuestionTypes
-from questions_utilities import generate_single_multiple_distribution, correct_trailing_comma
-from prompts_utilities import get_sys_prompt, get_user_prompt
+from Backend.dao.api_requests_DAO import make_api_request
+from Backend.utils.questions_types import QuestionTypes
+from Backend.utils.questions_utilities import generate_single_multiple_distribution, correct_trailing_comma
+from Backend.services.prompts_utilities import get_sys_prompt, get_user_prompt
 
 '''
 Returns a JSON with questions of different types
