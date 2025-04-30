@@ -4,6 +4,9 @@ from questions_types import QuestionTypes
 from questions_utilities import generate_single_multiple_distribution, correct_trailing_comma
 from prompts_utilities import get_sys_prompt, get_user_prompt
 
+'''
+Returns a JSON with questions of different types
+'''
 def generate_questions(text, closed_amount = 1, open_amount = 1, allow_multiple_correct_answers = False, force_multiple_correct_answers = False):
     all_questions = []
 
@@ -23,6 +26,9 @@ def generate_questions(text, closed_amount = 1, open_amount = 1, allow_multiple_
     return all_questions
 
 
+'''
+Returns a JSON with questions of given type
+'''
 def generate_questions_per_type(text, amount, type):
     sys_prompt = get_sys_prompt(amount, type)
     user_prompt = get_user_prompt(text)
@@ -38,3 +44,8 @@ def generate_questions_per_type(text, amount, type):
             "content": "invalid answer format"
         }
 
+'''
+Returns a number in range 0-100 representing score
+'''
+def check_open_answer(text, question, answer):
+    pass

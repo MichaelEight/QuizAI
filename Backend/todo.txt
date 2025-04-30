@@ -1,2 +1,20 @@
 # TODO
+- Split prompts into generating questions and check open answers
+
+- Add function to check if given answer to open question is correct
+    - given text, question, answer
+    - return pts 0-100 (as %)
+    - TEST how accurate (and consistent) the AI is. If necessary, add threshold like e.g. 75-100 pts = MAX points.
+        - accuracy: ask AI for perfect answer to the question. check this answer. if it's not 100%, then make corrections.
+        - consistency: same answer should result in same number of points 
+- Add Flask for API communication
+    - generate questions:
+        args: text, closed amount, open amount, allow multiple, force multiple
+        return: json with questions
+    - rate the answer to open question:
+        args: text, question, answer
+        return: number of points (0-100 representing %)
+
+- Create server.py. Move flask startup there. api_endpoints should contain just endpoints.
 - Fix forcing multiple correct answers
+- Create new directories. Sort files.

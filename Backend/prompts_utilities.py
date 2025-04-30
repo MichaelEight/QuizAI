@@ -1,4 +1,3 @@
-
 from questions_types import Instructions
 
 def get_sys_prompt(questions_amount, type_of_question):
