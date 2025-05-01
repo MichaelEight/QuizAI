@@ -2,7 +2,7 @@ import json
 from Backend.dao.api_requests_DAO import make_api_request
 from Backend.utils.questions_types import QuestionTypes
 from Backend.utils.questions_utilities import generate_single_multiple_distribution, correct_trailing_comma
-from Backend.services.prompts_utilities import get_sys_prompt, get_user_prompt
+from Backend.services.prompts_utilities import get_sys_prompt, get_user_prompt, get_sys_prompt_check_open, get_dev_prompt_check_open, get_user_prompt_check_open
 
 '''
 Returns a JSON with questions of different types
@@ -45,7 +45,17 @@ def generate_questions_per_type(text, amount, type):
         }
 
 '''
-Returns a number in range 0-100 representing score
+Returns a number in range 0-100 representing score.
+Returns -1 in case of error
 '''
 def check_open_answer(text, question, answer):
-    pass
+    sys_prompt = get_sys_prompt_check_open()
+    dev_prompt = get_dev_prompt_check_open(text, question)
+    user_prompt = get_user_prompt_check_open(answer)
+
+    ans = make_api_request(sys_prompt, dev_prompt, user_prompt)
+
+    try:
+        return int(ans)
+    except ValueError:
+        return -1

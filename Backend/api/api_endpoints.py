@@ -35,10 +35,8 @@ def api_check_open_answer():
     if not all([text, question, answer]):
         return jsonify({ "status": "error", "message": "Missing required fields!"}), 400
     
-    # result = check_open_answer(text, question, answer)
-    # return jsonify(result)
-
-    return jsonify({"status": "error", "message": "Not implemented yet!"})     
+    result = check_open_answer(text, question, answer)
+    return jsonify(result)
 
 def register_endpoints(app):
     app.register_blueprint(api_blueprint)
