@@ -1,2 +1,5 @@
 # TODO
 - Fix forcing multiple correct answers
+- Make sure there is error handling for everything (e.g. OpenAI API errors)
+- Document API, so it's clear, when it returns what (e.g. how to recognize errors)
+- Add actual unit tests
