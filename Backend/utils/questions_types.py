@@ -1,3 +1,8 @@
+class QuestionTypes:
+    CLOSED = 'closed'
+    OPEN = 'open'
+    CLOSED_MULTI = 'closed-multi'
+
 class Instructions:
     CLOSED_QUESTION = '''
     Each closed question object must have:
@@ -25,8 +30,3 @@ class Instructions:
             return Instructions.OPEN_QUESTION
         elif type_of_question == QuestionTypes.CLOSED_MULTI:
             return Instructions.CLOSED_QUESTION_MULTIPLE_ANSWERS
-
-class QuestionTypes:
-    CLOSED = 'closed'
-    OPEN = 'open'
-    CLOSED_MULTI = 'closed-multi'

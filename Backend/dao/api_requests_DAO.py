@@ -1,5 +1,6 @@
 from openai import OpenAI
 import os
+from Backend.utils.prompts_types import PromptRank
 
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
@@ -9,15 +10,15 @@ def make_api_request(system_prompt, developer_prompt, user_prompt):
         model="gpt-4o-mini",
         messages=[
             {
-                "role": "system",
+                "role": PromptRank.SYSTEM,
                 "content": system_prompt
             },
             {
-                "role": "developer",
+                "role": PromptRank.DEVELOPER,
                 "content": developer_prompt
             },
             {
-                "role": "user",
+                "role": PromptRank.USER,
                 "content": user_prompt
             }
         ]
