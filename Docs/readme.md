@@ -33,6 +33,17 @@ App to help with learning text material by answering closed and open questions r
 - Save set of questions and load them in the future
 - Improve styling
 
+## Future plans
+- User profiles
+- Database with texts library (id, title, author, source text, closed questions, open questions, rating, savings) with features:
+    - Get all texts (with filtering)
+    - Rate 1-5
+    - Save to favorites
+    - Load set
+    - Reuse text
+- Different levels of questions e.g. basic/simple, academic, phd etc.
+- Deduction i.e. does the answer must be direct in the text or could be deducted? (e.g. if all A are B, then something, so obviously A is not C)
+
 ## Installation
 1. Set your OpenAI API KEY to environmental variable: `OPENAI_API_KEY`
 
