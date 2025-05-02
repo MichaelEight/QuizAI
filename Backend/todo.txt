@@ -1,6 +1,32 @@
 # TODO
-- Create frontend
+Frontend:
+- Create pages (either react router or just swap content on one page by hiding the other one):
+    - Source text input, multiline
+    - Settings:
+        - numerical: amount of open questions:
+        - numerical: closed questions
+        - checkbox: allow multiple correct answers
+        - checkbox: force multiple correct answers
+        - dropdown: level of questions (basic, academic etc)
+    - Quiz page (must be separate):
+        - Randomize order of questions
+        - Display current question and field for answers: either ABCD (each is button) or text input
+        - Buttons:
+            - Check answer (compares to correct answers)
+            - Next (active after 'check answer' triggered)
+            - Mark as invalid (for AI errors)
 
+- Take care of data handling:
+    - Save to localStorage (or cookies)
+    - Pass information between pages. Either state manager or prop as arguments
+    - Data to save:
+        - Input text
+        - Settings
+        - Questions
+    - User must have the ability to go back without losing any data. Generate new questions only after pressing "Generate".
+
+
+Backend further plans:
 - Fix forcing multiple correct answers
 - Make sure there is error handling for everything (e.g. OpenAI API errors)
 - Document API, so it's clear, when it returns what (e.g. how to recognize errors)
