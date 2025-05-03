@@ -1,12 +1,6 @@
 # TODO
 Today:
-- make simple settings page
 - make simple quiz page (if enough time)
-- Add Settings type:
-    - amountOfOpenQuestions: number
-    - amountOfClosedQuestions: number
-    - allowMultipleCorrectAnswers: boolean
-    - forceMultipleCorrectAnswers: boolean
 - Add types for Quiz page:
     Task: Question, answers: Answer[]
     Question: question: text, isOpen: boolean
