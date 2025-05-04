@@ -5,6 +5,7 @@ import SettingsPage from "./SettingsPage";
 import QuizPage from "./QuizPage";
 import Homepage from "./Homepage";
 import { Settings } from "./SettingsType";
+import { Task } from "./QuestionsTypes";
 import "./App.css";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
     allowMultipleCorrectAnswers: false,
     forceMultipleCorrectAnswers: false,
   });
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   return (
     <div className="main-container">
@@ -47,10 +49,11 @@ function App() {
             <SourceTextPage
               sourceText={sourceText}
               setSourceText={setSourceText}
+              setTasks={setTasks}
             />
           }
         />
-        <Route path="quizPage" element={<QuizPage />} />
+        <Route path="quizPage" element={<QuizPage tasks={tasks} />} />
       </Routes>
     </div>
   );

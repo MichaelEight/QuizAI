@@ -11,11 +11,12 @@ export default function SettingsPage({ settings, setSettings }) {
 
   return (
     <div className="settings-page-container">
-      <h2>Settings Page</h2>
+      <h2 className="text-2xl font-bold">Settings Page</h2>
       <div className="inputs-container">
         <div className="input-container">
           <p>Closed questions</p>
           <input
+            className="border border-solid border-black"
             type="number"
             min={0}
             max={10}
@@ -30,6 +31,7 @@ export default function SettingsPage({ settings, setSettings }) {
         <div className="input-container">
           <p>Open questions</p>
           <input
+            className="border border-solid border-black"
             type="number"
             min={0}
             max={10}

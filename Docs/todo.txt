@@ -1,10 +1,11 @@
 # TODO
-Today:
-- make simple quiz page (if enough time)
-- Add types for Quiz page:
-    Task: Question, answers: Answer[]
-    Question: question: text, isOpen: boolean
-    Answer: answer: text, isCorrect: boolean
+- User should be able to select multiple answers, mark them in visible way
+
+- Fetch generated questions, assign to Task[] and then randomize order
+- If answered wrongly for a question, mark as done and add 2 copies to random places in the array
+- Think of better task-serving algorithm i.e. it's better to learn chunks and then add bits of next chunk after few tasks are finished
+- Make file for handling requests to backend
+- convert styles from css to tailwind
 
 
 Frontend:
