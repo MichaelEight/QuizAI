@@ -12,4 +12,5 @@ export type Question = {
 export type Answer = {
   value: string;
   isCorrect: boolean;
+  isSelected?: boolean;
 };

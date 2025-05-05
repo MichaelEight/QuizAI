@@ -48,37 +48,97 @@ export default function QuizPage({
     setAreAnswersChecked(false);
   };
 
+  const handleAnswerClick = (index: number) => {
+    if (!currentTask?.answers) return;
+
+    // Create a new copy of the answers array
+    const updatedAnswers = currentTask.answers.map((answer, i) =>
+      i === index ? { ...answer, isSelected: !answer.isSelected } : answer,
+    );
+
+    // Update the currentTask state with the new answers array
+    setCurrentTask({ ...currentTask, answers: updatedAnswers });
+  };
+
+  const PAGE_HEADER_CLASSES = "mb-10 text-2xl font-bold";
+
+  const QUESTION_HEADER_CLASSES = "font-bold text-2xl";
+
+  const ANSWER_BUTTON_CLASSES =
+    "border border-solid border-black flex flex-row items-center justify-center p-2";
+
+  const DEFAULT_ACTION_BUTTON_CLASSES =
+    "flex flex-row items-center justify-center p-2";
+
+  const NOT_SELECTED_ANSWER_BUTTON_CLASSES =
+    "bg-gray-200 hover:bg-gray-300 active:bg-gray-400";
+
+  const SELECTED_ANSWER_BUTTON_CLASSES =
+    "bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700";
+
+  const ENABLED_ACTION_BUTTON_CLASSES =
+    "bg-green-500 hover:bg-green-600 active:bg-green-700";
+
+  const DISABLED_ACTION_BUTTON_CLASSES =
+    "bg-gray-300 hover:bg-gray-400 active:bg-gray-500 cursor-not-allowed";
+
   return (
     <>
       {/* title */}
-      <h2 className="text-2xl font-bold">Quiz Page</h2>
+      <h2 className={`${PAGE_HEADER_CLASSES}`}>Quiz Page</h2>
 
       {/* Question */}
       {currentTask ? (
-        <p>Q: {currentTask.question.value}</p>
+        <p className={`${QUESTION_HEADER_CLASSES}`}>
+          Q: {currentTask.question.value}
+        </p>
       ) : (
         <p>No question loaded!</p>
       )}
 
       {/* Answers buttons */}
-      {/* For each answer available, create a button */}
       {currentTask ? (
-        currentTask.answers?.map((answer, index) => (
-          <button className="bg-blue-500 hover:bg-blue-700" key={index}>
-            {answer.value}
-          </button>
-        ))
+        <div className="grid grid-cols-2 gap-4">
+          {currentTask.answers?.map((answer, index) => (
+            <button
+              key={index}
+              className={`${ANSWER_BUTTON_CLASSES} ${answer.isSelected ? SELECTED_ANSWER_BUTTON_CLASSES : NOT_SELECTED_ANSWER_BUTTON_CLASSES}`}
+              onClick={() => handleAnswerClick(index)}>
+              {answer.value}
+            </button>
+          ))}
+        </div>
       ) : (
         <p>No answers loaded!</p>
       )}
 
       {/* Action buttons */}
-      <button disabled={areAnswersChecked} onClick={handleCheckAnswersClick}>
-        Check answers
-      </button>
-      <button disabled={!areAnswersChecked} onClick={handleNextQuestionClick}>
-        Next question
-      </button>
+      <div className="mt-10 grid grid-cols-2 gap-4">
+        <button
+          className={`${DEFAULT_ACTION_BUTTON_CLASSES}
+            ${
+              areAnswersChecked
+                ? DISABLED_ACTION_BUTTON_CLASSES
+                : ENABLED_ACTION_BUTTON_CLASSES
+            }
+            `}
+          disabled={areAnswersChecked}
+          onClick={handleCheckAnswersClick}>
+          Check answers
+        </button>
+        <button
+          className={`${DEFAULT_ACTION_BUTTON_CLASSES}
+          ${
+            areAnswersChecked
+              ? ENABLED_ACTION_BUTTON_CLASSES
+              : DISABLED_ACTION_BUTTON_CLASSES
+          }
+          `}
+          disabled={!areAnswersChecked}
+          onClick={handleNextQuestionClick}>
+          Next question
+        </button>
+      </div>
     </>
   );
 }

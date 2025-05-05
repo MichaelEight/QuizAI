@@ -65,7 +65,7 @@ export default function SourceTextPage({
         onChange={(e) => setSourceText(e.target.value)}
       />
       <button
-        className="bg-sky-500 hover:bg-sky-700 p-2 rounded-xl"
+        className="bg-sky-500 hover:bg-sky-600 active:bg-sky-700 p-2 rounded-xl"
         onClick={handleGenerateButtonClick}>
         Generate Questions
       </button>
