@@ -23,25 +23,34 @@ export default function QuizPage({
 }) {
   const [currentTask, setCurrentTask] = useState<Task>();
   const [areAnswersChecked, setAreAnswersChecked] = useState<boolean>(false);
+  const [isRoundWon, setIsRoundWon] = useState<boolean>(false);
 
-  // Assume we have tasks as Task[] in randomized order
-
-  // From tasks select 1 task and display it
-  // Add buttons: check answers, next question
-  // Check answers: check if all have been selected correctly
   // Next question: activated after pressing check answers. Selects next task
 
   // we can actually create a pool with random tasks instead of modifying tasks
 
   const handleCheckAnswersClick = () => {
-    // do something
-    console.log("check answers pressed");
+    const maxPoints = currentTask?.answers?.filter(
+      (answer) => answer.isCorrect,
+    ).length;
+
+    let currentPoints = 0;
+    if (currentTask?.answers) {
+      for (const answer of currentTask.answers) {
+        if (answer.isSelected) {
+          currentPoints += answer.isCorrect ? 1 : -1;
+        }
+      }
+    }
+
+    setIsRoundWon(currentPoints == maxPoints);
     setAreAnswersChecked(true);
   };
 
   const handleNextQuestionClick = () => {
     // do something
-    // placeholder
+    // remove first task from pool
+    // if any left, get first one
     console.log("next question pressed");
 
     setCurrentTask(tasks[0]);
@@ -50,6 +59,7 @@ export default function QuizPage({
 
   const handleAnswerClick = (index: number) => {
     if (!currentTask?.answers) return;
+    if (areAnswersChecked) return;
 
     // Create a new copy of the answers array
     const updatedAnswers = currentTask.answers.map((answer, i) =>
@@ -139,6 +149,15 @@ export default function QuizPage({
           Next question
         </button>
       </div>
+
+      {/* ROUND STATUS */}
+      {areAnswersChecked ? (
+        <div>
+          <p>{isRoundWon ? "YOU WON!" : "YOU LOST!"}</p>
+        </div>
+      ) : (
+        <></>
+      )}
     </>
   );
 }

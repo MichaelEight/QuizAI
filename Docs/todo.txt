@@ -1,5 +1,6 @@
 # TODO
-- User should be able to select multiple answers, mark them in visible way
+- Handle next question
+
 
 - Fetch generated questions, assign to Task[] and then randomize order
 - If answered wrongly for a question, mark as done and add 2 copies to random places in the array
