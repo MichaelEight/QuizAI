@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Task } from "./QuestionsTypes";
+import { quizPageStyles } from "./PagesStyles";
+import AnswerField from "./AnswerComponent";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array]; // Create a copy to avoid mutating the original array
@@ -10,24 +12,28 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-function createPool(tasks): Task[] {
+function createPool(tasks: Task[]): Task[] {
   return shuffleArray(tasks);
 }
-
-function nextQuestion() {}
 
 export default function QuizPage({
   tasks,
 }: {
   readonly tasks: readonly Task[];
 }) {
+  const [taskPool, setTaskPool] = useState<Task[]>([]);
   const [currentTask, setCurrentTask] = useState<Task>();
   const [areAnswersChecked, setAreAnswersChecked] = useState<boolean>(false);
   const [isRoundWon, setIsRoundWon] = useState<boolean>(false);
 
-  // Next question: activated after pressing check answers. Selects next task
+  const [openAnswer, setOpenAnswer] = useState<string>("");
 
-  // we can actually create a pool with random tasks instead of modifying tasks
+  // on page load, if taskPool is empty, create it
+  useEffect(() => {
+    if (taskPool.length == 0 && tasks?.length > 0) {
+      setTaskPool(createPool([...tasks]));
+    }
+  }, []);
 
   const handleCheckAnswersClick = () => {
     const maxPoints = currentTask?.answers?.filter(
@@ -47,59 +53,31 @@ export default function QuizPage({
     setAreAnswersChecked(true);
   };
 
-  const handleNextQuestionClick = () => {
-    // do something
-    // remove first task from pool
-    // if any left, get first one
-    console.log("next question pressed");
-
-    setCurrentTask(tasks[0]);
+  function resetRound() {
     setAreAnswersChecked(false);
+    setIsRoundWon(false);
+  }
+
+  const handleNextQuestionClick = () => {
+    resetRound();
+
+    if (tasks.length == 0) {
+      console.log("No more questions!");
+    }
+
+    const [nextTask, ...remainingTasks] = taskPool;
+    setCurrentTask(nextTask);
+    setTaskPool(remainingTasks);
   };
-
-  const handleAnswerClick = (index: number) => {
-    if (!currentTask?.answers) return;
-    if (areAnswersChecked) return;
-
-    // Create a new copy of the answers array
-    const updatedAnswers = currentTask.answers.map((answer, i) =>
-      i === index ? { ...answer, isSelected: !answer.isSelected } : answer,
-    );
-
-    // Update the currentTask state with the new answers array
-    setCurrentTask({ ...currentTask, answers: updatedAnswers });
-  };
-
-  const PAGE_HEADER_CLASSES = "mb-10 text-2xl font-bold";
-
-  const QUESTION_HEADER_CLASSES = "font-bold text-2xl";
-
-  const ANSWER_BUTTON_CLASSES =
-    "border border-solid border-black flex flex-row items-center justify-center p-2";
-
-  const DEFAULT_ACTION_BUTTON_CLASSES =
-    "flex flex-row items-center justify-center p-2";
-
-  const NOT_SELECTED_ANSWER_BUTTON_CLASSES =
-    "bg-gray-200 hover:bg-gray-300 active:bg-gray-400";
-
-  const SELECTED_ANSWER_BUTTON_CLASSES =
-    "bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700";
-
-  const ENABLED_ACTION_BUTTON_CLASSES =
-    "bg-green-500 hover:bg-green-600 active:bg-green-700";
-
-  const DISABLED_ACTION_BUTTON_CLASSES =
-    "bg-gray-300 hover:bg-gray-400 active:bg-gray-500 cursor-not-allowed";
 
   return (
     <>
       {/* title */}
-      <h2 className={`${PAGE_HEADER_CLASSES}`}>Quiz Page</h2>
+      <h2 className={`${quizPageStyles.pageHeader}`}>Quiz Page</h2>
 
       {/* Question */}
       {currentTask ? (
-        <p className={`${QUESTION_HEADER_CLASSES}`}>
+        <p className={`${quizPageStyles.questionHeader}`}>
           Q: {currentTask.question.value}
         </p>
       ) : (
@@ -108,16 +86,13 @@ export default function QuizPage({
 
       {/* Answers buttons */}
       {currentTask ? (
-        <div className="grid grid-cols-2 gap-4">
-          {currentTask.answers?.map((answer, index) => (
-            <button
-              key={index}
-              className={`${ANSWER_BUTTON_CLASSES} ${answer.isSelected ? SELECTED_ANSWER_BUTTON_CLASSES : NOT_SELECTED_ANSWER_BUTTON_CLASSES}`}
-              onClick={() => handleAnswerClick(index)}>
-              {answer.value}
-            </button>
-          ))}
-        </div>
+        <AnswerField
+          openAnswer={openAnswer}
+          setOpenAnswer={setOpenAnswer}
+          currentTask={currentTask}
+          setCurrentTask={setCurrentTask}
+          areAnswersChecked={areAnswersChecked}
+        />
       ) : (
         <p>No answers loaded!</p>
       )}
@@ -125,11 +100,11 @@ export default function QuizPage({
       {/* Action buttons */}
       <div className="mt-10 grid grid-cols-2 gap-4">
         <button
-          className={`${DEFAULT_ACTION_BUTTON_CLASSES}
+          className={`${quizPageStyles.defaultActionButton}
             ${
               areAnswersChecked
-                ? DISABLED_ACTION_BUTTON_CLASSES
-                : ENABLED_ACTION_BUTTON_CLASSES
+                ? quizPageStyles.disabledActionButton
+                : quizPageStyles.enabledActionButton
             }
             `}
           disabled={areAnswersChecked}
@@ -137,11 +112,11 @@ export default function QuizPage({
           Check answers
         </button>
         <button
-          className={`${DEFAULT_ACTION_BUTTON_CLASSES}
+          className={`${quizPageStyles.defaultActionButton}
           ${
             areAnswersChecked
-              ? ENABLED_ACTION_BUTTON_CLASSES
-              : DISABLED_ACTION_BUTTON_CLASSES
+              ? quizPageStyles.enabledActionButton
+              : quizPageStyles.disabledActionButton
           }
           `}
           disabled={!areAnswersChecked}

@@ -1,5 +1,5 @@
 # TODO
-- Handle next question
+- Handle next question (const [nextTask, ...remainingTasks] = taskPool)
 
 
 - Fetch generated questions, assign to Task[] and then randomize order
