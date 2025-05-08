@@ -1,6 +1,6 @@
 # TODO
-- Handle next question (const [nextTask, ...remainingTasks] = taskPool)
-
+- Make a request to server: send text and settings, receive Tasks
+- Handle JSON, so it's converted to Task[]
 
 - Fetch generated questions, assign to Task[] and then randomize order
 - If answered wrongly for a question, mark as done and add 2 copies to random places in the array

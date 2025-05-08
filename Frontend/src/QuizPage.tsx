@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Task } from "./QuestionsTypes";
 import { quizPageStyles } from "./PagesStyles";
 import AnswerField from "./AnswerComponent";
+import { checkOpenAnswer } from "./backendService";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array]; // Create a copy to avoid mutating the original array
@@ -26,16 +27,44 @@ export default function QuizPage({
   const [areAnswersChecked, setAreAnswersChecked] = useState<boolean>(false);
   const [isRoundWon, setIsRoundWon] = useState<boolean>(false);
 
+  const [isQuizStarted, setIsQuizStarted] = useState<boolean>(false); // Before first question
+  const [isQuizEnded, setIsQuizEnded] = useState<boolean>(false); // After last question
+
   const [openAnswer, setOpenAnswer] = useState<string>("");
 
   // on page load, if taskPool is empty, create it
   useEffect(() => {
+    createPoolIfEmpty();
+  }, []);
+
+  const createPoolIfEmpty = () => {
     if (taskPool.length == 0 && tasks?.length > 0) {
       setTaskPool(createPool([...tasks]));
     }
-  }, []);
+  };
+
+  function resetRound() {
+    setAreAnswersChecked(false);
+    setIsRoundWon(false);
+    setOpenAnswer("");
+  }
+
+  function resetQuiz() {
+    resetRound();
+    setCurrentTask(undefined);
+    setIsQuizStarted(false);
+    setIsQuizEnded(false);
+  }
 
   const handleCheckAnswersClick = () => {
+    if (currentTask?.question.isOpen) {
+      // make api call
+      // TODO
+      // if response is a score, react accordingly
+      // otherwise throw an error (popup or smth)
+      // return
+    }
+
     const maxPoints = currentTask?.answers?.filter(
       (answer) => answer.isCorrect,
     ).length;
@@ -49,25 +78,50 @@ export default function QuizPage({
       }
     }
 
-    setIsRoundWon(currentPoints == maxPoints);
+    const isMaxPointsSCored = currentPoints == maxPoints;
+
+    if (!isMaxPointsSCored && currentTask) {
+      // create a copy of currentTask, but reset the answers
+      const taskCopy: Task = {
+        ...currentTask,
+        answers: currentTask.answers?.map((answer) => ({
+          ...answer,
+          isSelected: false,
+        })),
+      };
+
+      // Add 2 same tasks to the pool and reshuffle it
+      setTaskPool((prevTaskPool) =>
+        shuffleArray([...prevTaskPool, taskCopy, taskCopy]),
+      );
+    }
+
+    setIsRoundWon(isMaxPointsSCored);
     setAreAnswersChecked(true);
   };
-
-  function resetRound() {
-    setAreAnswersChecked(false);
-    setIsRoundWon(false);
-  }
 
   const handleNextQuestionClick = () => {
     resetRound();
 
     if (tasks.length == 0) {
       console.log("No more questions!");
+      setIsQuizEnded(true);
     }
 
     const [nextTask, ...remainingTasks] = taskPool;
     setCurrentTask(nextTask);
     setTaskPool(remainingTasks);
+  };
+
+  const handleStartQuiz = () => {
+    console.log("Quiz has started");
+
+    setIsQuizStarted(true);
+  };
+
+  const handleRestartQuiz = () => {
+    resetQuiz();
+    createPoolIfEmpty();
   };
 
   return (
@@ -98,6 +152,25 @@ export default function QuizPage({
       )}
 
       {/* Action buttons */}
+      {/* Start/End state */}
+      {!isQuizStarted ? (
+        <div>
+          <button onClick={handleStartQuiz}>START</button>
+        </div>
+      ) : (
+        <></>
+      )}
+
+      {isQuizEnded ? (
+        <div>
+          <h1>YOU FINISHED THE QUIZ!</h1>
+          <button onClick={handleRestartQuiz}>Restart Quiz</button>
+        </div>
+      ) : (
+        <></>
+      )}
+
+      {/* Mid game state */}
       <div className="mt-10 grid grid-cols-2 gap-4">
         <button
           className={`${quizPageStyles.defaultActionButton}
@@ -107,6 +180,7 @@ export default function QuizPage({
                 : quizPageStyles.enabledActionButton
             }
             `}
+          hidden={!isQuizStarted || !isQuizEnded}
           disabled={areAnswersChecked}
           onClick={handleCheckAnswersClick}>
           Check answers
@@ -119,6 +193,7 @@ export default function QuizPage({
               : quizPageStyles.disabledActionButton
           }
           `}
+          hidden={!isQuizStarted || !isQuizEnded}
           disabled={!areAnswersChecked}
           onClick={handleNextQuestionClick}>
           Next question
