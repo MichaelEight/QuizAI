@@ -21,7 +21,7 @@ export default function AnswerField({
 
 function OpenAnswer({ openAnswer, setOpenAnswer }) {
   const handleOpenAnswerChange = (e) => {
-    setOpenAnswer(e.value);
+    setOpenAnswer(e.target.value);
   };
 
   return (

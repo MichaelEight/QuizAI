@@ -1,4 +1,6 @@
 # TODO
+- Open answer should display "You scored X out of 100 points" for information
+
 - Make a request to server: send text and settings, receive Tasks
 - Handle JSON, so it's converted to Task[]
 

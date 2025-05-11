@@ -1,7 +1,11 @@
 const serverAddr = "http://localhost:5000";
 
 // Make a direct request to backend
-async function apiCheckOpenAnswer(text, question, answer) {
+async function apiCheckOpenAnswer(
+  text: string,
+  question: string,
+  answer: string,
+): Promise<any> {
   const url = `${serverAddr}/check_open_answer`;
   const payload = { text, question, answer };
 
@@ -31,7 +35,7 @@ export async function checkOpenAnswer(
   text: string,
   question: string,
   answer: string,
-) {
+): Promise<number> {
   if (!text || !question) {
     throw new Error(
       "Missing required values: 'text' and 'question' are required.",
@@ -39,5 +43,16 @@ export async function checkOpenAnswer(
   }
 
   const result = await apiCheckOpenAnswer(text, question, answer);
-  return result;
+  try {
+    const resultAsNumber = Number(result);
+
+    if (resultAsNumber < 0 || resultAsNumber > 100) {
+      throw new Error("Result score number not in range [0;100]");
+    }
+
+    return resultAsNumber;
+  } catch (error) {
+    console.error("Error in checkOpenAnswer:", error);
+    return -1; // Error number
+  }
 }

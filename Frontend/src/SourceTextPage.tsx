@@ -11,6 +11,11 @@ export default function SourceTextPage({
     // Go to QuizPage
     // Make a placeholder for now
 
+    // Placeholder text
+    setSourceText(
+      "A cat found a shiny pebble in the garden. Curious, it batted the pebble across the yard. The pebble rolled into a hole, and a tiny mouse popped out, squeaking. Surprised but delighted, the cat and mouse became friends.",
+    );
+
     const closedQuestion: Question = {
       value: "hello there?",
       isOpen: false,
@@ -37,7 +42,7 @@ export default function SourceTextPage({
     };
 
     const openQuestion: Question = {
-      value: "How much is 2+2*2?",
+      value: "What did the cat find in the garden?",
       isOpen: true,
     };
 

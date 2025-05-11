@@ -53,7 +53,10 @@ function App() {
             />
           }
         />
-        <Route path="quizPage" element={<QuizPage tasks={tasks} />} />
+        <Route
+          path="quizPage"
+          element={<QuizPage sourceText={sourceText} tasks={tasks} />}
+        />
       </Routes>
     </div>
   );

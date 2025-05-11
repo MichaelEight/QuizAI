@@ -18,8 +18,10 @@ function createPool(tasks: Task[]): Task[] {
 }
 
 export default function QuizPage({
+  sourceText,
   tasks,
 }: {
+  readonly sourceText: string;
   readonly tasks: readonly Task[];
 }) {
   const [taskPool, setTaskPool] = useState<Task[]>([]);
@@ -56,13 +58,17 @@ export default function QuizPage({
     setIsQuizEnded(false);
   }
 
-  const handleCheckAnswersClick = () => {
+  const handleCheckAnswersClick = async () => {
     if (currentTask?.question.isOpen) {
-      // make api call
-      // TODO
-      // if response is a score, react accordingly
-      // otherwise throw an error (popup or smth)
-      // return
+      const result = await checkOpenAnswer(
+        sourceText,
+        currentTask.question.value,
+        openAnswer,
+      );
+      // If scored at least 51 pts, win
+      setIsRoundWon(result >= 51);
+      setAreAnswersChecked(true);
+      return;
     }
 
     const maxPoints = currentTask?.answers?.filter(
@@ -114,8 +120,7 @@ export default function QuizPage({
   };
 
   const handleStartQuiz = () => {
-    console.log("Quiz has started");
-
+    handleNextQuestionClick();
     setIsQuizStarted(true);
   };
 
@@ -171,34 +176,36 @@ export default function QuizPage({
       )}
 
       {/* Mid game state */}
-      <div className="mt-10 grid grid-cols-2 gap-4">
-        <button
-          className={`${quizPageStyles.defaultActionButton}
+      {isQuizStarted && !isQuizEnded ? (
+        <div className="mt-10 grid grid-cols-2 gap-4">
+          <button
+            className={`${quizPageStyles.defaultActionButton}
             ${
               areAnswersChecked
                 ? quizPageStyles.disabledActionButton
                 : quizPageStyles.enabledActionButton
             }
             `}
-          hidden={!isQuizStarted || !isQuizEnded}
-          disabled={areAnswersChecked}
-          onClick={handleCheckAnswersClick}>
-          Check answers
-        </button>
-        <button
-          className={`${quizPageStyles.defaultActionButton}
+            disabled={areAnswersChecked}
+            onClick={handleCheckAnswersClick}>
+            Check answers
+          </button>
+          <button
+            className={`${quizPageStyles.defaultActionButton}
           ${
             areAnswersChecked
               ? quizPageStyles.enabledActionButton
               : quizPageStyles.disabledActionButton
           }
           `}
-          hidden={!isQuizStarted || !isQuizEnded}
-          disabled={!areAnswersChecked}
-          onClick={handleNextQuestionClick}>
-          Next question
-        </button>
-      </div>
+            disabled={!areAnswersChecked}
+            onClick={handleNextQuestionClick}>
+            Next question
+          </button>
+        </div>
+      ) : (
+        <></>
+      )}
 
       {/* ROUND STATUS */}
       {areAnswersChecked ? (
