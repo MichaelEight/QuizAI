@@ -1,62 +1,29 @@
+import { generateQuestions } from "./backendService";
 import { Task, Question, Answer } from "./QuestionsTypes";
 
 export default function SourceTextPage({
   sourceText,
   setSourceText,
   setTasks,
+  settings,
 }) {
-  const handleGenerateButtonClick = () => {
+  const handleGenerateButtonClick = async () => {
     // Make an API request
+    const result = await generateQuestions(sourceText, settings);
     // Assign returned value to Tasks (setTasks)
-    // Go to QuizPage
-    // Make a placeholder for now
+    if (!result || result.length == 0) {
+      console.error("No questions received!");
+      return;
+    }
+    // TODO: Go to QuizPage
 
-    // Placeholder text
-    setSourceText(
-      "A cat found a shiny pebble in the garden. Curious, it batted the pebble across the yard. The pebble rolled into a hole, and a tiny mouse popped out, squeaking. Surprised but delighted, the cat and mouse became friends.",
-    );
+    console.log("Questions generated successfully!");
 
-    const closedQuestion: Question = {
-      value: "hello there?",
-      isOpen: false,
-    };
+    console.log("DEBUG:");
+    console.log("settings:", settings);
+    console.log("result:", result);
 
-    const answer1: Answer = {
-      value: "general kenobi",
-      isCorrect: true,
-    };
-
-    const answer2: Answer = {
-      value: "hi",
-      isCorrect: false,
-    };
-
-    const answer3: Answer = {
-      value: "hello",
-      isCorrect: false,
-    };
-
-    const answer4: Answer = {
-      value: "greetings",
-      isCorrect: false,
-    };
-
-    const openQuestion: Question = {
-      value: "What did the cat find in the garden?",
-      isOpen: true,
-    };
-
-    const tasks: Task[] = [
-      {
-        question: closedQuestion,
-        answers: [answer1, answer2, answer3, answer4],
-      },
-      {
-        question: openQuestion,
-      },
-    ];
-
-    setTasks(tasks);
+    setTasks(result);
   };
 
   return (

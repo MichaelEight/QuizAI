@@ -1,14 +1,13 @@
 # TODO
-- Open answer should display "You scored X out of 100 points" for information
-
-- Make a request to server: send text and settings, receive Tasks
-- Handle JSON, so it's converted to Task[]
-
+- FIX tasks not being properly passed from sourcetextpage to quizpage
 - Fetch generated questions, assign to Task[] and then randomize order
-- If answered wrongly for a question, mark as done and add 2 copies to random places in the array
-- Think of better task-serving algorithm i.e. it's better to learn chunks and then add bits of next chunk after few tasks are finished
-- Make file for handling requests to backend
+
+- FIX bug: answer "some stone". -1 is returned
+    it'd be wise to determine the error source e.g. GPT should return -100 if he considers something is wrong (invalid prompt etc.)
+    and -10 should be returned in case of api error, so maybe -1 during conversion to number?
+
 - convert styles from css to tailwind
+- Think of better task-serving algorithm i.e. it's better to learn chunks and then add bits of next chunk after few tasks are finished
 
 
 Frontend:

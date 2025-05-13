@@ -50,6 +50,7 @@ function App() {
               sourceText={sourceText}
               setSourceText={setSourceText}
               setTasks={setTasks}
+              settings={settings}
             />
           }
         />

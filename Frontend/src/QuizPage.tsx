@@ -33,6 +33,7 @@ export default function QuizPage({
   const [isQuizEnded, setIsQuizEnded] = useState<boolean>(false); // After last question
 
   const [openAnswer, setOpenAnswer] = useState<string>("");
+  const [openAnswerScore, setOpenAnswerScore] = useState<number>(0);
 
   // on page load, if taskPool is empty, create it
   useEffect(() => {
@@ -59,18 +60,47 @@ export default function QuizPage({
   }
 
   const handleCheckAnswersClick = async () => {
+    // Handle open question
     if (currentTask?.question.isOpen) {
       const result = await checkOpenAnswer(
         sourceText,
         currentTask.question.value,
         openAnswer,
       );
+      if (result == -1) {
+        console.error(
+          "Error during checking open answer. User allowed to skip question or repeat it",
+        );
+        // Enable next question
+        return;
+      }
+
       // If scored at least 51 pts, win
       setIsRoundWon(result >= 51);
       setAreAnswersChecked(true);
+      setOpenAnswerScore(result);
+
+      // TODO: Refactor repetition
+      if (!isRoundWon) {
+        // create a copy of currentTask, but reset the answers
+        const taskCopy: Task = {
+          ...currentTask,
+          answers: currentTask.answers?.map((answer) => ({
+            ...answer,
+            isSelected: false,
+          })),
+        };
+
+        // Add 2 same tasks to the pool and reshuffle it
+        setTaskPool((prevTaskPool) =>
+          shuffleArray([...prevTaskPool, taskCopy, taskCopy]),
+        );
+      }
+
       return;
     }
 
+    // Handle closed question
     const maxPoints = currentTask?.answers?.filter(
       (answer) => answer.isCorrect,
     ).length;
@@ -166,9 +196,12 @@ export default function QuizPage({
         <></>
       )}
 
+      {/* End screen */}
       {isQuizEnded ? (
         <div>
-          <h1>YOU FINISHED THE QUIZ!</h1>
+          <h1 className={quizPageStyles.questionHeader}>
+            YOU FINISHED THE QUIZ!
+          </h1>
           <button onClick={handleRestartQuiz}>Restart Quiz</button>
         </div>
       ) : (
@@ -178,6 +211,7 @@ export default function QuizPage({
       {/* Mid game state */}
       {isQuizStarted && !isQuizEnded ? (
         <div className="mt-10 grid grid-cols-2 gap-4">
+          {/* Check answers button */}
           <button
             className={`${quizPageStyles.defaultActionButton}
             ${
@@ -190,6 +224,7 @@ export default function QuizPage({
             onClick={handleCheckAnswersClick}>
             Check answers
           </button>
+          {/* Next question button */}
           <button
             className={`${quizPageStyles.defaultActionButton}
           ${
@@ -210,7 +245,12 @@ export default function QuizPage({
       {/* ROUND STATUS */}
       {areAnswersChecked ? (
         <div>
-          <p>{isRoundWon ? "YOU WON!" : "YOU LOST!"}</p>
+          <p>{isRoundWon ? "Correct!" : "Incorrect!"}</p>
+          {currentTask?.question.isOpen ? (
+            <p>You scored {openAnswerScore} out of 100 points.</p>
+          ) : (
+            <></>
+          )}
         </div>
       ) : (
         <></>
