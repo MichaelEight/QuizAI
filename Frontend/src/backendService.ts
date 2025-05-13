@@ -131,11 +131,15 @@ export async function generateQuestions(
 
     const tasks: Task[] = Array.isArray(result)
       ? result.map((item) => ({
-          question: item.question,
+          question: {
+            value: item.question,
+            isOpen: !item.answers || item.answers.length === 0,
+          },
           answers: item.answers
             ? item.answers.map((a: any) => ({
-                content: a.content,
+                value: a.content,
                 isCorrect: a.isCorrect,
+                isSelected: false,
               }))
             : undefined,
         }))

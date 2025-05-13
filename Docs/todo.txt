@@ -1,6 +1,7 @@
 # TODO
-- FIX tasks not being properly passed from sourcetextpage to quizpage
 - Fetch generated questions, assign to Task[] and then randomize order
+
+- "What would be the 100pts answer?" button (or 'show correct answer')
 
 - FIX bug: answer "some stone". -1 is returned
     it'd be wise to determine the error source e.g. GPT should return -100 if he considers something is wrong (invalid prompt etc.)

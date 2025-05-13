@@ -59,4 +59,5 @@ def check_open_answer(text, question, answer):
     try:
         return int(ans)
     except ValueError:
+        print("Value error in check_open_answer. The response was: ", ans)
         return -1
