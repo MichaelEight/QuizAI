@@ -10,6 +10,53 @@
 - convert styles from css to tailwind
 - Think of better task-serving algorithm i.e. it's better to learn chunks and then add bits of next chunk after few tasks are finished
 
+- Improve API structure, so that it returns:
+    success: boolean
+    error: string
+    payload: any[] // this can be like Task[] or number (grade)
+Structure recommended by GPT:
+{
+  "success": boolean,          // true on 2xx, false on 4xx/5xx
+  "status_code": number,       // HTTP status code
+  "message": string,           // human-readable (optional on success)
+  "data": object|null,         // payload for successful calls
+  "error": {                   // only for failures
+    "code": string,            // machine error code (e.g. VALIDATION_ERROR)
+    "details": string[]        // array of field-level errors or contextual info
+  }|null,
+  "meta": object|null          // optional paging, timestamps, request_id, etc.
+}
+Example:
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Questions generated",
+  "data": {
+    "closed_questions": [
+      { "id": 1, "question": "...", "options": [...], "answer_index": 2 },
+      …
+    ],
+    "open_questions": [
+      { "id": 101, "question": "...", "model_answer": "..." },
+      …
+    ]
+  },
+  "error": null,
+  "meta": { "closed_count": 5, "open_count": 3 }
+}
+Example with error:
+{
+  "success": false,
+  "status_code": 400,
+  "message": "Validation failed",
+  "data": null,
+  "error": {
+    "code": "MISSING_FIELDS",
+    "details": ["text is required", "closed_amount is required"]
+  },
+  "meta": null
+}
+
 
 Frontend:
 - Create pages (either react router or just swap content on one page by hiding the other one):
