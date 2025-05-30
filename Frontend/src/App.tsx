@@ -30,9 +30,17 @@ function App() {
         <NavLink to="sourcePage" end>
           Input Text
         </NavLink>
-        <NavLink to="quizPage" end>
-          Quiz
-        </NavLink>
+        {tasks.length > 0 ? (
+          <NavLink to="quizPage" end>
+            Quiz
+          </NavLink>
+        ) : (
+          <span
+            className="text-gray-600 cursor-not-allowed"
+            title="Generate questions to unlock">
+            Quiz
+          </span>
+        )}
       </nav>
 
       <Routes>

@@ -25,15 +25,23 @@ export default function QuizPage({
   readonly tasks: readonly Task[];
 }) {
   const [taskPool, setTaskPool] = useState<Task[]>([]);
+  const [isChecking, setIsChecking] = useState<boolean>(false);
   const [currentTask, setCurrentTask] = useState<Task>();
   const [areAnswersChecked, setAreAnswersChecked] = useState<boolean>(false);
   const [isRoundWon, setIsRoundWon] = useState<boolean>(false);
+  const [correctCount, setCorrectCount] = useState<number>(0);
+  const [incorrectCount, setIncorrectCount] = useState<number>(0);
+  // Track which questions have been learned (answered correctly once)
+  const [learnedSet, setLearnedSet] = useState<Set<string>>(new Set());
 
   const [isQuizStarted, setIsQuizStarted] = useState<boolean>(false); // Before first question
   const [isQuizEnded, setIsQuizEnded] = useState<boolean>(false); // After last question
 
   const [openAnswer, setOpenAnswer] = useState<string>("");
   const [openAnswerScore, setOpenAnswerScore] = useState<number>(0);
+
+  // Number of learned questions
+  const learnedCount = learnedSet.size;
 
   // on page load, if taskPool is empty, create it
   useEffect(() => {
@@ -59,81 +67,72 @@ export default function QuizPage({
     setIsQuizEnded(false);
   }
 
-  const handleCheckAnswersClick = async () => {
-    // Handle open question
-    if (currentTask?.question.isOpen) {
-      const result = await checkOpenAnswer(
-        sourceText,
-        currentTask.question.value,
-        openAnswer,
-      );
-      if (result == -1) {
-        console.error(
-          "Error during checking open answer. User allowed to skip question or repeat it",
-        );
-        // Enable next question
-        return;
-      }
-
-      // If scored at least 51 pts, win
-      setIsRoundWon(result >= 51);
-      setAreAnswersChecked(true);
-      setOpenAnswerScore(result);
-
-      // TODO: Refactor repetition
-      if (!isRoundWon) {
-        // create a copy of currentTask, but reset the answers
-        const taskCopy: Task = {
-          ...currentTask,
-          answers: currentTask.answers?.map((answer) => ({
-            ...answer,
-            isSelected: false,
-          })),
-        };
-
-        // Add 2 same tasks to the pool and reshuffle it
-        setTaskPool((prevTaskPool) =>
-          shuffleArray([...prevTaskPool, taskCopy, taskCopy]),
-        );
-      }
-
-      return;
+  // Process open question result
+  const handleOpenCheck = async () => {
+    const result = await checkOpenAnswer(
+      sourceText,
+      currentTask!.question.value,
+      openAnswer,
+    );
+    const won = result >= 51;
+    setIsRoundWon(won);
+    setOpenAnswerScore(result);
+    won ? setCorrectCount((c) => c + 1) : setIncorrectCount((i) => i + 1);
+    if (won) {
+      setLearnedSet((prev) => new Set(prev).add(currentTask!.question.value));
     }
-
-    // Handle closed question
-    const maxPoints = currentTask?.answers?.filter(
-      (answer) => answer.isCorrect,
-    ).length;
-
-    let currentPoints = 0;
-    if (currentTask?.answers) {
-      for (const answer of currentTask.answers) {
-        if (answer.isSelected) {
-          currentPoints += answer.isCorrect ? 1 : -1;
-        }
-      }
-    }
-
-    const isMaxPointsSCored = currentPoints == maxPoints;
-
-    if (!isMaxPointsSCored && currentTask) {
-      // create a copy of currentTask, but reset the answers
-      const taskCopy: Task = {
-        ...currentTask,
-        answers: currentTask.answers?.map((answer) => ({
-          ...answer,
+    setAreAnswersChecked(true);
+    if (!won) {
+      const copy: Task = {
+        ...currentTask!,
+        answers: currentTask!.answers!.map((a) => ({
+          ...a,
           isSelected: false,
         })),
       };
-
-      // Add 2 same tasks to the pool and reshuffle it
-      setTaskPool((prevTaskPool) =>
-        shuffleArray([...prevTaskPool, taskCopy, taskCopy]),
-      );
+      setTaskPool((prev) => shuffleArray([...prev, copy, copy]));
     }
+  };
 
-    setIsRoundWon(isMaxPointsSCored);
+  // Process closed question result
+  const handleClosedCheck = () => {
+    const answers = currentTask!.answers!;
+    const maxPoints = answers.filter((a) => a.isCorrect).length;
+    const points = answers.reduce((sum, a) => {
+      if (a.isSelected) {
+        return sum + (a.isCorrect ? 1 : -1);
+      }
+      return sum;
+    }, 0);
+    const won = points === maxPoints;
+    setIsRoundWon(won);
+    won ? setCorrectCount((c) => c + 1) : setIncorrectCount((i) => i + 1);
+    if (won) {
+      setLearnedSet((prev) => new Set(prev).add(currentTask!.question.value));
+    }
     setAreAnswersChecked(true);
+    if (!won) {
+      const copy: Task = {
+        ...currentTask!,
+        answers: answers.map((a) => ({ ...a, isSelected: false })),
+      };
+      setTaskPool((prev) => shuffleArray([...prev, copy, copy]));
+    }
+  };
+
+  // Unified check answers handler
+  const handleCheckAnswersClick = async () => {
+    if (!currentTask) return;
+    setIsChecking(true);
+    try {
+      if (currentTask.question.isOpen) {
+        await handleOpenCheck();
+      } else {
+        handleClosedCheck();
+      }
+    } finally {
+      setIsChecking(false);
+    }
   };
 
   const handleNextQuestionClick = () => {
@@ -162,7 +161,43 @@ export default function QuizPage({
   return (
     <div className="card">
       {/* title */}
-      <h2 className={`${quizPageStyles.pageHeader}`}>Quiz Page</h2>
+      <h2 className={quizPageStyles.pageHeader}>Quiz Page</h2>
+      {/* Progress Bars */}
+      <div className="mb-4 space-y-4">
+        {/* Correct vs Incorrect */}
+        <div className="flex justify-between items-center text-sm text-gray-300">
+          <span>Correct: {correctCount}</span>
+          <span>Incorrect: {incorrectCount}</span>
+        </div>
+        <div className="w-full bg-red-600 rounded-full h-2 overflow-hidden">
+          <div
+            className="bg-green-500 h-2 transition-all"
+            style={{
+              width: `${
+                correctCount + incorrectCount === 0
+                  ? 100
+                  : Math.round(
+                      (correctCount / (correctCount + incorrectCount)) * 100,
+                    )
+              }%`,
+            }}
+          />
+        </div>
+
+        {/* Learned Questions */}
+        <div className="flex justify-between items-center text-sm text-gray-300">
+          <span>Learned: {learnedCount}</span>
+          <span>Total: {tasks.length}</span>
+        </div>
+        <div className="w-full bg-red-600 rounded-full h-2 overflow-hidden">
+          <div
+            className="bg-green-500 h-2 transition-all"
+            style={{
+              width: `${tasks.length > 0 ? Math.round((learnedCount / tasks.length) * 100) : 0}%`,
+            }}
+          />
+        </div>
+      </div>
 
       {/* Question */}
       {currentTask ? (
@@ -221,10 +256,10 @@ export default function QuizPage({
         <div className="mt-10 grid grid-cols-2 gap-4">
           {/* Check answers button */}
           <button
-            className={`${quizPageStyles.defaultActionButton} ${areAnswersChecked ? quizPageStyles.disabledActionButton : ""}`}
-            disabled={areAnswersChecked}
+            className={`${quizPageStyles.defaultActionButton} ${areAnswersChecked || isChecking ? quizPageStyles.disabledActionButton : ""}`}
+            disabled={areAnswersChecked || isChecking}
             onClick={handleCheckAnswersClick}>
-            Check answers
+            {isChecking ? "Checking..." : "Check answers"}
           </button>
           {/* Next question button */}
           <button
