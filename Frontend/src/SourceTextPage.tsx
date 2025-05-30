@@ -1,12 +1,24 @@
+import React from "react";
 import { generateQuestions } from "./backendService";
-import { Task, Question, Answer } from "./QuestionsTypes";
+import { Task } from "./QuestionsTypes";
+import { Settings } from "./SettingsType";
+import { quizPageStyles } from "./PagesStyles";
+import "./App.css";
+
+// Props for SourceTextPage
+type SourceTextProps = Readonly<{
+  sourceText: string;
+  setSourceText: React.Dispatch<React.SetStateAction<string>>;
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  settings: Settings;
+}>;
 
 export default function SourceTextPage({
   sourceText,
   setSourceText,
   setTasks,
   settings,
-}) {
+}: SourceTextProps) {
   const handleGenerateButtonClick = async () => {
     // Make an API request
     const result = await generateQuestions(sourceText, settings);
@@ -15,7 +27,7 @@ export default function SourceTextPage({
       console.error("No questions received!");
       return;
     }
-    // TODO: Go to QuizPage
+    // Navigation to QuizPage can be handled via Router after generation (if desired)
 
     console.log("Questions generated successfully!");
 
@@ -27,20 +39,19 @@ export default function SourceTextPage({
   };
 
   return (
-    <>
-      <h2 className="text-2xl font-bold">Input source text</h2>
+    <div className="card">
+      <h2 className={quizPageStyles.pageHeader}>Generate Quiz</h2>
       <textarea
-        className="border border-solid border-black"
-        rows={5}
-        cols={40}
+        className="w-full h-40 mt-4 bg-gray-800 text-gray-100 border border-gray-600 rounded-md focus:border-secondary focus:ring-2 focus:ring-secondary transition-all"
         value={sourceText}
         onChange={(e) => setSourceText(e.target.value)}
+        placeholder="Paste your source text here..."
       />
       <button
-        className="bg-sky-500 hover:bg-sky-600 active:bg-sky-700 p-2 rounded-xl"
+        className={`${quizPageStyles.defaultActionButton} mt-6 mx-auto block`}
         onClick={handleGenerateButtonClick}>
         Generate Questions
       </button>
-    </>
+    </div>
   );
 }

@@ -27,11 +27,10 @@ function OpenAnswer({ openAnswer, setOpenAnswer }) {
   return (
     <div>
       <textarea
-        className="border border-solid border-black"
-        rows={5}
-        cols={40}
+        className="w-full h-40 p-3 bg-[var(--bg)] text-[var(--fg)] border border-[var(--border)] rounded-md transition-all focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]"
         value={openAnswer}
         onChange={handleOpenAnswerChange}
+        placeholder="Type your answer..."
       />
     </div>
   );

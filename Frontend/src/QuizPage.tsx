@@ -160,7 +160,7 @@ export default function QuizPage({
   };
 
   return (
-    <>
+    <div className="card">
       {/* title */}
       <h2 className={`${quizPageStyles.pageHeader}`}>Quiz Page</h2>
 
@@ -189,8 +189,12 @@ export default function QuizPage({
       {/* Action buttons */}
       {/* Start/End state */}
       {!isQuizStarted ? (
-        <div>
-          <button onClick={handleStartQuiz}>START</button>
+        <div className="mt-6 text-center">
+          <button
+            className={quizPageStyles.defaultActionButton}
+            onClick={handleStartQuiz}>
+            START
+          </button>
         </div>
       ) : (
         <></>
@@ -198,11 +202,15 @@ export default function QuizPage({
 
       {/* End screen */}
       {isQuizEnded ? (
-        <div>
+        <div className="mt-6 text-center">
           <h1 className={quizPageStyles.questionHeader}>
             YOU FINISHED THE QUIZ!
           </h1>
-          <button onClick={handleRestartQuiz}>Restart Quiz</button>
+          <button
+            className={quizPageStyles.defaultActionButton}
+            onClick={handleRestartQuiz}>
+            Restart Quiz
+          </button>
         </div>
       ) : (
         <></>
@@ -213,26 +221,14 @@ export default function QuizPage({
         <div className="mt-10 grid grid-cols-2 gap-4">
           {/* Check answers button */}
           <button
-            className={`${quizPageStyles.defaultActionButton}
-            ${
-              areAnswersChecked
-                ? quizPageStyles.disabledActionButton
-                : quizPageStyles.enabledActionButton
-            }
-            `}
+            className={`${quizPageStyles.defaultActionButton} ${areAnswersChecked ? quizPageStyles.disabledActionButton : ""}`}
             disabled={areAnswersChecked}
             onClick={handleCheckAnswersClick}>
             Check answers
           </button>
           {/* Next question button */}
           <button
-            className={`${quizPageStyles.defaultActionButton}
-          ${
-            areAnswersChecked
-              ? quizPageStyles.enabledActionButton
-              : quizPageStyles.disabledActionButton
-          }
-          `}
+            className={`${quizPageStyles.defaultActionButton} ${!areAnswersChecked ? quizPageStyles.disabledActionButton : ""}`}
             disabled={!areAnswersChecked}
             onClick={handleNextQuestionClick}>
             Next question
@@ -244,10 +240,14 @@ export default function QuizPage({
 
       {/* ROUND STATUS */}
       {areAnswersChecked ? (
-        <div>
-          <p>{isRoundWon ? "Correct!" : "Incorrect!"}</p>
+        <div className="mt-6 text-center">
+          <p className="font-semibold text-lg">
+            {isRoundWon ? "Correct!" : "Incorrect!"}
+          </p>
           {currentTask?.question.isOpen ? (
-            <p>You scored {openAnswerScore} out of 100 points.</p>
+            <p className="text-sm mt-2">
+              You scored {openAnswerScore} out of 100 points.
+            </p>
           ) : (
             <></>
           )}
@@ -255,6 +255,6 @@ export default function QuizPage({
       ) : (
         <></>
       )}
-    </>
+    </div>
   );
 }

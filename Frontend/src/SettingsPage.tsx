@@ -1,7 +1,18 @@
+import React from "react";
 import { Settings, SettingsTypes } from "./SettingsType";
 import "./Settings.css";
+import { quizPageStyles } from "./PagesStyles";
 
-export default function SettingsPage({ settings, setSettings }) {
+// Props for SettingsPage, marked readonly
+type SettingsPageProps = Readonly<{
+  settings: Settings;
+  setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+}>;
+
+export default function SettingsPage({
+  settings,
+  setSettings,
+}: SettingsPageProps) {
   const handleChange = (key: keyof Settings, value: SettingsTypes) => {
     setSettings((prevSettings: Settings) => ({
       ...prevSettings,
@@ -10,8 +21,8 @@ export default function SettingsPage({ settings, setSettings }) {
   };
 
   return (
-    <div className="settings-page-container">
-      <h2 className="text-2xl font-bold">Settings Page</h2>
+    <div className="settings-page-container card">
+      <h2 className={quizPageStyles.pageHeader}>Settings</h2>
       <div className="inputs-container">
         <div className="input-container">
           <p>Closed questions</p>
