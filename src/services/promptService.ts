@@ -17,6 +17,7 @@ interface CheckOpenQuestionArgs {
   text?: string;
   question?: string;
   answer?: string;
+  acceptedAnswer?: string;  // Previously accepted answer by user
 }
 
 type PromptArgs = GenerateQuestionsArgs | CheckOpenQuestionArgs;
@@ -57,14 +58,24 @@ class Prompts {
         `;
   }
 
-  private static devCheckOpen(text: string, question: string): string {
-    return `
+  private static devCheckOpen(text: string, question: string, acceptedAnswer?: string): string {
+    let prompt = `
         Base text is:
         ${text}
 
         Based on that text, there was a question asked:
         ${question}
         `;
+
+    if (acceptedAnswer) {
+      prompt += `
+        IMPORTANT: A previous user answer was marked as correct by the user:
+        "${acceptedAnswer}"
+        If the current answer is semantically similar to this accepted answer, give it a score of at least 70.
+        `;
+    }
+
+    return prompt;
   }
 
   private static userCheckOpen(answer: string): string {
@@ -111,6 +122,7 @@ class Prompts {
           return Prompts.devCheckOpen(
             checkArgs?.text ?? '',
             checkArgs?.question ?? '',
+            checkArgs?.acceptedAnswer,
           );
         case PromptRank.USER:
           return Prompts.userCheckOpen(checkArgs?.answer ?? '');

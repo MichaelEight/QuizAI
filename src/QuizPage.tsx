@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router";
-import { Task } from "./QuestionsTypes";
+import { Task, AnswerOverride } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
 import AnswerField from "./AnswerComponent";
 import { checkOpenAnswer } from "./backendService";
@@ -83,10 +83,12 @@ function clearQuizProgress(): void {
 export default function QuizPage({
   sourceText,
   tasks,
+  setTasks,
   settings,
 }: {
   readonly sourceText: string;
   readonly tasks: readonly Task[];
+  readonly setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   readonly settings: Settings;
 }) {
   // Load saved progress on initial render
@@ -175,10 +177,13 @@ export default function QuizPage({
     setIsChecking(true);
 
     if (currentTask?.question.isOpen) {
+      // Get accepted answer from task if exists (for future retries)
+      const acceptedAnswer = currentTask.answerOverride?.acceptedOpenAnswer;
       const result = await checkOpenAnswer(
         sourceText,
         currentTask.question.value,
         openAnswer,
+        acceptedAnswer,
       );
       if (result === -1) {
         console.error("Error during checking open answer");
@@ -283,6 +288,111 @@ export default function QuizPage({
   const handleStartQuiz = () => {
     handleNextQuestionClick();
     setIsQuizStarted(true);
+  };
+
+  const handleAcceptMyAnswer = () => {
+    if (!currentTask) return;
+
+    const override: AnswerOverride = {
+      overriddenAt: Date.now(),
+    };
+
+    if (currentTask.question.isOpen) {
+      // For open questions: store the user's answer as accepted
+      override.acceptedOpenAnswer = openAnswer;
+    } else {
+      // For closed questions: store indices of selected answers as correct
+      const selectedIndices = currentTask.answers
+        ?.map((a, i) => a.isSelected ? i : -1)
+        .filter(i => i !== -1) ?? [];
+      override.correctAnswerIndices = selectedIndices;
+    }
+
+    // Update the main tasks array with the override
+    setTasks(prevTasks =>
+      prevTasks.map(t =>
+        t.id === currentTask.id
+          ? { ...t, answerOverride: override }
+          : t
+      )
+    );
+
+    // Update all pool instances with the new correct answers
+    setTaskPool(prevPool =>
+      prevPool.map(poolTask => {
+        if (poolTask.id !== currentTask.id) return poolTask;
+
+        if (currentTask.question.isOpen) {
+          // Just add the override, AI will handle it during checking
+          return { ...poolTask, answerOverride: override };
+        } else {
+          // Update isCorrect on answers to match user selection
+          const updatedAnswers = poolTask.answers?.map((a, i) => ({
+            ...a,
+            isCorrect: override.correctAnswerIndices?.includes(i) ?? false,
+            isSelected: false,
+          }));
+          return { ...poolTask, answers: updatedAnswers, answerOverride: override };
+        }
+      })
+    );
+
+    // If was marked incorrect, flip to correct and update counters
+    if (!isRoundWon) {
+      setIsRoundWon(true);
+      setCorrectAnswers(prev => prev + 1);
+      setIncorrectAnswers(prev => Math.max(0, prev - 1));
+      setLearntQuestions(prev => new Set(prev).add(currentTask.id));
+
+      // Remove retry copies that were added for this question
+      setTaskPool(prevPool =>
+        prevPool.filter(t => !(t.id === currentTask.id && t.isRetry))
+      );
+    }
+  };
+
+  const handleRemoveQuestion = () => {
+    if (!currentTask) return;
+
+    // Mark task as removed in main tasks array
+    setTasks(prevTasks =>
+      prevTasks.map(t =>
+        t.id === currentTask.id
+          ? { ...t, isRemoved: true }
+          : t
+      )
+    );
+
+    // Remove all instances from pool
+    setTaskPool(prevPool =>
+      prevPool.filter(t => t.id !== currentTask.id)
+    );
+
+    // Remove from learnt set and adjust counters
+    setLearntQuestions(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(currentTask.id);
+      return newSet;
+    });
+
+    // Undo the correct/incorrect count for this question's last check
+    if (isRoundWon) {
+      setCorrectAnswers(prev => Math.max(0, prev - 1));
+    } else {
+      setIncorrectAnswers(prev => Math.max(0, prev - 1));
+    }
+
+    // Auto-advance to next question
+    resetRound();
+    const remainingPool = taskPool.filter(t => t.id !== currentTask.id);
+    if (remainingPool.length === 0) {
+      setIsQuizEnded(true);
+      setCurrentTask(undefined);
+    } else {
+      const [nextTask, ...rest] = remainingPool;
+      setCurrentTask(nextTask);
+      setTaskPool(rest);
+    }
   };
 
   // No tasks available
@@ -441,29 +551,54 @@ export default function QuizPage({
             ? "bg-emerald-500/10 border-emerald-500/20"
             : "bg-rose-500/10 border-rose-500/20"
         } animate-fade-in`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              isRoundWon ? "bg-emerald-500/20" : "bg-rose-500/20"
-            }`}>
-              {isRoundWon ? (
-                <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                isRoundWon ? "bg-emerald-500/20" : "bg-rose-500/20"
+              }`}>
+                {isRoundWon ? (
+                  <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className={`font-semibold ${isRoundWon ? "text-emerald-400" : "text-rose-400"}`}>
+                  {isRoundWon ? "Correct!" : "Incorrect"}
+                </p>
+                {currentTask?.question.isOpen && (
+                  <p className="text-sm text-slate-400">
+                    You scored <span className={isRoundWon ? "text-emerald-400" : "text-rose-400"}>{openAnswerScore}</span>/100 points
+                  </p>
+                )}
+              </div>
+            </div>
+            {/* Disagree buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handleAcceptMyAnswer}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-200"
+                title="Mark my answer as correct"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-              ) : (
-                <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                Accept My Answer
+              </button>
+              <button
+                onClick={handleRemoveQuestion}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-rose-500/20 border border-slate-600 hover:border-rose-500/30 rounded-lg transition-all duration-200"
+                title="Remove this question from the quiz"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-              )}
-            </div>
-            <div>
-              <p className={`font-semibold ${isRoundWon ? "text-emerald-400" : "text-rose-400"}`}>
-                {isRoundWon ? "Correct!" : "Incorrect"}
-              </p>
-              {currentTask?.question.isOpen && (
-                <p className="text-sm text-slate-400">
-                  You scored <span className={isRoundWon ? "text-emerald-400" : "text-rose-400"}>{openAnswerScore}</span>/100 points
-                </p>
-              )}
+                Remove Question
+              </button>
             </div>
           </div>
         </div>

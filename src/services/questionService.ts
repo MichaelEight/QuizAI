@@ -151,11 +151,13 @@ export async function checkOpenAnswer(
   text: string,
   question: string,
   answer: string,
+  acceptedAnswer?: string,
 ): Promise<number> {
   const sysPrompt = getSysPrompt(PromptTypes.CHECK_OPEN_QUESTION);
   const devPrompt = getDevPrompt(PromptTypes.CHECK_OPEN_QUESTION, {
     text,
     question,
+    acceptedAnswer,
   });
   const userPrompt = getUserPrompt(PromptTypes.CHECK_OPEN_QUESTION, {
     answer,

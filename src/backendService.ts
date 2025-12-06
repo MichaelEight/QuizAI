@@ -9,6 +9,7 @@ export async function checkOpenAnswer(
   text: string,
   question: string,
   answer: string,
+  acceptedAnswer?: string,
 ): Promise<number> {
   if (!text || !question) {
     throw new Error(
@@ -17,7 +18,7 @@ export async function checkOpenAnswer(
   }
 
   try {
-    const result = await checkOpenAnswerService(text, question, answer);
+    const result = await checkOpenAnswerService(text, question, answer, acceptedAnswer);
 
     if (result < 0 || result > 100) {
       console.error("Result score number not in range [0;100]");

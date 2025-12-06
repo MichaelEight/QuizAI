@@ -148,7 +148,7 @@ function AppContent() {
             />
             <Route
               path="quizPage"
-              element={<QuizPage sourceText={sourceText} tasks={tasks} settings={settings} />}
+              element={<QuizPage sourceText={sourceText} tasks={tasks} setTasks={setTasks} settings={settings} />}
             />
           </Routes>
         </main>
