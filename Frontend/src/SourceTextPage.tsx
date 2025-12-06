@@ -1,12 +1,20 @@
 import { generateQuestions } from "./backendService";
-import { Task, Question, Answer } from "./QuestionsTypes";
+import { Task } from "./QuestionsTypes";
+import { Settings } from "./SettingsType";
+
+interface SourceTextPageProps {
+  sourceText: string;
+  setSourceText: (text: string) => void;
+  setTasks: (tasks: Task[]) => void;
+  settings: Settings;
+}
 
 export default function SourceTextPage({
   sourceText,
   setSourceText,
   setTasks,
   settings,
-}) {
+}: SourceTextPageProps) {
   const handleGenerateButtonClick = async () => {
     // Make an API request
     const result = await generateQuestions(sourceText, settings);

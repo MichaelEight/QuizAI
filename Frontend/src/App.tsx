@@ -6,9 +6,12 @@ import QuizPage from "./QuizPage";
 import Homepage from "./Homepage";
 import { Settings } from "./SettingsType";
 import { Task } from "./QuestionsTypes";
+import { ApiKeyProvider, useApiKey } from "./context/ApiKeyContext";
+import { ApiKeyModal } from "./components/ApiKeyModal";
+import { ApiKeyButton } from "./components/ApiKeyButton";
 import "./App.css";
 
-function App() {
+function AppContent() {
   const [sourceText, setSourceText] = useState("");
   const [settings, setSettings] = useState<Settings>({
     amountOfClosedQuestions: 2,
@@ -18,48 +21,66 @@ function App() {
   });
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  return (
-    <div className="main-container">
-      <nav>
-        <NavLink to="/" end>
-          Home
-        </NavLink>
-        <NavLink to="settingsPage" end>
-          Settings
-        </NavLink>
-        <NavLink to="sourcePage" end>
-          Input Text
-        </NavLink>
-        <NavLink to="quizPage" end>
-          Quiz
-        </NavLink>
-      </nav>
+  const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
 
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route
-          path="settingsPage"
-          element={
-            <SettingsPage settings={settings} setSettings={setSettings} />
-          }
-        />
-        <Route
-          path="sourcePage"
-          element={
-            <SourceTextPage
-              sourceText={sourceText}
-              setSourceText={setSourceText}
-              setTasks={setTasks}
-              settings={settings}
-            />
-          }
-        />
-        <Route
-          path="quizPage"
-          element={<QuizPage sourceText={sourceText} tasks={tasks} />}
-        />
-      </Routes>
-    </div>
+  return (
+    <>
+      <ApiKeyModal
+        isOpen={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+        allowClose={hasApiKey}
+      />
+      <div className="main-container">
+        <nav>
+          <NavLink to="/" end>
+            Home
+          </NavLink>
+          <NavLink to="settingsPage" end>
+            Settings
+          </NavLink>
+          <NavLink to="sourcePage" end>
+            Input Text
+          </NavLink>
+          <NavLink to="quizPage" end>
+            Quiz
+          </NavLink>
+          <ApiKeyButton />
+        </nav>
+
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route
+            path="settingsPage"
+            element={
+              <SettingsPage settings={settings} setSettings={setSettings} />
+            }
+          />
+          <Route
+            path="sourcePage"
+            element={
+              <SourceTextPage
+                sourceText={sourceText}
+                setSourceText={setSourceText}
+                setTasks={setTasks}
+                settings={settings}
+              />
+            }
+          />
+          <Route
+            path="quizPage"
+            element={<QuizPage sourceText={sourceText} tasks={tasks} />}
+          />
+        </Routes>
+      </div>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ApiKeyProvider>
+      <AppContent />
+    </ApiKeyProvider>
   );
 }
 

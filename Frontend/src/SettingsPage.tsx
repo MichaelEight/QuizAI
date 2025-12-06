@@ -1,7 +1,12 @@
 import { Settings, SettingsTypes } from "./SettingsType";
 import "./Settings.css";
 
-export default function SettingsPage({ settings, setSettings }) {
+interface SettingsPageProps {
+  settings: Settings;
+  setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+}
+
+export default function SettingsPage({ settings, setSettings }: SettingsPageProps) {
   const handleChange = (key: keyof Settings, value: SettingsTypes) => {
     setSettings((prevSettings: Settings) => ({
       ...prevSettings,

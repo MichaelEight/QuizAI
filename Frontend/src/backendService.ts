@@ -1,41 +1,10 @@
 import { Task } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
+import {
+  generateQuestions as generateQuestionsService,
+  checkOpenAnswer as checkOpenAnswerService,
+} from "./services/questionService";
 
-const serverAddr = "http://localhost:5000";
-
-// Make a direct request to backend
-async function apiCheckOpenAnswer(
-  text: string,
-  question: string,
-  answer: string,
-): Promise<any> {
-  const url = `${serverAddr}/check_open_answer`;
-  const payload = { text, question, answer };
-
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.message ?? "Failed to fetch grade from backend.",
-      );
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error("Error in apiCheckOpenAnswer:", error);
-    throw error;
-  }
-}
-
-// Prepare a request
 export async function checkOpenAnswer(
   text: string,
   question: string,
@@ -47,63 +16,21 @@ export async function checkOpenAnswer(
     );
   }
 
-  const result = await apiCheckOpenAnswer(text, question, answer);
   try {
-    const resultAsNumber = Number(result);
+    const result = await checkOpenAnswerService(text, question, answer);
 
-    if (resultAsNumber < 0 || resultAsNumber > 100) {
-      throw new Error("Result score number not in range [0;100]");
+    if (result < 0 || result > 100) {
+      console.error("Result score number not in range [0;100]");
+      return -1;
     }
 
-    return resultAsNumber;
+    return result;
   } catch (error) {
     console.error("Error in checkOpenAnswer:", error);
-    return -1; // Error number
+    return -1;
   }
 }
 
-// Make a direct request to backend
-async function apiGenerateQuestions(
-  text: string,
-  closed_amount: number,
-  open_amount: number,
-  allow_multiple: boolean,
-  force_multiple: boolean,
-): Promise<any> {
-  const url = `${serverAddr}/generate_questions`;
-
-  const payload = {
-    text,
-    closed_amount,
-    open_amount,
-    allow_multiple,
-    force_multiple,
-  };
-
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.message ?? "Failed to fetch questions from backend.",
-      );
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error("Error in apiGenerateQuestions:", error);
-    throw error;
-  }
-}
-
-// Prepare a request
 export async function generateQuestions(
   text: string,
   settings: Settings,
@@ -114,39 +41,10 @@ export async function generateQuestions(
     );
   }
 
-  const closed_amount = settings.amountOfClosedQuestions;
-  const open_amount = settings.amountOfOpenQuestions;
-  const allow_multiple = settings.allowMultipleCorrectAnswers;
-  const force_multiple = settings.forceMultipleCorrectAnswers;
-
-  const result = await apiGenerateQuestions(
-    text,
-    closed_amount,
-    open_amount,
-    allow_multiple,
-    force_multiple,
-  );
   try {
-    // Convert result to Task[]
-
-    const tasks: Task[] = Array.isArray(result)
-      ? result.map((item) => ({
-          question: {
-            value: item.question,
-            isOpen: !item.answers || item.answers.length === 0,
-          },
-          answers: item.answers
-            ? item.answers.map((a: any) => ({
-                value: a.content,
-                isCorrect: a.isCorrect,
-                isSelected: false,
-              }))
-            : undefined,
-        }))
-      : [];
-    return tasks;
+    return await generateQuestionsService(text, settings);
   } catch (error) {
-    console.error("Error in checkOpenAnswer:", error);
+    console.error("Error in generateQuestions:", error);
     return [];
   }
 }

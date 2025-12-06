@@ -1,13 +1,21 @@
 import { Answer, Task } from "./QuestionsTypes";
 import { quizPageStyles } from "./PagesStyles"; // TODO: Extract answers-only styles
 
+interface AnswerFieldProps {
+  openAnswer: string;
+  setOpenAnswer: (answer: string) => void;
+  currentTask: Task;
+  setCurrentTask: (task: Task) => void;
+  areAnswersChecked: boolean;
+}
+
 export default function AnswerField({
   openAnswer,
   setOpenAnswer,
   currentTask,
   setCurrentTask,
   areAnswersChecked,
-}) {
+}: AnswerFieldProps) {
   return currentTask.question.isOpen ? (
     <OpenAnswer openAnswer={openAnswer} setOpenAnswer={setOpenAnswer} />
   ) : (
@@ -19,8 +27,13 @@ export default function AnswerField({
   );
 }
 
-function OpenAnswer({ openAnswer, setOpenAnswer }) {
-  const handleOpenAnswerChange = (e) => {
+interface OpenAnswerProps {
+  openAnswer: string;
+  setOpenAnswer: (answer: string) => void;
+}
+
+function OpenAnswer({ openAnswer, setOpenAnswer }: OpenAnswerProps) {
+  const handleOpenAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setOpenAnswer(e.target.value);
   };
 
@@ -37,13 +50,19 @@ function OpenAnswer({ openAnswer, setOpenAnswer }) {
   );
 }
 
-function ClosedAnswer({ currentTask, setCurrentTask, areAnswersChecked }) {
+interface ClosedAnswerProps {
+  currentTask: Task;
+  setCurrentTask: (task: Task) => void;
+  areAnswersChecked: boolean;
+}
+
+function ClosedAnswer({ currentTask, setCurrentTask, areAnswersChecked }: ClosedAnswerProps) {
   const handleAnswerClick = (index: number) => {
     if (!currentTask?.answers) return;
     if (areAnswersChecked) return;
 
     // Create a new copy of the answers array
-    const updatedAnswers = currentTask.answers.map((answer, i) =>
+    const updatedAnswers = currentTask.answers.map((answer: Answer, i: number) =>
       i === index ? { ...answer, isSelected: !answer.isSelected } : answer,
     );
 
