@@ -9,6 +9,7 @@ import { Task } from "./QuestionsTypes";
 import { ApiKeyProvider, useApiKey } from "./context/ApiKeyContext";
 import { ApiKeyModal } from "./components/ApiKeyModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
+import { version } from "../package.json";
 import "./App.css";
 
 const STORAGE_KEYS = {
@@ -151,6 +152,11 @@ function AppContent() {
             />
           </Routes>
         </main>
+
+        {/* Version */}
+        <div className="fixed bottom-3 right-4 text-xs text-slate-600">
+          v{version}
+        </div>
       </div>
     </>
   );
