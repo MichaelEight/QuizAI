@@ -178,3 +178,23 @@ export async function checkOpenAnswer(
     return -1;
   }
 }
+
+export async function generateOpenQuestionAnswer(
+  text: string,
+  question: string,
+): Promise<string> {
+  const sysPrompt = getSysPrompt(PromptTypes.GENERATE_OPEN_ANSWER);
+  const devPrompt = getDevPrompt(PromptTypes.GENERATE_OPEN_ANSWER, {
+    text,
+    question,
+  });
+  const userPrompt = getUserPrompt(PromptTypes.GENERATE_OPEN_ANSWER);
+
+  try {
+    const answer = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    return answer.trim();
+  } catch (error) {
+    console.error('Error in generateOpenQuestionAnswer:', error);
+    return '';
+  }
+}

@@ -9,6 +9,8 @@ import { Task } from "./QuestionsTypes";
 import { ApiKeyProvider, useApiKey } from "./context/ApiKeyContext";
 import { ApiKeyModal } from "./components/ApiKeyModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
+import { ImportExportButton } from "./components/ImportExportButton";
+import { ImportExportModal } from "./components/ImportExportModal";
 import { version } from "../package.json";
 import "./App.css";
 
@@ -75,6 +77,7 @@ function AppContent() {
   }, [tasks]);
 
   const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
+  const [showImportExportModal, setShowImportExportModal] = useState(false);
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
@@ -89,6 +92,13 @@ function AppContent() {
         isOpen={showApiKeyModal}
         onClose={() => setShowApiKeyModal(false)}
         allowClose={hasApiKey}
+      />
+      <ImportExportModal
+        isOpen={showImportExportModal}
+        onClose={() => setShowImportExportModal(false)}
+        tasks={tasks}
+        setTasks={setTasks}
+        sourceText={sourceText}
       />
       <div className="min-h-screen bg-slate-900">
         {/* Navigation */}
@@ -119,8 +129,11 @@ function AppContent() {
                 </NavLink>
               </div>
 
-              {/* API Key Button */}
-              <ApiKeyButton />
+              {/* Toolbar buttons */}
+              <div className="flex items-center gap-2">
+                <ImportExportButton onClick={() => setShowImportExportModal(true)} />
+                <ApiKeyButton />
+              </div>
             </div>
           </div>
         </nav>

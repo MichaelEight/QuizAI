@@ -3,6 +3,7 @@ import { Settings } from "./SettingsType";
 import {
   generateQuestions as generateQuestionsService,
   checkOpenAnswer as checkOpenAnswerService,
+  generateOpenQuestionAnswer as generateOpenQuestionAnswerService,
 } from "./services/questionService";
 
 export async function checkOpenAnswer(
@@ -47,5 +48,23 @@ export async function generateQuestions(
   } catch (error) {
     console.error("Error in generateQuestions:", error);
     return [];
+  }
+}
+
+export async function generateOpenQuestionAnswer(
+  text: string,
+  question: string,
+): Promise<string> {
+  if (!text || !question) {
+    throw new Error(
+      "Missing required values: 'text' and 'question' are required.",
+    );
+  }
+
+  try {
+    return await generateOpenQuestionAnswerService(text, question);
+  } catch (error) {
+    console.error("Error in generateOpenQuestionAnswer:", error);
+    return "";
   }
 }

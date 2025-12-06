@@ -2,6 +2,7 @@
 export class PromptTypes {
   static readonly GENERATE_QUESTIONS = 'generate-questions' as const;
   static readonly CHECK_OPEN_QUESTION = 'check-open-question' as const;
+  static readonly GENERATE_OPEN_ANSWER = 'generate-open-answer' as const;
 }
 
 export type PromptType = typeof PromptTypes[keyof typeof PromptTypes];

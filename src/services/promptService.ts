@@ -20,7 +20,12 @@ interface CheckOpenQuestionArgs {
   acceptedAnswer?: string;  // Previously accepted answer by user
 }
 
-type PromptArgs = GenerateQuestionsArgs | CheckOpenQuestionArgs;
+interface GenerateOpenAnswerArgs {
+  text?: string;
+  question?: string;
+}
+
+type PromptArgs = GenerateQuestionsArgs | CheckOpenQuestionArgs | GenerateOpenAnswerArgs;
 
 class Prompts {
   private static sysCheckOpenAnswer(): string {
@@ -108,6 +113,26 @@ class Prompts {
     return `USER TEXT TO CREATE QUESTIONS FROM: ${userText}`;
   }
 
+  private static sysGenerateOpenAnswer(): string {
+    return `You are an assistant that generates correct answers to open questions based on provided text.
+    You read the text, understand the question, and provide the most accurate and concise answer possible.
+    Your answer should be a direct response to the question using information from the text.
+    Return ONLY the answer text, without any prefixes like "Answer:" or explanations.
+    Keep the answer concise but complete.`;
+  }
+
+  private static devGenerateOpenAnswer(text: string, question: string): string {
+    return `Based on the following text:
+${text}
+
+Provide the correct answer to this question:
+${question}`;
+  }
+
+  private static userGenerateOpenAnswer(): string {
+    return 'Generate the answer now.';
+  }
+
   static getPrompt(
     typeOfPrompt: PromptType,
     rank: PromptRankType,
@@ -141,6 +166,21 @@ class Prompts {
           return Prompts.devGenerateQuestions();
         case PromptRank.USER:
           return Prompts.userGenerateQuestions(genArgs?.userText ?? '');
+        default:
+          return '';
+      }
+    } else if (typeOfPrompt === PromptTypes.GENERATE_OPEN_ANSWER) {
+      const answerArgs = args as GenerateOpenAnswerArgs;
+      switch (rank) {
+        case PromptRank.SYSTEM:
+          return Prompts.sysGenerateOpenAnswer();
+        case PromptRank.DEVELOPER:
+          return Prompts.devGenerateOpenAnswer(
+            answerArgs?.text ?? '',
+            answerArgs?.question ?? '',
+          );
+        case PromptRank.USER:
+          return Prompts.userGenerateOpenAnswer();
         default:
           return '';
       }
