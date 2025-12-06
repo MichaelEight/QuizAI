@@ -10,6 +10,7 @@ import {
   UploadedFile,
 } from "./services/fileExtractService";
 import { FilePreviewModal } from "./components/FilePreviewModal";
+import { countTokens, formatNumber, estimateCost, TOKEN_LIMIT } from "./services/tokenCounterService";
 
 interface SourceTextPageProps {
   sourceText: string;
@@ -45,6 +46,20 @@ export default function SourceTextPage({
   }, [uploadedFiles, sourceText]);
 
   const canGenerate = combinedText.trim().length > 0 && totalQuestions > 0;
+
+  // Token calculations
+  const fileTokens = useMemo(() => {
+    return uploadedFiles.map(f => ({ id: f.id, tokens: countTokens(f.content) }));
+  }, [uploadedFiles]);
+
+  const totalFileTokens = useMemo(() =>
+    fileTokens.reduce((sum, f) => sum + f.tokens, 0)
+  , [fileTokens]);
+
+  const textareaTokens = useMemo(() => countTokens(sourceText), [sourceText]);
+
+  const totalTokens = totalFileTokens + textareaTokens;
+  const isOverLimit = totalTokens > TOKEN_LIMIT;
 
   const processFiles = async (files: File[]) => {
     const validFiles = files.filter(isSupportedFile);
@@ -201,9 +216,14 @@ export default function SourceTextPage({
         {uploadedFiles.length > 0 && (
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-slate-300">
-                Uploaded files ({uploadedFiles.length})
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-slate-300">
+                  Uploaded files ({uploadedFiles.length})
+                </span>
+                <span className="text-xs text-slate-500">
+                  {formatNumber(totalFileTokens)} tokens
+                </span>
+              </div>
               <button
                 onClick={clearAllFiles}
                 className="text-xs text-slate-400 hover:text-rose-400 transition-colors duration-200"
@@ -274,8 +294,9 @@ export default function SourceTextPage({
           />
           <div className="flex justify-between items-center mt-2 text-sm text-slate-500">
             <div className="flex items-center gap-4">
-              <span>{combinedText.length} characters total</span>
-              <span>{combinedText.split(/\s+/).filter(Boolean).length} words</span>
+              <span>{formatNumber(combinedText.length)} characters</span>
+              <span>{formatNumber(combinedText.split(/\s+/).filter(Boolean).length)} words</span>
+              <span>{formatNumber(textareaTokens)} tokens</span>
             </div>
             <button
               type="button"
@@ -295,7 +316,7 @@ export default function SourceTextPage({
         )}
 
         {/* Settings Summary */}
-        <div className="mb-6 p-4 bg-slate-700/30 rounded-lg">
+        <div className="mb-4 p-4 bg-slate-700/30 rounded-lg">
           <p className="text-sm text-slate-400">
             <span className="text-slate-300 font-medium">Will generate:</span>{" "}
             <span className="text-indigo-400">{settings.amountOfClosedQuestions}</span> closed +{" "}
@@ -304,12 +325,34 @@ export default function SourceTextPage({
           </p>
         </div>
 
+        {/* Token & Cost Summary */}
+        <div className={`mb-6 p-4 rounded-lg ${isOverLimit ? 'bg-rose-500/10 border border-rose-500/20' : 'bg-slate-700/30'}`}>
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-slate-400">
+              <span className="text-slate-300 font-medium">Total input:</span>{" "}
+              <span className={isOverLimit ? 'text-rose-400' : 'text-indigo-400'}>
+                {formatNumber(totalTokens)}
+              </span>{" "}
+              / {formatNumber(TOKEN_LIMIT)} tokens
+            </div>
+            <div className="text-sm text-slate-400">
+              <span className="text-slate-300 font-medium">Estimated cost:</span>{" "}
+              <span className="text-emerald-400">{estimateCost(totalTokens)}</span>
+            </div>
+          </div>
+          {isOverLimit && (
+            <p className="mt-2 text-sm text-rose-400">
+              Token limit exceeded. Remove some content to generate questions.
+            </p>
+          )}
+        </div>
+
         {/* Generate Button */}
         <button
           onClick={handleGenerateButtonClick}
-          disabled={!canGenerate || isLoading || isExtracting}
+          disabled={!canGenerate || isLoading || isExtracting || isOverLimit}
           className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold transition-all duration-200 ${
-            canGenerate && !isLoading && !isExtracting
+            canGenerate && !isLoading && !isExtracting && !isOverLimit
               ? "bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 active:scale-[0.99]"
               : "bg-slate-700 text-slate-500 cursor-not-allowed"
           }`}

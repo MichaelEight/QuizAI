@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { UploadedFile } from "../services/fileExtractService";
+import { countTokens, formatNumber } from "../services/tokenCounterService";
 
 interface FilePreviewModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export function FilePreviewModal({
 
   const wordCount = editedContent.split(/\s+/).filter(Boolean).length;
   const charCount = editedContent.length;
+  const tokenCount = countTokens(editedContent);
 
   return (
     <div
@@ -83,7 +85,7 @@ export function FilePreviewModal({
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-700">
           <div className="text-sm text-slate-500">
-            {charCount} characters · {wordCount} words
+            {formatNumber(charCount)} characters · {formatNumber(wordCount)} words · {formatNumber(tokenCount)} tokens
           </div>
           <div className="flex items-center gap-3">
             <button
