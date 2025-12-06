@@ -72,9 +72,18 @@ export default function SourceTextPage({
             value={sourceText}
             onChange={(e) => setSourceText(e.target.value)}
           />
-          <div className="flex justify-between mt-2 text-sm text-slate-500">
-            <span>{sourceText.length} characters</span>
-            <span>{sourceText.split(/\s+/).filter(Boolean).length} words</span>
+          <div className="flex justify-between items-center mt-2 text-sm text-slate-500">
+            <div className="flex items-center gap-4">
+              <span>{sourceText.length} characters</span>
+              <span>{sourceText.split(/\s+/).filter(Boolean).length} words</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSourceText("A little cat found a lost key in the yard. He wondered which door it might fit. After a while, he met an old mouse who had been looking for it for a long time. Together they opened a small box full of seeds.")}
+              className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
+            >
+              Insert example text
+            </button>
           </div>
         </div>
 
