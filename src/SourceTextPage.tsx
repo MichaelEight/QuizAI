@@ -298,13 +298,27 @@ export default function SourceTextPage({
               <span>{formatNumber(combinedText.split(/\s+/).filter(Boolean).length)} words</span>
               <span>{formatNumber(textareaTokens)} tokens</span>
             </div>
-            <button
-              type="button"
-              onClick={() => setSourceText("A little cat found a lost key in the yard. He wondered which door it might fit. After a while, he met an old mouse who had been looking for it for a long time. Together they opened a small box full of seeds.")}
-              className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
-            >
-              Insert example text
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSourceText("")}
+                disabled={!sourceText}
+                className={`transition-colors duration-200 ${
+                  sourceText
+                    ? "text-slate-400 hover:text-rose-400"
+                    : "text-slate-600 cursor-not-allowed"
+                }`}
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => setSourceText("A little cat found a lost key in the yard. He wondered which door it might fit. After a while, he met an old mouse who had been looking for it for a long time. Together they opened a small box full of seeds.")}
+                className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
+              >
+                Insert example
+              </button>
+            </div>
           </div>
         </div>
 
