@@ -6,6 +6,7 @@ import QuizPage from "./QuizPage";
 import Homepage from "./Homepage";
 import { Settings } from "./SettingsType";
 import { Task } from "./QuestionsTypes";
+import { UploadedFile } from "./services/fileExtractService";
 import { ApiKeyProvider, useApiKey } from "./context/ApiKeyContext";
 import { ApiKeyModal } from "./components/ApiKeyModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
@@ -18,6 +19,7 @@ const STORAGE_KEYS = {
   SETTINGS: "quizai_settings",
   SOURCE_TEXT: "quizai_source_text",
   TASKS: "quizai_tasks",
+  UPLOADED_FILES: "quizai_uploaded_files",
 } as const;
 
 const DEFAULT_SETTINGS: Settings = {
@@ -60,6 +62,9 @@ function AppContent() {
   const [tasks, setTasks] = useState<Task[]>(() =>
     loadFromStorage(STORAGE_KEYS.TASKS, [])
   );
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(() =>
+    loadFromStorage(STORAGE_KEYS.UPLOADED_FILES, [])
+  );
 
   // Persist settings to localStorage
   useEffect(() => {
@@ -75,6 +80,11 @@ function AppContent() {
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.TASKS, tasks);
   }, [tasks]);
+
+  // Persist uploadedFiles to localStorage
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.UPLOADED_FILES, uploadedFiles);
+  }, [uploadedFiles]);
 
   const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
   const [showImportExportModal, setShowImportExportModal] = useState(false);
@@ -156,6 +166,8 @@ function AppContent() {
                   setSourceText={setSourceText}
                   setTasks={setTasks}
                   settings={settings}
+                  uploadedFiles={uploadedFiles}
+                  setUploadedFiles={setUploadedFiles}
                 />
               }
             />
