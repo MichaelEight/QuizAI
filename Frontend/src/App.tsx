@@ -23,6 +23,13 @@ function AppContent() {
 
   const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
 
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+      isActive
+        ? "bg-indigo-500/20 text-indigo-400"
+        : "text-slate-400 hover:text-slate-100 hover:bg-slate-700/50"
+    }`;
+
   return (
     <>
       <ApiKeyModal
@@ -30,47 +37,68 @@ function AppContent() {
         onClose={() => setShowApiKeyModal(false)}
         allowClose={hasApiKey}
       />
-      <div className="main-container">
-        <nav>
-          <NavLink to="/" end>
-            Home
-          </NavLink>
-          <NavLink to="settingsPage" end>
-            Settings
-          </NavLink>
-          <NavLink to="sourcePage" end>
-            Input Text
-          </NavLink>
-          <NavLink to="quizPage" end>
-            Quiz
-          </NavLink>
-          <ApiKeyButton />
+      <div className="min-h-screen bg-slate-900">
+        {/* Navigation */}
+        <nav className="sticky top-0 z-40 bg-slate-800/80 backdrop-blur-md border-b border-slate-700">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="flex items-center justify-between h-16">
+              {/* Logo */}
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">Q</span>
+                </div>
+                <span className="text-slate-100 font-semibold text-lg">QuizAI</span>
+              </div>
+
+              {/* Nav Links */}
+              <div className="flex items-center gap-1">
+                <NavLink to="/" end className={navLinkClass}>
+                  Home
+                </NavLink>
+                <NavLink to="settingsPage" end className={navLinkClass}>
+                  Settings
+                </NavLink>
+                <NavLink to="sourcePage" end className={navLinkClass}>
+                  Input Text
+                </NavLink>
+                <NavLink to="quizPage" end className={navLinkClass}>
+                  Quiz
+                </NavLink>
+              </div>
+
+              {/* API Key Button */}
+              <ApiKeyButton />
+            </div>
+          </div>
         </nav>
 
-        <Routes>
-          <Route path="/" element={<Homepage />} />
-          <Route
-            path="settingsPage"
-            element={
-              <SettingsPage settings={settings} setSettings={setSettings} />
-            }
-          />
-          <Route
-            path="sourcePage"
-            element={
-              <SourceTextPage
-                sourceText={sourceText}
-                setSourceText={setSourceText}
-                setTasks={setTasks}
-                settings={settings}
-              />
-            }
-          />
-          <Route
-            path="quizPage"
-            element={<QuizPage sourceText={sourceText} tasks={tasks} />}
-          />
-        </Routes>
+        {/* Main Content */}
+        <main className="max-w-5xl mx-auto px-4 py-8">
+          <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route
+              path="settingsPage"
+              element={
+                <SettingsPage settings={settings} setSettings={setSettings} />
+              }
+            />
+            <Route
+              path="sourcePage"
+              element={
+                <SourceTextPage
+                  sourceText={sourceText}
+                  setSourceText={setSourceText}
+                  setTasks={setTasks}
+                  settings={settings}
+                />
+              }
+            />
+            <Route
+              path="quizPage"
+              element={<QuizPage sourceText={sourceText} tasks={tasks} />}
+            />
+          </Routes>
+        </main>
       </div>
     </>
   );

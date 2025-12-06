@@ -124,9 +124,10 @@ export async function generateQuestions(
       }
     }
 
-    // Convert to Task[] format
+    // Convert to Task[] format with unique IDs
     return allQuestions.map(
-      (item): Task => ({
+      (item, index): Task => ({
+        id: `q-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 9)}`,
         question: {
           value: item.question,
           isOpen: !item.answers || item.answers.length === 0,

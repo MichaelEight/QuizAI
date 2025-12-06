@@ -1,4 +1,5 @@
 export type Task = {
+  id: string;
   question: Question;
   answers?: Answer[] | null;
   isDone?: boolean;

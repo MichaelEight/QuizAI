@@ -40,50 +40,100 @@ export function ApiKeyModal({
     if (e.key === 'Enter') {
       handleSubmit();
     }
+    if (e.key === 'Escape' && allowClose && onClose) {
+      onClose();
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-        <h2 className="text-xl font-bold mb-4">Enter OpenAI API Key</h2>
-        <p className="text-gray-600 mb-4 text-sm">
-          Your API key is stored locally in your browser and never sent to any
-          server other than OpenAI.
-        </p>
-        <p className="text-gray-500 mb-4 text-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={allowClose ? onClose : undefined}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl shadow-black/50 animate-fade-in">
+        {/* Close button */}
+        {allowClose && onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 transition-colors duration-200"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-100">OpenAI API Key</h2>
+            <p className="text-sm text-slate-400">Required to generate questions</p>
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="mb-4 p-3 bg-slate-700/30 rounded-lg">
+          <p className="text-sm text-slate-400">
+            Your API key is stored locally in your browser and only sent to OpenAI.
+          </p>
+        </div>
+
+        {/* Input */}
+        <div className="mb-4">
+          <label htmlFor="apiKey" className="block text-sm font-medium text-slate-300 mb-2">
+            API Key
+          </label>
+          <input
+            id="apiKey"
+            type="password"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="sk-..."
+            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            autoFocus
+          />
+          {error && (
+            <p className="mt-2 text-sm text-rose-400">{error}</p>
+          )}
+        </div>
+
+        {/* Help link */}
+        <p className="mb-6 text-xs text-slate-500">
           Get your API key from{' '}
           <a
             href="https://platform.openai.com/api-keys"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
+            className="text-indigo-400 hover:text-indigo-300 underline"
           >
             platform.openai.com/api-keys
           </a>
         </p>
-        <input
-          type="password"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="sk-..."
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          autoFocus
-        />
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        <div className="flex gap-2 mt-4">
+
+        {/* Actions */}
+        <div className="flex gap-3">
           <button
             onClick={handleSubmit}
-            className="flex-1 bg-blue-500 text-white rounded px-4 py-2 hover:bg-blue-600 transition-colors"
+            className="flex-1 bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200 active:scale-[0.98]"
           >
             Save Key
           </button>
           {allowClose && onClose && (
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+              className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg transition-all duration-200"
             >
               Cancel
             </button>
