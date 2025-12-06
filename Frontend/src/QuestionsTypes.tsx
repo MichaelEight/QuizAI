@@ -3,6 +3,7 @@ export type Task = {
   question: Question;
   answers?: Answer[] | null;
   isDone?: boolean;
+  isRetry?: boolean;  // True if this is a retry instance (failed before)
 };
 
 export type Question = {

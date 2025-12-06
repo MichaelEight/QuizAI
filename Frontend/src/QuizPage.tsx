@@ -1,9 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router";
 import { Task } from "./QuestionsTypes";
+import { Settings } from "./SettingsType";
 import AnswerField from "./AnswerComponent";
 import { checkOpenAnswer } from "./backendService";
 import { QuizProgress } from "./components/QuizProgress";
+
+const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
+
+interface QuizProgressState {
+  taskPool: Task[];
+  currentTask?: Task;
+  areAnswersChecked: boolean;
+  isRoundWon: boolean;
+  isQuizStarted: boolean;
+  isQuizEnded: boolean;
+  openAnswer: string;
+  openAnswerScore: number;
+  learntQuestions: string[];  // Serialized Set
+  correctAnswers: number;
+  incorrectAnswers: number;
+  tasksHash: string;  // To detect if tasks changed
+}
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -14,42 +32,123 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-function createPool(tasks: Task[]): Task[] {
-  return shuffleArray(tasks);
+function createPool(tasks: Task[], poolSize: number): Task[] {
+  // Create poolSize copies of each question
+  const pool: Task[] = [];
+  for (const task of tasks) {
+    for (let i = 0; i < poolSize; i++) {
+      pool.push({ ...task, isRetry: false });
+    }
+  }
+  return shuffleArray(pool);
+}
+
+// Create a hash from tasks to detect changes
+function getTasksHash(tasks: readonly Task[]): string {
+  return tasks.map(t => t.id).sort().join(",");
+}
+
+function loadQuizProgress(tasks: readonly Task[]): QuizProgressState | null {
+  try {
+    const stored = localStorage.getItem(QUIZ_PROGRESS_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as QuizProgressState;
+      // Only restore if tasks haven't changed
+      if (parsed.tasksHash === getTasksHash(tasks)) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.error("Error loading quiz progress:", error);
+  }
+  return null;
+}
+
+function saveQuizProgress(state: QuizProgressState): void {
+  try {
+    localStorage.setItem(QUIZ_PROGRESS_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error("Error saving quiz progress:", error);
+  }
+}
+
+function clearQuizProgress(): void {
+  try {
+    localStorage.removeItem(QUIZ_PROGRESS_KEY);
+  } catch (error) {
+    console.error("Error clearing quiz progress:", error);
+  }
 }
 
 export default function QuizPage({
   sourceText,
   tasks,
+  settings,
 }: {
   readonly sourceText: string;
   readonly tasks: readonly Task[];
+  readonly settings: Settings;
 }) {
-  const [taskPool, setTaskPool] = useState<Task[]>([]);
-  const [currentTask, setCurrentTask] = useState<Task>();
-  const [areAnswersChecked, setAreAnswersChecked] = useState<boolean>(false);
-  const [isRoundWon, setIsRoundWon] = useState<boolean>(false);
+  // Load saved progress on initial render
+  const savedProgress = tasks.length > 0 ? loadQuizProgress(tasks) : null;
+
+  const [taskPool, setTaskPool] = useState<Task[]>(savedProgress?.taskPool ?? []);
+  const [currentTask, setCurrentTask] = useState<Task | undefined>(savedProgress?.currentTask);
+  const [areAnswersChecked, setAreAnswersChecked] = useState<boolean>(savedProgress?.areAnswersChecked ?? false);
+  const [isRoundWon, setIsRoundWon] = useState<boolean>(savedProgress?.isRoundWon ?? false);
   const [isChecking, setIsChecking] = useState<boolean>(false);
 
-  const [isQuizStarted, setIsQuizStarted] = useState<boolean>(false);
-  const [isQuizEnded, setIsQuizEnded] = useState<boolean>(false);
+  const [isQuizStarted, setIsQuizStarted] = useState<boolean>(savedProgress?.isQuizStarted ?? false);
+  const [isQuizEnded, setIsQuizEnded] = useState<boolean>(savedProgress?.isQuizEnded ?? false);
 
-  const [openAnswer, setOpenAnswer] = useState<string>("");
-  const [openAnswerScore, setOpenAnswerScore] = useState<number>(0);
+  const [openAnswer, setOpenAnswer] = useState<string>(savedProgress?.openAnswer ?? "");
+  const [openAnswerScore, setOpenAnswerScore] = useState<number>(savedProgress?.openAnswerScore ?? 0);
 
-  const [learntQuestions, setLearntQuestions] = useState<Set<string>>(new Set());
-  const [correctAnswers, setCorrectAnswers] = useState<number>(0);
-  const [incorrectAnswers, setIncorrectAnswers] = useState<number>(0);
+  const [learntQuestions, setLearntQuestions] = useState<Set<string>>(
+    new Set(savedProgress?.learntQuestions ?? [])
+  );
+  const [correctAnswers, setCorrectAnswers] = useState<number>(savedProgress?.correctAnswers ?? 0);
+  const [incorrectAnswers, setIncorrectAnswers] = useState<number>(savedProgress?.incorrectAnswers ?? 0);
 
   const totalQuestions = tasks.length;
+
+  // Save progress whenever relevant state changes
+  const saveProgress = useCallback(() => {
+    if (tasks.length === 0) return;
+
+    const state: QuizProgressState = {
+      taskPool,
+      currentTask,
+      areAnswersChecked,
+      isRoundWon,
+      isQuizStarted,
+      isQuizEnded,
+      openAnswer,
+      openAnswerScore,
+      learntQuestions: Array.from(learntQuestions),
+      correctAnswers,
+      incorrectAnswers,
+      tasksHash: getTasksHash(tasks),
+    };
+    saveQuizProgress(state);
+  }, [
+    taskPool, currentTask, areAnswersChecked, isRoundWon, isQuizStarted,
+    isQuizEnded, openAnswer, openAnswerScore, learntQuestions,
+    correctAnswers, incorrectAnswers, tasks
+  ]);
+
+  // Save progress on state changes
+  useEffect(() => {
+    saveProgress();
+  }, [saveProgress]);
 
   useEffect(() => {
     createPoolIfEmpty();
   }, []);
 
   const createPoolIfEmpty = () => {
-    if (taskPool.length === 0 && tasks?.length > 0) {
-      setTaskPool(createPool([...tasks]));
+    if (taskPool.length === 0 && tasks?.length > 0 && !isQuizStarted) {
+      setTaskPool(createPool([...tasks], settings.defaultPoolSize));
     }
   };
 
@@ -68,7 +167,8 @@ export default function QuizPage({
     setLearntQuestions(new Set());
     setCorrectAnswers(0);
     setIncorrectAnswers(0);
-    setTaskPool(createPool([...tasks]));
+    setTaskPool(createPool([...tasks], settings.defaultPoolSize));
+    clearQuizProgress();
   }
 
   const handleCheckAnswersClick = async () => {
@@ -96,15 +196,24 @@ export default function QuizPage({
         setLearntQuestions((prev) => new Set(prev).add(currentTask.id));
       } else {
         setIncorrectAnswers((prev) => prev + 1);
-        const taskCopy: Task = {
-          ...currentTask,
-          answers: currentTask.answers?.map((answer) => ({
-            ...answer,
-            isSelected: false,
-          })),
-        };
+        // Determine how many copies to add based on whether this is a retry
+        const copiesToAdd = currentTask.isRetry
+          ? settings.failedRetryCopies
+          : settings.failedOriginalCopies;
+
+        const newCopies: Task[] = [];
+        for (let i = 0; i < copiesToAdd; i++) {
+          newCopies.push({
+            ...currentTask,
+            isRetry: true,
+            answers: currentTask.answers?.map((answer) => ({
+              ...answer,
+              isSelected: false,
+            })),
+          });
+        }
         setTaskPool((prevTaskPool) =>
-          shuffleArray([...prevTaskPool, taskCopy, taskCopy]),
+          shuffleArray([...prevTaskPool, ...newCopies]),
         );
       }
 
@@ -132,15 +241,24 @@ export default function QuizPage({
       setLearntQuestions((prev) => new Set(prev).add(currentTask.id));
     } else if (currentTask) {
       setIncorrectAnswers((prev) => prev + 1);
-      const taskCopy: Task = {
-        ...currentTask,
-        answers: currentTask.answers?.map((answer) => ({
-          ...answer,
-          isSelected: false,
-        })),
-      };
+      // Determine how many copies to add based on whether this is a retry
+      const copiesToAdd = currentTask.isRetry
+        ? settings.failedRetryCopies
+        : settings.failedOriginalCopies;
+
+      const newCopies: Task[] = [];
+      for (let i = 0; i < copiesToAdd; i++) {
+        newCopies.push({
+          ...currentTask,
+          isRetry: true,
+          answers: currentTask.answers?.map((answer) => ({
+            ...answer,
+            isSelected: false,
+          })),
+        });
+      }
       setTaskPool((prevTaskPool) =>
-        shuffleArray([...prevTaskPool, taskCopy, taskCopy]),
+        shuffleArray([...prevTaskPool, ...newCopies]),
       );
     }
 

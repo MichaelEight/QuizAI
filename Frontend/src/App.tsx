@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, NavLink } from "react-router";
 import SourceTextPage from "./SourceTextPage";
 import SettingsPage from "./SettingsPage";
@@ -11,15 +11,67 @@ import { ApiKeyModal } from "./components/ApiKeyModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
 import "./App.css";
 
+const STORAGE_KEYS = {
+  SETTINGS: "quizai_settings",
+  SOURCE_TEXT: "quizai_source_text",
+  TASKS: "quizai_tasks",
+} as const;
+
+const DEFAULT_SETTINGS: Settings = {
+  amountOfClosedQuestions: 2,
+  amountOfOpenQuestions: 1,
+  allowMultipleCorrectAnswers: false,
+  forceMultipleCorrectAnswers: false,
+  defaultPoolSize: 2,
+  failedOriginalCopies: 3,
+  failedRetryCopies: 2,
+};
+
+function loadFromStorage<T>(key: string, defaultValue: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return JSON.parse(stored) as T;
+    }
+  } catch (error) {
+    console.error(`Error loading ${key} from localStorage:`, error);
+  }
+  return defaultValue;
+}
+
+function saveToStorage<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error saving ${key} to localStorage:`, error);
+  }
+}
+
 function AppContent() {
-  const [sourceText, setSourceText] = useState("");
-  const [settings, setSettings] = useState<Settings>({
-    amountOfClosedQuestions: 2,
-    amountOfOpenQuestions: 1,
-    allowMultipleCorrectAnswers: false,
-    forceMultipleCorrectAnswers: false,
-  });
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [sourceText, setSourceText] = useState(() =>
+    loadFromStorage(STORAGE_KEYS.SOURCE_TEXT, "")
+  );
+  const [settings, setSettings] = useState<Settings>(() =>
+    loadFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
+  );
+  const [tasks, setTasks] = useState<Task[]>(() =>
+    loadFromStorage(STORAGE_KEYS.TASKS, [])
+  );
+
+  // Persist settings to localStorage
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.SETTINGS, settings);
+  }, [settings]);
+
+  // Persist sourceText to localStorage
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.SOURCE_TEXT, sourceText);
+  }, [sourceText]);
+
+  // Persist tasks to localStorage
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.TASKS, tasks);
+  }, [tasks]);
 
   const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
 
@@ -95,7 +147,7 @@ function AppContent() {
             />
             <Route
               path="quizPage"
-              element={<QuizPage sourceText={sourceText} tasks={tasks} />}
+              element={<QuizPage sourceText={sourceText} tasks={tasks} settings={settings} />}
             />
           </Routes>
         </main>
