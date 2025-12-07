@@ -1032,41 +1032,16 @@ export default function QuizPage({
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Action buttons - Order: Show, Hint, Check (primary), Next */}
       <div className="grid grid-cols-4 gap-3">
-        <button
-          onClick={handleCheckAnswersClick}
-          disabled={areAnswersChecked || isChecking || isLoadingHint || (currentTask?.question.isOpen && !openAnswer.trim())}
-          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
-            areAnswersChecked || isChecking || isLoadingHint || (currentTask?.question.isOpen && !openAnswer.trim())
-              ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
-              : "bg-indigo-500 hover:bg-indigo-400 text-white active:scale-[0.98]"
-          }`}
-        >
-          {isChecking && !isAnswerRevealed ? (
-            <>
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Checking...
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Check
-            </>
-          )}
-        </button>
+        {/* Show Answer */}
         <button
           onClick={handleShowAnswer}
           disabled={areAnswersChecked || isChecking || isLoadingHint}
           className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
-              : "bg-amber-500/80 hover:bg-amber-500 text-white active:scale-[0.98]"
+              : "bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 border border-orange-500/30 active:scale-[0.98]"
           }`}
         >
           {isChecking && isAnswerRevealed ? (
@@ -1087,13 +1062,15 @@ export default function QuizPage({
             </>
           )}
         </button>
+
+        {/* Hint */}
         <button
           onClick={handleGetHint}
           disabled={areAnswersChecked || isChecking || isLoadingHint || !combinedText}
           className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint || !combinedText
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
-              : "bg-blue-500/80 hover:bg-blue-500 text-white active:scale-[0.98]"
+              : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 active:scale-[0.98]"
           }`}
         >
           {isLoadingHint ? (
@@ -1113,19 +1090,49 @@ export default function QuizPage({
             </>
           )}
         </button>
+
+        {/* Check - Primary action button */}
+        <button
+          onClick={handleCheckAnswersClick}
+          disabled={areAnswersChecked || isChecking || isLoadingHint || (currentTask?.question.isOpen && !openAnswer.trim())}
+          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all duration-200 ${
+            areAnswersChecked || isChecking || isLoadingHint || (currentTask?.question.isOpen && !openAnswer.trim())
+              ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+              : "bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg shadow-emerald-500/25 active:scale-[0.98]"
+          }`}
+        >
+          {isChecking && !isAnswerRevealed ? (
+            <>
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Checking...
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Check
+            </>
+          )}
+        </button>
+
+        {/* Next Question */}
         <button
           onClick={handleNextQuestionClick}
           disabled={!areAnswersChecked}
           className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
             areAnswersChecked
-              ? "bg-slate-700 hover:bg-slate-600 text-slate-100 active:scale-[0.98]"
+              ? "bg-indigo-500 hover:bg-indigo-400 text-white active:scale-[0.98]"
               : "bg-slate-700/50 text-slate-500 cursor-not-allowed"
           }`}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
-          Next Question
+          Next
         </button>
       </div>
 
