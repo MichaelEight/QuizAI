@@ -241,18 +241,20 @@ export default function QuizPage({
 
       if (won) {
         setCorrectAnswers((prev) => prev + 1);
-        const isNewlyLearnt = !wasAlreadyLearnt;
-        setLearntQuestions((prev) => new Set(prev).add(currentTask.id));
+
+        // Check if this question is now fully learnt (no more instances in pool)
+        const remainingInstances = taskPool.filter(t => t.id === currentTask.id).length;
+        const isNowFullyLearnt = remainingInstances === 0 && !wasAlreadyLearnt;
+
+        if (isNowFullyLearnt) {
+          setLearntQuestions((prev) => new Set(prev).add(currentTask.id));
+          gamification.recordLearntQuestion();
+          setShowLearntEffect(true);
+        }
 
         // Gamification: record correct answer
         gamification.recordAnswer(true, timeMs, currentTask.isRetry || false);
         setShowCorrectEffect(true);
-
-        // Check if newly learnt
-        if (isNewlyLearnt) {
-          gamification.recordLearntQuestion();
-          setShowLearntEffect(true);
-        }
       } else {
         setIncorrectAnswers((prev) => prev + 1);
         gamification.recordAnswer(false, timeMs, currentTask.isRetry || false);
@@ -299,18 +301,20 @@ export default function QuizPage({
 
     if (isMaxPointsScored && currentTask) {
       setCorrectAnswers((prev) => prev + 1);
-      const isNewlyLearnt = !wasAlreadyLearnt;
-      setLearntQuestions((prev) => new Set(prev).add(currentTask.id));
+
+      // Check if this question is now fully learnt (no more instances in pool)
+      const remainingInstances = taskPool.filter(t => t.id === currentTask.id).length;
+      const isNowFullyLearnt = remainingInstances === 0 && !wasAlreadyLearnt;
+
+      if (isNowFullyLearnt) {
+        setLearntQuestions((prev) => new Set(prev).add(currentTask.id));
+        gamification.recordLearntQuestion();
+        setShowLearntEffect(true);
+      }
 
       // Gamification: record correct answer
       gamification.recordAnswer(true, timeMs, currentTask.isRetry || false);
       setShowCorrectEffect(true);
-
-      // Check if newly learnt
-      if (isNewlyLearnt) {
-        gamification.recordLearntQuestion();
-        setShowLearntEffect(true);
-      }
     } else if (currentTask) {
       setIncorrectAnswers((prev) => prev + 1);
       gamification.recordAnswer(false, timeMs, currentTask.isRetry || false);
@@ -416,12 +420,22 @@ export default function QuizPage({
       setIsRoundWon(true);
       setCorrectAnswers(prev => prev + 1);
       setIncorrectAnswers(prev => Math.max(0, prev - 1));
-      setLearntQuestions(prev => new Set(prev).add(currentTask.id));
 
       // Remove retry copies that were added for this question
-      setTaskPool(prevPool =>
-        prevPool.filter(t => !(t.id === currentTask.id && t.isRetry))
-      );
+      // and check if question is now fully learnt
+      setTaskPool(prevPool => {
+        const filteredPool = prevPool.filter(t => !(t.id === currentTask.id && t.isRetry));
+        const remainingInstances = filteredPool.filter(t => t.id === currentTask.id).length;
+
+        // Mark as learnt only if no more instances remain
+        if (remainingInstances === 0 && !learntQuestions.has(currentTask.id)) {
+          setLearntQuestions(prev => new Set(prev).add(currentTask.id));
+          gamification.recordLearntQuestion();
+          setShowLearntEffect(true);
+        }
+
+        return filteredPool;
+      });
     }
   };
 
