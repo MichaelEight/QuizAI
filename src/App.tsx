@@ -30,6 +30,9 @@ const DEFAULT_SETTINGS: Settings = {
   defaultPoolSize: 2,
   failedOriginalCopies: 3,
   failedRetryCopies: 2,
+  contentFocus: 'important',
+  difficultyLevel: 'mixed',
+  customInstructions: '',
 };
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {

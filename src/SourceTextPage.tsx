@@ -10,7 +10,7 @@ import {
   UploadedFile,
 } from "./services/fileExtractService";
 import { FilePreviewModal } from "./components/FilePreviewModal";
-import { countTokens, formatNumber, estimateCost, TOKEN_LIMIT } from "./services/tokenCounterService";
+import { countTokens, formatNumber, estimateCost, getAvailableTokens } from "./services/tokenCounterService";
 
 interface SourceTextPageProps {
   sourceText: string;
@@ -59,7 +59,17 @@ export default function SourceTextPage({
   const textareaTokens = useMemo(() => countTokens(sourceText), [sourceText]);
 
   const totalTokens = totalFileTokens + textareaTokens;
-  const isOverLimit = totalTokens > TOKEN_LIMIT;
+
+  // Calculate available tokens based on current settings (subtracts system prompt + output reserve)
+  const availableTokens = useMemo(() =>
+    getAvailableTokens(
+      settings.contentFocus,
+      settings.difficultyLevel,
+      settings.customInstructions
+    )
+  , [settings.contentFocus, settings.difficultyLevel, settings.customInstructions]);
+
+  const isOverLimit = totalTokens > availableTokens;
 
   const processFiles = async (files: File[]) => {
     const validFiles = files.filter(isSupportedFile);
@@ -347,7 +357,7 @@ export default function SourceTextPage({
               <span className={isOverLimit ? 'text-rose-400' : 'text-indigo-400'}>
                 {formatNumber(totalTokens)}
               </span>{" "}
-              / {formatNumber(TOKEN_LIMIT)} tokens
+              / {formatNumber(availableTokens)} tokens
             </div>
             <div className="text-sm text-slate-400">
               <span className="text-slate-300 font-medium">Estimated cost:</span>{" "}

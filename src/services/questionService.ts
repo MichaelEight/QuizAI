@@ -6,7 +6,7 @@ import {
   correctTrailingComma,
 } from './questionUtilities';
 import { Task, Answer } from '../QuestionsTypes';
-import { Settings } from '../SettingsType';
+import { Settings, ContentFocus, DifficultyLevel } from '../SettingsType';
 
 interface GeneratedQuestion {
   question: string;
@@ -20,10 +20,17 @@ interface ErrorResponse {
 
 type QuestionResponse = GeneratedQuestion[] | ErrorResponse;
 
+interface GenerationOptions {
+  contentFocus: ContentFocus;
+  difficultyLevel: DifficultyLevel;
+  customInstructions: string;
+}
+
 async function generateQuestionsPerType(
   text: string,
   amount: number,
   type: QuestionType,
+  options: GenerationOptions,
 ): Promise<QuestionResponse> {
   if (amount <= 0) {
     return [];
@@ -32,6 +39,9 @@ async function generateQuestionsPerType(
   const sysPrompt = getSysPrompt(PromptTypes.GENERATE_QUESTIONS, {
     questionsAmount: amount,
     typeOfQuestion: type,
+    contentFocus: options.contentFocus,
+    difficultyLevel: options.difficultyLevel,
+    customInstructions: options.customInstructions,
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_QUESTIONS, {
     userText: text,
@@ -61,7 +71,16 @@ export async function generateQuestions(
     amountOfClosedQuestions: closedAmount,
     allowMultipleCorrectAnswers,
     forceMultipleCorrectAnswers,
+    contentFocus,
+    difficultyLevel,
+    customInstructions,
   } = settings;
+
+  const generationOptions: GenerationOptions = {
+    contentFocus,
+    difficultyLevel,
+    customInstructions,
+  };
 
   try {
     // Generate open questions
@@ -70,6 +89,7 @@ export async function generateQuestions(
         text,
         openAmount,
         QuestionTypes.OPEN,
+        generationOptions,
       );
       if (Array.isArray(result)) {
         allQuestions.push(...result);
@@ -83,6 +103,7 @@ export async function generateQuestions(
           text,
           closedAmount,
           QuestionTypes.CLOSED_MULTI,
+          generationOptions,
         );
         if (Array.isArray(result)) {
           allQuestions.push(...result);
@@ -96,6 +117,7 @@ export async function generateQuestions(
             text,
             singleAmount,
             QuestionTypes.CLOSED,
+            generationOptions,
           );
           if (Array.isArray(singleResult)) {
             allQuestions.push(...singleResult);
@@ -107,6 +129,7 @@ export async function generateQuestions(
             text,
             multipleAmount,
             QuestionTypes.CLOSED_MULTI,
+            generationOptions,
           );
           if (Array.isArray(multiResult)) {
             allQuestions.push(...multiResult);
@@ -117,6 +140,7 @@ export async function generateQuestions(
           text,
           closedAmount,
           QuestionTypes.CLOSED,
+          generationOptions,
         );
         if (Array.isArray(result)) {
           allQuestions.push(...result);

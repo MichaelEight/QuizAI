@@ -67,3 +67,52 @@ export const DEFAULT_MODEL = 'gpt-4o-mini';
 
 // Utility constants
 export const TRAILING_COMMA_REGEX = /,\s*([\]\}])/g;
+
+// Content focus instructions with examples
+export const CONTENT_FOCUS_INSTRUCTIONS = {
+  all: '',
+  important: `IMPORTANT: Focus on the most important, substantive content in the text. Prioritize:
+- Core concepts, theories, and technical information
+- Key definitions and terminology
+- Main arguments and conclusions
+- Practical applications and examples
+SKIP or deprioritize:
+- Administrative information (course rules, grading policies, schedules)
+- Introductory/filler content
+- Repetitive or redundant information
+- Meta-commentary about the document itself
+
+EXAMPLE - Given text: "Photosynthesis converts sunlight into chemical energy in chloroplasts. Dr. Jan Ingenhousz described this in 1779 in Vienna. The process produces glucose and oxygen."
+- GOOD question (important): "What do chloroplasts produce during photosynthesis?"
+- BAD question (unimportant): "In what year was photosynthesis first described?"`,
+} as const;
+
+// Difficulty level instructions with examples
+export const DIFFICULTY_INSTRUCTIONS = {
+  mixed: '',
+  easy: `Generate EASY questions only. Focus on:
+- Direct recall of facts and definitions
+- Simple "what is" or "who/what/when" questions
+- Information explicitly stated in text
+- Single-concept questions
+
+EXAMPLE - Given text: "Photosynthesis converts sunlight into chemical energy in chloroplasts."
+- EASY question: "What do plants convert sunlight into?" Answer: "Chemical energy"`,
+  medium: `Generate MEDIUM difficulty questions. Focus on:
+- Understanding relationships between concepts
+- "Why" and "how" questions
+- Comparing or contrasting ideas
+- Applying concepts to given scenarios
+
+EXAMPLE - Given text: "Photosynthesis occurs in chloroplasts, where chlorophyll absorbs light to produce glucose and oxygen."
+- MEDIUM question: "What role do chloroplasts play in photosynthesis?" Answer: "They contain chlorophyll that absorbs light for the reaction"`,
+  hard: `Generate HARD questions only. Focus on:
+- Analysis and synthesis of multiple concepts
+- Edge cases and exceptions
+- Implicit information requiring inference
+- Application to novel scenarios
+- Questions that require deep understanding
+
+EXAMPLE - Given text: "Photosynthesis produces glucose and oxygen as byproducts, which are essential for most life on Earth."
+- HARD question: "Why are the byproducts of photosynthesis essential for life on Earth?" Answer: "Glucose provides energy for organisms, oxygen enables cellular respiration"`,
+} as const;
