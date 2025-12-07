@@ -6,6 +6,11 @@ import { UploadedFile } from "./services/fileExtractService";
 import AnswerField from "./AnswerComponent";
 import { checkOpenAnswer, generateOpenQuestionAnswer, generateHint, generateExplanation } from "./backendService";
 import { QuizProgress } from "./components/QuizProgress";
+import { useGamification } from "./context/GamificationContext";
+import { CelebrationOverlay, CorrectAnswerEffect, LearntEffect } from "./components/CelebrationOverlay";
+import { AchievementToast } from "./components/AchievementToast";
+import { AchievementModal } from "./components/AchievementModal";
+import { Achievement } from "./types/gamification";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
 
@@ -132,6 +137,13 @@ export default function QuizPage({
   const [isLoadingHint, setIsLoadingHint] = useState<boolean>(false);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState<boolean>(false);
 
+  // Gamification
+  const gamification = useGamification();
+  const [showCorrectEffect, setShowCorrectEffect] = useState(false);
+  const [showLearntEffect, setShowLearntEffect] = useState(false);
+  const [toastAchievement, setToastAchievement] = useState<Achievement | null>(null);
+  const [modalAchievement, setModalAchievement] = useState<Achievement | null>(null);
+
   const totalQuestions = tasks.length;
 
   // Save progress whenever relevant state changes
@@ -183,6 +195,9 @@ export default function QuizPage({
     setIsAnswerRevealed(false);
     setHint(null);
     setExplanation(null);
+    // Reset gamification effects
+    setShowCorrectEffect(false);
+    setShowLearntEffect(false);
   }
 
   function resetQuiz() {
@@ -195,10 +210,14 @@ export default function QuizPage({
     setIncorrectAnswers(0);
     setTaskPool(createPool([...tasks], settings.defaultPoolSize));
     clearQuizProgress();
+    // Reset gamification session state
+    gamification.resetSession();
   }
 
   const handleCheckAnswersClick = async () => {
     setIsChecking(true);
+    const timeMs = gamification.stopTimer();
+    const wasAlreadyLearnt = currentTask ? learntQuestions.has(currentTask.id) : false;
 
     if (currentTask?.question.isOpen) {
       // Get accepted answer from task if exists (for future retries)
@@ -222,9 +241,22 @@ export default function QuizPage({
 
       if (won) {
         setCorrectAnswers((prev) => prev + 1);
+        const isNewlyLearnt = !wasAlreadyLearnt;
         setLearntQuestions((prev) => new Set(prev).add(currentTask.id));
+
+        // Gamification: record correct answer
+        gamification.recordAnswer(true, timeMs, currentTask.isRetry || false);
+        setShowCorrectEffect(true);
+
+        // Check if newly learnt
+        if (isNewlyLearnt) {
+          gamification.recordLearntQuestion();
+          setShowLearntEffect(true);
+        }
       } else {
         setIncorrectAnswers((prev) => prev + 1);
+        gamification.recordAnswer(false, timeMs, currentTask.isRetry || false);
+
         // Determine how many copies to add based on whether this is a retry
         const copiesToAdd = currentTask.isRetry
           ? settings.failedRetryCopies
@@ -267,9 +299,22 @@ export default function QuizPage({
 
     if (isMaxPointsScored && currentTask) {
       setCorrectAnswers((prev) => prev + 1);
+      const isNewlyLearnt = !wasAlreadyLearnt;
       setLearntQuestions((prev) => new Set(prev).add(currentTask.id));
+
+      // Gamification: record correct answer
+      gamification.recordAnswer(true, timeMs, currentTask.isRetry || false);
+      setShowCorrectEffect(true);
+
+      // Check if newly learnt
+      if (isNewlyLearnt) {
+        gamification.recordLearntQuestion();
+        setShowLearntEffect(true);
+      }
     } else if (currentTask) {
       setIncorrectAnswers((prev) => prev + 1);
+      gamification.recordAnswer(false, timeMs, currentTask.isRetry || false);
+
       // Determine how many copies to add based on whether this is a retry
       const copiesToAdd = currentTask.isRetry
         ? settings.failedRetryCopies
@@ -301,17 +346,22 @@ export default function QuizPage({
 
     if (taskPool.length === 0) {
       setIsQuizEnded(true);
+      // End quiz gamification
+      gamification.endQuiz({ correct: correctAnswers, incorrect: incorrectAnswers, learnt: learntQuestions.size });
       return;
     }
 
     const [nextTask, ...remainingTasks] = taskPool;
     setCurrentTask(nextTask);
     setTaskPool(remainingTasks);
+    // Start timer for the new question
+    gamification.startTimer();
   };
 
   const handleStartQuiz = () => {
     handleNextQuestionClick();
     setIsQuizStarted(true);
+    gamification.startTimer();
   };
 
   const handleAcceptMyAnswer = () => {
@@ -771,6 +821,10 @@ export default function QuizPage({
         learntCount={learntQuestions.size}
         correctAnswers={correctAnswers}
         incorrectAnswers={incorrectAnswers}
+        streak={gamification.sessionStats.sessionStreak}
+        points={gamification.sessionStats.sessionPoints}
+        timerStart={gamification.timerStart}
+        isTimerRunning={gamification.isTimerRunning}
       />
 
       {/* Question Card */}
@@ -1060,6 +1114,39 @@ export default function QuizPage({
           Next Question
         </button>
       </div>
+
+      {/* Gamification Overlays */}
+      <CelebrationOverlay
+        celebration={gamification.currentCelebration}
+        onComplete={() => gamification.clearCelebration()}
+      />
+
+      {/* Correct answer effect on question card */}
+      {currentTask && (
+        <CorrectAnswerEffect
+          show={showCorrectEffect}
+          onComplete={() => setShowCorrectEffect(false)}
+        />
+      )}
+
+      {/* Learnt question effect */}
+      <LearntEffect show={showLearntEffect} />
+
+      {/* Achievement toast notification */}
+      <AchievementToast
+        achievement={toastAchievement}
+        onDismiss={() => setToastAchievement(null)}
+        onClick={() => {
+          setModalAchievement(toastAchievement);
+          setToastAchievement(null);
+        }}
+      />
+
+      {/* Achievement modal */}
+      <AchievementModal
+        achievement={modalAchievement}
+        onClose={() => setModalAchievement(null)}
+      />
     </div>
   );
 }

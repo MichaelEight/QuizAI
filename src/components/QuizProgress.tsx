@@ -1,8 +1,17 @@
+import { StreakDisplay } from './StreakDisplay';
+import { TimerDisplay } from './TimerDisplay';
+import { PointsDisplay } from './PointsDisplay';
+
 interface QuizProgressProps {
   totalQuestions: number;
   learntCount: number;
   correctAnswers: number;
   incorrectAnswers: number;
+  // Gamification props
+  streak?: number;
+  points?: number;
+  timerStart?: number | null;
+  isTimerRunning?: boolean;
 }
 
 export function QuizProgress({
@@ -10,13 +19,30 @@ export function QuizProgress({
   learntCount,
   correctAnswers,
   incorrectAnswers,
+  streak = 0,
+  points = 0,
+  timerStart = null,
+  isTimerRunning = false,
 }: QuizProgressProps) {
   const learntPercentage = totalQuestions > 0 ? (learntCount / totalQuestions) * 100 : 0;
   const totalAnswers = correctAnswers + incorrectAnswers;
   const correctPercentage = totalAnswers > 0 ? (correctAnswers / totalAnswers) * 100 : 50;
 
+  const showGamification = streak > 0 || points > 0 || timerStart !== null;
+
   return (
     <div className="space-y-4 mb-8">
+      {/* Gamification Row */}
+      {showGamification && (
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2">
+            <StreakDisplay streak={streak} animate />
+            <TimerDisplay startTime={timerStart} isRunning={isTimerRunning} />
+          </div>
+          <PointsDisplay points={points} />
+        </div>
+      )}
+
       {/* Learning Progress Bar */}
       <div>
         <div className="flex justify-between text-sm mb-2">
