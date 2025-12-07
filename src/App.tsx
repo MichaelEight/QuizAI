@@ -4,12 +4,14 @@ import SourceTextPage from "./SourceTextPage";
 import SettingsPage from "./SettingsPage";
 import QuizPage from "./QuizPage";
 import AchievementsPage from "./AchievementsPage";
+import LibraryPage from "./LibraryPage";
 import Homepage from "./Homepage";
 import { Settings } from "./SettingsType";
 import { Task } from "./QuestionsTypes";
 import { UploadedFile } from "./services/fileExtractService";
 import { ApiKeyProvider, useApiKey } from "./context/ApiKeyContext";
 import { GamificationProvider } from "./context/GamificationContext";
+import { QuizLibraryProvider } from "./context/QuizLibraryContext";
 import { ApiKeyModal } from "./components/ApiKeyModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
 import { ImportExportButton } from "./components/ImportExportButton";
@@ -143,6 +145,14 @@ function AppContent() {
                 <NavLink to="quizPage" end className={navLinkClass}>
                   Quiz
                 </NavLink>
+                <NavLink to="library" end className={navLinkClass}>
+                  <span className="flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    Library
+                  </span>
+                </NavLink>
                 <NavLink to="achievements" end className={navLinkClass}>
                   <span className="flex items-center gap-1.5">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -189,6 +199,10 @@ function AppContent() {
               path="quizPage"
               element={<QuizPage sourceText={sourceText} uploadedFiles={uploadedFiles} tasks={tasks} setTasks={setTasks} settings={settings} />}
             />
+            <Route
+              path="library"
+              element={<LibraryPage setTasks={setTasks} setSourceText={setSourceText} />}
+            />
             <Route path="achievements" element={<AchievementsPage />} />
           </Routes>
         </main>
@@ -206,7 +220,9 @@ function App() {
   return (
     <ApiKeyProvider>
       <GamificationProvider>
-        <AppContent />
+        <QuizLibraryProvider>
+          <AppContent />
+        </QuizLibraryProvider>
       </GamificationProvider>
     </ApiKeyProvider>
   );

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { generateQuestions } from "./backendService";
 import { Task } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
@@ -165,11 +165,22 @@ export default function SourceTextPage({
   return (
     <div className="animate-fade-in max-w-3xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-100 mb-2">Input Source Text</h1>
-        <p className="text-slate-400">
-          Upload files or paste text to generate quiz questions
-        </p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-100 mb-2">Input Source Text</h1>
+          <p className="text-slate-400">
+            Upload files or paste text to generate quiz questions
+          </p>
+        </div>
+        <Link
+          to="/library"
+          className="flex items-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors border border-slate-600"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          Load from Library
+        </Link>
       </div>
 
       {/* Main Card */}

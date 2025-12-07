@@ -11,6 +11,8 @@ import { CelebrationOverlay, CorrectAnswerEffect, LearntEffect } from "./compone
 import { AchievementToast } from "./components/AchievementToast";
 import { AchievementModal } from "./components/AchievementModal";
 import { Achievement } from "./types/gamification";
+import { SaveQuizModal } from "./components/SaveQuizModal";
+import { SuccessToast } from "./components/SuccessToast";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
 
@@ -126,6 +128,8 @@ export default function QuizPage({
   const [correctAnswers, setCorrectAnswers] = useState<number>(savedProgress?.correctAnswers ?? 0);
   const [incorrectAnswers, setIncorrectAnswers] = useState<number>(savedProgress?.incorrectAnswers ?? 0);
   const [showEndQuizModal, setShowEndQuizModal] = useState<boolean>(false);
+  const [showSaveQuizModal, setShowSaveQuizModal] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // State for "Show Answer" feature
   const [revealedOpenAnswer, setRevealedOpenAnswer] = useState<string | null>(null);
@@ -691,27 +695,56 @@ export default function QuizPage({
   // Quiz not started
   if (!isQuizStarted) {
     return (
-      <div className="animate-fade-in max-w-2xl mx-auto text-center py-16">
-        <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg className="w-10 h-10 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+      <>
+        <div className="animate-fade-in max-w-2xl mx-auto text-center py-16">
+          <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-bold text-slate-100 mb-2">Ready to Start?</h2>
+          <p className="text-slate-400 mb-8">
+            You have <span className="text-indigo-400 font-medium">{totalQuestions}</span> questions waiting for you
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={handleStartQuiz}
+              className="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-semibold rounded-lg px-8 py-4 transition-all duration-200 shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Start Quiz
+            </button>
+            <button
+              onClick={() => setShowSaveQuizModal(true)}
+              className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-600"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Save to Library
+            </button>
+          </div>
+
+          {/* Save Quiz Modal */}
+          <SaveQuizModal
+            isOpen={showSaveQuizModal}
+            onClose={() => setShowSaveQuizModal(false)}
+            tasks={tasks}
+            sourceText={combinedText}
+            uploadedFileNames={uploadedFiles.map(f => f.name)}
+            onSaved={() => setSuccessMessage('Quiz saved to library!')}
+          />
         </div>
-        <h2 className="text-3xl font-bold text-slate-100 mb-2">Ready to Start?</h2>
-        <p className="text-slate-400 mb-8">
-          You have <span className="text-indigo-400 font-medium">{totalQuestions}</span> questions waiting for you
-        </p>
-        <button
-          onClick={handleStartQuiz}
-          className="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-semibold rounded-lg px-8 py-4 transition-all duration-200 shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Start Quiz
-        </button>
-      </div>
+
+        {/* Success Toast - outside centered container */}
+        <SuccessToast
+          message={successMessage}
+          onDismiss={() => setSuccessMessage(null)}
+        />
+      </>
     );
   }
 
@@ -721,51 +754,78 @@ export default function QuizPage({
     const accuracyPercent = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
 
     return (
-      <div className="animate-fade-in max-w-2xl mx-auto text-center py-16">
-        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg className="w-10 h-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h2 className="text-3xl font-bold text-slate-100 mb-2">Quiz Complete!</h2>
-        <p className="text-slate-400 mb-6">
-          You learnt all <span className="text-emerald-400 font-medium">{learntQuestions.size}</span> questions
-        </p>
-
-        {/* Final Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8 max-w-md mx-auto">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-            <p className="text-2xl font-bold text-emerald-400">{correctAnswers}</p>
-            <p className="text-sm text-slate-400">Correct</p>
-          </div>
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-            <p className="text-2xl font-bold text-rose-400">{incorrectAnswers}</p>
-            <p className="text-sm text-slate-400">Incorrect</p>
-          </div>
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-            <p className="text-2xl font-bold text-indigo-400">{accuracyPercent}%</p>
-            <p className="text-sm text-slate-400">Accuracy</p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={resetQuiz}
-            className="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      <>
+        <div className="animate-fade-in max-w-2xl mx-auto text-center py-16">
+          <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Try Again
-          </button>
-          <Link
-            to="/sourcePage"
-            className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-6 py-3 transition-all duration-200"
-          >
-            New Quiz
-          </Link>
+          </div>
+          <h2 className="text-3xl font-bold text-slate-100 mb-2">Quiz Complete!</h2>
+          <p className="text-slate-400 mb-6">
+            You learnt all <span className="text-emerald-400 font-medium">{learntQuestions.size}</span> questions
+          </p>
+
+          {/* Final Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-8 max-w-md mx-auto">
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+              <p className="text-2xl font-bold text-emerald-400">{correctAnswers}</p>
+              <p className="text-sm text-slate-400">Correct</p>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+              <p className="text-2xl font-bold text-rose-400">{incorrectAnswers}</p>
+              <p className="text-sm text-slate-400">Incorrect</p>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+              <p className="text-2xl font-bold text-indigo-400">{accuracyPercent}%</p>
+              <p className="text-sm text-slate-400">Accuracy</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={resetQuiz}
+              className="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Try Again
+            </button>
+            <button
+              onClick={() => setShowSaveQuizModal(true)}
+              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Save to Library
+            </button>
+            <Link
+              to="/sourcePage"
+              className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-6 py-3 transition-all duration-200"
+            >
+              New Quiz
+            </Link>
+          </div>
+
+          {/* Save Quiz Modal */}
+          <SaveQuizModal
+            isOpen={showSaveQuizModal}
+            onClose={() => setShowSaveQuizModal(false)}
+            tasks={tasks}
+            sourceText={combinedText}
+            uploadedFileNames={uploadedFiles.map(f => f.name)}
+            onSaved={() => setSuccessMessage('Quiz saved to library!')}
+          />
         </div>
-      </div>
+
+        {/* Success Toast - outside centered container */}
+        <SuccessToast
+          message={successMessage}
+          onDismiss={() => setSuccessMessage(null)}
+        />
+      </>
     );
   }
 
