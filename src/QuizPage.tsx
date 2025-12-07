@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router";
 import { Task, AnswerOverride } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
+import { UploadedFile } from "./services/fileExtractService";
 import AnswerField from "./AnswerComponent";
-import { checkOpenAnswer } from "./backendService";
+import { checkOpenAnswer, generateOpenQuestionAnswer } from "./backendService";
 import { QuizProgress } from "./components/QuizProgress";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
@@ -82,17 +83,25 @@ function clearQuizProgress(): void {
 
 export default function QuizPage({
   sourceText,
+  uploadedFiles,
   tasks,
   setTasks,
   settings,
 }: {
   readonly sourceText: string;
+  readonly uploadedFiles: readonly UploadedFile[];
   readonly tasks: readonly Task[];
   readonly setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   readonly settings: Settings;
 }) {
   // Load saved progress on initial render
   const savedProgress = tasks.length > 0 ? loadQuizProgress(tasks) : null;
+
+  // Combine file content with manual text (same logic as SourceTextPage)
+  const combinedText = useMemo(() => {
+    const fileTexts = uploadedFiles.map(f => f.content).join('\n\n');
+    return fileTexts + (fileTexts && sourceText ? '\n\n' : '') + sourceText;
+  }, [uploadedFiles, sourceText]);
 
   const [taskPool, setTaskPool] = useState<Task[]>(savedProgress?.taskPool ?? []);
   const [currentTask, setCurrentTask] = useState<Task | undefined>(savedProgress?.currentTask);
@@ -112,6 +121,10 @@ export default function QuizPage({
   const [correctAnswers, setCorrectAnswers] = useState<number>(savedProgress?.correctAnswers ?? 0);
   const [incorrectAnswers, setIncorrectAnswers] = useState<number>(savedProgress?.incorrectAnswers ?? 0);
   const [showEndQuizModal, setShowEndQuizModal] = useState<boolean>(false);
+
+  // State for "Show Answer" feature
+  const [revealedOpenAnswer, setRevealedOpenAnswer] = useState<string | null>(null);
+  const [isAnswerRevealed, setIsAnswerRevealed] = useState<boolean>(false);
 
   const totalQuestions = tasks.length;
 
@@ -160,6 +173,8 @@ export default function QuizPage({
     setIsRoundWon(false);
     setOpenAnswer("");
     setIsChecking(false);
+    setRevealedOpenAnswer(null);
+    setIsAnswerRevealed(false);
   }
 
   function resetQuiz() {
@@ -181,7 +196,7 @@ export default function QuizPage({
       // Get accepted answer from task if exists (for future retries)
       const acceptedAnswer = currentTask.answerOverride?.acceptedOpenAnswer;
       const result = await checkOpenAnswer(
-        sourceText,
+        combinedText,
         currentTask.question.value,
         openAnswer,
         acceptedAnswer,
@@ -396,6 +411,87 @@ export default function QuizPage({
     }
   };
 
+  const handleShowAnswer = async () => {
+    if (!currentTask) return;
+
+    // Mark as failed (same logic as wrong answer)
+    setIncorrectAnswers(prev => prev + 1);
+
+    // Determine how many copies to add based on whether this is a retry
+    const copiesToAdd = currentTask.isRetry
+      ? settings.failedRetryCopies
+      : settings.failedOriginalCopies;
+
+    // Add retry copies to pool
+    const newCopies: Task[] = [];
+    for (let i = 0; i < copiesToAdd; i++) {
+      newCopies.push({
+        ...currentTask,
+        isRetry: true,
+        answers: currentTask.answers?.map((answer) => ({
+          ...answer,
+          isSelected: false,
+        })),
+      });
+    }
+    setTaskPool(prevPool => shuffleArray([...prevPool, ...newCopies]));
+
+    // Set revealed state early so loading shows on correct button
+    setIsAnswerRevealed(true);
+
+    if (currentTask.question.isOpen) {
+      // Check cache first
+      let generatedAnswer = currentTask.answerOverride?.generatedOpenAnswer;
+
+      if (!generatedAnswer) {
+        if (!combinedText) {
+          setRevealedOpenAnswer("Source text is missing. Please go to Input Text page and ensure your source material is loaded.");
+          setIsRoundWon(false);
+          setAreAnswersChecked(true);
+          return;
+        }
+
+        setIsChecking(true);
+        generatedAnswer = await generateOpenQuestionAnswer(combinedText, currentTask.question.value);
+        setIsChecking(false);
+
+        // Cache the answer in both main tasks and current task
+        if (generatedAnswer) {
+          setTasks(prevTasks => prevTasks.map(t =>
+            t.id === currentTask.id
+              ? {
+                  ...t,
+                  answerOverride: {
+                    ...t.answerOverride,
+                    generatedOpenAnswer: generatedAnswer,
+                    overriddenAt: Date.now()
+                  }
+                }
+              : t
+          ));
+          // Also update pool tasks with this question
+          setTaskPool(prevPool => prevPool.map(t =>
+            t.id === currentTask.id
+              ? {
+                  ...t,
+                  answerOverride: {
+                    ...t.answerOverride,
+                    generatedOpenAnswer: generatedAnswer,
+                    overriddenAt: Date.now()
+                  }
+                }
+              : t
+          ));
+        }
+      }
+
+      setRevealedOpenAnswer(generatedAnswer || "Could not generate answer. Please try again.");
+    }
+
+    setIsRoundWon(false);
+    setAreAnswersChecked(true);
+  };
+
   // No tasks available
   if (!tasks || tasks.length === 0) {
     return (
@@ -607,16 +703,23 @@ export default function QuizPage({
         <div className={`mb-6 p-4 rounded-xl border ${
           isRoundWon
             ? "bg-emerald-500/10 border-emerald-500/20"
+            : isAnswerRevealed
+            ? "bg-amber-500/10 border-amber-500/20"
             : "bg-rose-500/10 border-rose-500/20"
         } animate-fade-in`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                isRoundWon ? "bg-emerald-500/20" : "bg-rose-500/20"
+                isRoundWon ? "bg-emerald-500/20" : isAnswerRevealed ? "bg-amber-500/20" : "bg-rose-500/20"
               }`}>
                 {isRoundWon ? (
                   <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : isAnswerRevealed ? (
+                  <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 ) : (
                   <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -625,55 +728,87 @@ export default function QuizPage({
                 )}
               </div>
               <div>
-                <p className={`font-semibold ${isRoundWon ? "text-emerald-400" : "text-rose-400"}`}>
-                  {isRoundWon ? "Correct!" : "Incorrect"}
+                <p className={`font-semibold ${isRoundWon ? "text-emerald-400" : isAnswerRevealed ? "text-amber-400" : "text-rose-400"}`}>
+                  {isRoundWon ? "Correct!" : isAnswerRevealed ? "Answer Revealed" : "Incorrect"}
                 </p>
-                {currentTask?.question.isOpen && (
+                {currentTask?.question.isOpen && !isAnswerRevealed && (
                   <p className="text-sm text-slate-400">
                     You scored <span className={isRoundWon ? "text-emerald-400" : "text-rose-400"}>{openAnswerScore}</span>/100 points
                   </p>
                 )}
+                {isAnswerRevealed && (
+                  <p className="text-sm text-slate-400">
+                    This counts as incorrect. Review the answer below.
+                  </p>
+                )}
               </div>
             </div>
-            {/* Disagree buttons */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={handleAcceptMyAnswer}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-200"
-                title="Mark my answer as correct"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Accept My Answer
-              </button>
-              <button
-                onClick={handleRemoveQuestion}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-rose-500/20 border border-slate-600 hover:border-rose-500/30 rounded-lg transition-all duration-200"
-                title="Remove this question from the quiz"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Remove Question
-              </button>
-            </div>
+            {/* Disagree buttons - only show when not revealed */}
+            {!isAnswerRevealed && (
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleAcceptMyAnswer}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-200"
+                  title="Mark my answer as correct"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Accept My Answer
+                </button>
+                <button
+                  onClick={handleRemoveQuestion}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-rose-500/20 border border-slate-600 hover:border-rose-500/30 rounded-lg transition-all duration-200"
+                  title="Remove this question from the quiz"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Remove Question
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Revealed answer for open questions */}
+          {isAnswerRevealed && revealedOpenAnswer && (
+            <div className="mt-4 pt-4 border-t border-amber-500/20">
+              <p className="text-sm font-medium text-amber-400 mb-2">Expected Answer:</p>
+              <p className="text-slate-100 bg-slate-800/50 rounded-lg p-3">{revealedOpenAnswer}</p>
+            </div>
+          )}
+
+          {/* Revealed answers for closed questions */}
+          {isAnswerRevealed && !currentTask?.question.isOpen && currentTask?.answers && (
+            <div className="mt-4 pt-4 border-t border-amber-500/20">
+              <p className="text-sm font-medium text-amber-400 mb-2">Correct Answer{currentTask.answers.filter(a => a.isCorrect).length > 1 ? 's' : ''}:</p>
+              <ul className="space-y-1">
+                {currentTask.answers.filter(a => a.isCorrect).map((answer, index) => (
+                  <li key={index} className="flex items-center gap-2 text-slate-100">
+                    <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {answer.value}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
       {/* Action buttons */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <button
           onClick={handleCheckAnswersClick}
-          disabled={areAnswersChecked || isChecking}
+          disabled={areAnswersChecked || isChecking || (currentTask?.question.isOpen && !openAnswer.trim())}
           className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
-            areAnswersChecked || isChecking
+            areAnswersChecked || isChecking || (currentTask?.question.isOpen && !openAnswer.trim())
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
               : "bg-indigo-500 hover:bg-indigo-400 text-white active:scale-[0.98]"
           }`}
         >
-          {isChecking ? (
+          {isChecking && !isAnswerRevealed ? (
             <>
               <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -687,6 +822,33 @@ export default function QuizPage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Check Answer
+            </>
+          )}
+        </button>
+        <button
+          onClick={handleShowAnswer}
+          disabled={areAnswersChecked || isChecking}
+          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
+            areAnswersChecked || isChecking
+              ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+              : "bg-amber-500/80 hover:bg-amber-500 text-white active:scale-[0.98]"
+          }`}
+        >
+          {isChecking && isAnswerRevealed ? (
+            <>
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Loading...
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Show Answer
             </>
           )}
         </button>

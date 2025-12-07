@@ -176,7 +176,7 @@ function AppContent() {
             />
             <Route
               path="quizPage"
-              element={<QuizPage sourceText={sourceText} tasks={tasks} setTasks={setTasks} settings={settings} />}
+              element={<QuizPage sourceText={sourceText} uploadedFiles={uploadedFiles} tasks={tasks} setTasks={setTasks} settings={settings} />}
             />
           </Routes>
         </main>
