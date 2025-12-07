@@ -1,6 +1,7 @@
 // prettier-ignore
 export type ContentFocus = 'all' | 'important';
 export type DifficultyLevel = 'mixed' | 'easy' | 'medium' | 'hard';
+export type QuestionStyle = 'conceptual' | 'text-based';
 
 export type Settings = {
   amountOfClosedQuestions: number,
@@ -14,6 +15,7 @@ export type Settings = {
   // Question generation settings
   contentFocus: ContentFocus,        // Focus on all content or important parts only
   difficultyLevel: DifficultyLevel,  // Question difficulty level
+  questionStyle: QuestionStyle,      // Conceptual (test understanding) vs text-based (test recall of text)
   customInstructions: string,        // Custom instructions appended to prompt
 };
 

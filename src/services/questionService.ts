@@ -6,7 +6,7 @@ import {
   correctTrailingComma,
 } from './questionUtilities';
 import { Task, Answer } from '../QuestionsTypes';
-import { Settings, ContentFocus, DifficultyLevel } from '../SettingsType';
+import { Settings, ContentFocus, DifficultyLevel, QuestionStyle } from '../SettingsType';
 
 interface GeneratedQuestion {
   question: string;
@@ -23,6 +23,7 @@ type QuestionResponse = GeneratedQuestion[] | ErrorResponse;
 interface GenerationOptions {
   contentFocus: ContentFocus;
   difficultyLevel: DifficultyLevel;
+  questionStyle: QuestionStyle;
   customInstructions: string;
 }
 
@@ -41,6 +42,7 @@ async function generateQuestionsPerType(
     typeOfQuestion: type,
     contentFocus: options.contentFocus,
     difficultyLevel: options.difficultyLevel,
+    questionStyle: options.questionStyle,
     customInstructions: options.customInstructions,
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_QUESTIONS, {
@@ -73,12 +75,14 @@ export async function generateQuestions(
     forceMultipleCorrectAnswers,
     contentFocus,
     difficultyLevel,
+    questionStyle,
     customInstructions,
   } = settings;
 
   const generationOptions: GenerationOptions = {
     contentFocus,
     difficultyLevel,
+    questionStyle,
     customInstructions,
   };
 
@@ -219,6 +223,51 @@ export async function generateOpenQuestionAnswer(
     return answer.trim();
   } catch (error) {
     console.error('Error in generateOpenQuestionAnswer:', error);
+    return '';
+  }
+}
+
+export async function generateHint(
+  text: string,
+  question: string,
+  questionStyle: QuestionStyle = 'conceptual',
+): Promise<string> {
+  const sysPrompt = getSysPrompt(PromptTypes.GENERATE_HINT, {
+    questionStyle,
+  });
+  const devPrompt = getDevPrompt(PromptTypes.GENERATE_HINT, {
+    text,
+    question,
+  });
+  const userPrompt = getUserPrompt(PromptTypes.GENERATE_HINT);
+
+  try {
+    const hint = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    return hint.trim();
+  } catch (error) {
+    console.error('Error in generateHint:', error);
+    return '';
+  }
+}
+
+export async function generateExplanation(
+  text: string,
+  question: string,
+  correctAnswers: string[],
+): Promise<string> {
+  const sysPrompt = getSysPrompt(PromptTypes.GENERATE_EXPLANATION);
+  const devPrompt = getDevPrompt(PromptTypes.GENERATE_EXPLANATION, {
+    text,
+    question,
+    correctAnswers,
+  });
+  const userPrompt = getUserPrompt(PromptTypes.GENERATE_EXPLANATION);
+
+  try {
+    const explanation = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    return explanation.trim();
+  } catch (error) {
+    console.error('Error in generateExplanation:', error);
     return '';
   }
 }

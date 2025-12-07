@@ -3,6 +3,8 @@ export class PromptTypes {
   static readonly GENERATE_QUESTIONS = 'generate-questions' as const;
   static readonly CHECK_OPEN_QUESTION = 'check-open-question' as const;
   static readonly GENERATE_OPEN_ANSWER = 'generate-open-answer' as const;
+  static readonly GENERATE_HINT = 'generate-hint' as const;
+  static readonly GENERATE_EXPLANATION = 'generate-explanation' as const;
 }
 
 export type PromptType = typeof PromptTypes[keyof typeof PromptTypes];
@@ -115,4 +117,25 @@ EXAMPLE - Given text: "Photosynthesis occurs in chloroplasts, where chlorophyll 
 
 EXAMPLE - Given text: "Photosynthesis produces glucose and oxygen as byproducts, which are essential for most life on Earth."
 - HARD question: "Why are the byproducts of photosynthesis essential for life on Earth?" Answer: "Glucose provides energy for organisms, oxygen enables cellular respiration"`,
+} as const;
+
+// Question style instructions
+export const QUESTION_STYLE_INSTRUCTIONS = {
+  conceptual: `IMPORTANT - CONCEPTUAL STYLE: Test understanding of CONCEPTS, not recall of text location.
+- Ask about the PURPOSE, FUNCTION, MECHANISM, or MEANING of concepts
+- DO NOT phrase questions as "What does the text say about X?" or "According to the text, what is X?"
+- DO NOT reference the text location like "Look at the section that describes..."
+- Instead ask: "What is the purpose of X?", "How does X work?", "What are the characteristics of X?"
+
+EXAMPLES:
+- BAD: "What methods are mentioned in the text?"
+- GOOD: "What are the methods used for X?"
+- BAD: "According to the text, what is photosynthesis?"
+- GOOD: "What is the purpose of photosynthesis?"
+- BAD: "Look at the section describing HTTP methods. Which ones are listed?"
+- GOOD: "What HTTP methods are commonly used for data retrieval?"`,
+  'text-based': `TEXT-BASED STYLE: Questions may reference the text directly.
+- Can ask "What does the text say about X?"
+- Can reference specific sections or parts of the text
+- Focus on recall of what was written`,
 } as const;

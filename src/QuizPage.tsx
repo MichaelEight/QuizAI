@@ -4,7 +4,7 @@ import { Task, AnswerOverride } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
 import { UploadedFile } from "./services/fileExtractService";
 import AnswerField from "./AnswerComponent";
-import { checkOpenAnswer, generateOpenQuestionAnswer } from "./backendService";
+import { checkOpenAnswer, generateOpenQuestionAnswer, generateHint, generateExplanation } from "./backendService";
 import { QuizProgress } from "./components/QuizProgress";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
@@ -126,6 +126,12 @@ export default function QuizPage({
   const [revealedOpenAnswer, setRevealedOpenAnswer] = useState<string | null>(null);
   const [isAnswerRevealed, setIsAnswerRevealed] = useState<boolean>(false);
 
+  // State for Hint and Explanation features
+  const [hint, setHint] = useState<string | null>(null);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isLoadingHint, setIsLoadingHint] = useState<boolean>(false);
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState<boolean>(false);
+
   const totalQuestions = tasks.length;
 
   // Save progress whenever relevant state changes
@@ -175,6 +181,8 @@ export default function QuizPage({
     setIsChecking(false);
     setRevealedOpenAnswer(null);
     setIsAnswerRevealed(false);
+    setHint(null);
+    setExplanation(null);
   }
 
   function resetQuiz() {
@@ -492,6 +500,106 @@ export default function QuizPage({
     setAreAnswersChecked(true);
   };
 
+  const handleGetHint = async () => {
+    if (!currentTask || !combinedText) return;
+
+    // Check cache first
+    const cachedHint = currentTask.answerOverride?.hint;
+    if (cachedHint) {
+      setHint(cachedHint);
+      return;
+    }
+
+    setIsLoadingHint(true);
+    const generatedHint = await generateHint(combinedText, currentTask.question.value, settings.questionStyle);
+    setIsLoadingHint(false);
+
+    if (generatedHint) {
+      setHint(generatedHint);
+
+      // Cache the hint
+      const updateOverride = (t: Task): Task =>
+        t.id === currentTask.id
+          ? {
+              ...t,
+              answerOverride: {
+                ...t.answerOverride,
+                hint: generatedHint,
+                overriddenAt: Date.now()
+              }
+            }
+          : t;
+
+      setTasks(prevTasks => prevTasks.map(updateOverride));
+      setTaskPool(prevPool => prevPool.map(updateOverride));
+    } else {
+      setHint("Could not generate a hint. Please try again.");
+    }
+  };
+
+  const handleGetExplanation = async () => {
+    if (!currentTask || !combinedText) return;
+
+    // Check cache first
+    const cachedExplanation = currentTask.answerOverride?.explanation;
+    if (cachedExplanation) {
+      setExplanation(cachedExplanation);
+      return;
+    }
+
+    // Get correct answers
+    let correctAnswers: string[] = [];
+    if (currentTask.question.isOpen) {
+      // For open questions, use generated answer or user's accepted answer
+      const answer = currentTask.answerOverride?.generatedOpenAnswer ||
+                     currentTask.answerOverride?.acceptedOpenAnswer ||
+                     revealedOpenAnswer;
+      if (answer) {
+        correctAnswers = [answer];
+      }
+    } else {
+      // For closed questions, get correct answer values
+      correctAnswers = currentTask.answers
+        ?.filter(a => a.isCorrect)
+        .map(a => a.value) || [];
+    }
+
+    if (correctAnswers.length === 0) {
+      setExplanation("Cannot generate explanation: no correct answer available.");
+      return;
+    }
+
+    setIsLoadingExplanation(true);
+    const generatedExplanation = await generateExplanation(
+      combinedText,
+      currentTask.question.value,
+      correctAnswers
+    );
+    setIsLoadingExplanation(false);
+
+    if (generatedExplanation) {
+      setExplanation(generatedExplanation);
+
+      // Cache the explanation
+      const updateOverride = (t: Task): Task =>
+        t.id === currentTask.id
+          ? {
+              ...t,
+              answerOverride: {
+                ...t.answerOverride,
+                explanation: generatedExplanation,
+                overriddenAt: Date.now()
+              }
+            }
+          : t;
+
+      setTasks(prevTasks => prevTasks.map(updateOverride));
+      setTaskPool(prevPool => prevPool.map(updateOverride));
+    } else {
+      setExplanation("Could not generate an explanation. Please try again.");
+    }
+  };
+
   // No tasks available
   if (!tasks || tasks.length === 0) {
     return (
@@ -687,6 +795,21 @@ export default function QuizPage({
             </span>
           </div>
 
+          {/* Hint display */}
+          {hint && (
+            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg animate-fade-in">
+              <div className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-blue-400 mb-1">Hint</p>
+                  <p className="text-slate-200">{hint}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Answers */}
           <AnswerField
             openAnswer={openAnswer}
@@ -794,16 +917,60 @@ export default function QuizPage({
               </ul>
             </div>
           )}
+
+          {/* Explanation section */}
+          <div className="mt-4 pt-4 border-t border-slate-700">
+            {!explanation ? (
+              <button
+                onClick={handleGetExplanation}
+                disabled={isLoadingExplanation || !combinedText}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  isLoadingExplanation || !combinedText
+                    ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+                    : "bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 border border-indigo-500/30"
+                }`}
+              >
+                {isLoadingExplanation ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Loading explanation...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Show Explanation
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="animate-fade-in">
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-indigo-400 mb-2">Explanation</p>
+                    <p className="text-slate-200">{explanation}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Action buttons */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-3">
         <button
           onClick={handleCheckAnswersClick}
-          disabled={areAnswersChecked || isChecking || (currentTask?.question.isOpen && !openAnswer.trim())}
+          disabled={areAnswersChecked || isChecking || isLoadingHint || (currentTask?.question.isOpen && !openAnswer.trim())}
           className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
-            areAnswersChecked || isChecking || (currentTask?.question.isOpen && !openAnswer.trim())
+            areAnswersChecked || isChecking || isLoadingHint || (currentTask?.question.isOpen && !openAnswer.trim())
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
               : "bg-indigo-500 hover:bg-indigo-400 text-white active:scale-[0.98]"
           }`}
@@ -821,15 +988,15 @@ export default function QuizPage({
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Check Answer
+              Check
             </>
           )}
         </button>
         <button
           onClick={handleShowAnswer}
-          disabled={areAnswersChecked || isChecking}
+          disabled={areAnswersChecked || isChecking || isLoadingHint}
           className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
-            areAnswersChecked || isChecking
+            areAnswersChecked || isChecking || isLoadingHint
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
               : "bg-amber-500/80 hover:bg-amber-500 text-white active:scale-[0.98]"
           }`}
@@ -848,7 +1015,33 @@ export default function QuizPage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
-              Show Answer
+              Show
+            </>
+          )}
+        </button>
+        <button
+          onClick={handleGetHint}
+          disabled={areAnswersChecked || isChecking || isLoadingHint || !combinedText}
+          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
+            areAnswersChecked || isChecking || isLoadingHint || !combinedText
+              ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+              : "bg-blue-500/80 hover:bg-blue-500 text-white active:scale-[0.98]"
+          }`}
+        >
+          {isLoadingHint ? (
+            <>
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Loading...
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              Hint
             </>
           )}
         </button>

@@ -1,9 +1,11 @@
 import { Task } from "./QuestionsTypes";
-import { Settings } from "./SettingsType";
+import { Settings, QuestionStyle } from "./SettingsType";
 import {
   generateQuestions as generateQuestionsService,
   checkOpenAnswer as checkOpenAnswerService,
   generateOpenQuestionAnswer as generateOpenQuestionAnswerService,
+  generateHint as generateHintService,
+  generateExplanation as generateExplanationService,
 } from "./services/questionService";
 
 export async function checkOpenAnswer(
@@ -65,6 +67,44 @@ export async function generateOpenQuestionAnswer(
     return await generateOpenQuestionAnswerService(text, question);
   } catch (error) {
     console.error("Error in generateOpenQuestionAnswer:", error);
+    return "";
+  }
+}
+
+export async function generateHint(
+  text: string,
+  question: string,
+  questionStyle: QuestionStyle = 'conceptual',
+): Promise<string> {
+  if (!text || !question) {
+    throw new Error(
+      "Missing required values: 'text' and 'question' are required.",
+    );
+  }
+
+  try {
+    return await generateHintService(text, question, questionStyle);
+  } catch (error) {
+    console.error("Error in generateHint:", error);
+    return "";
+  }
+}
+
+export async function generateExplanation(
+  text: string,
+  question: string,
+  correctAnswers: string[],
+): Promise<string> {
+  if (!text || !question || !correctAnswers || correctAnswers.length === 0) {
+    throw new Error(
+      "Missing required values: 'text', 'question', and 'correctAnswers' are required.",
+    );
+  }
+
+  try {
+    return await generateExplanationService(text, question, correctAnswers);
+  } catch (error) {
+    console.error("Error in generateExplanation:", error);
     return "";
   }
 }

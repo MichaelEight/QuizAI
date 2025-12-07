@@ -8,6 +8,8 @@ export type AnswerOverride = {
   correctAnswerIndices?: number[];    // For closed: which answers are correct
   acceptedOpenAnswer?: string;         // For open: user's accepted answer text
   generatedOpenAnswer?: string;        // For open: cached AI-generated expected answer
+  hint?: string;                       // Cached hint for this question
+  explanation?: string;                // Cached explanation for this question
   overriddenAt: number;                // Timestamp
 };
 

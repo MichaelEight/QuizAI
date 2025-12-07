@@ -1,5 +1,5 @@
 import React from "react";
-import { Settings, SettingsTypes, ContentFocus, DifficultyLevel } from "./SettingsType";
+import { Settings, SettingsTypes, ContentFocus, DifficultyLevel, QuestionStyle } from "./SettingsType";
 
 // Example data for live preview
 const SAMPLE_TEXT = `Photosynthesis is the process by which plants convert sunlight into chemical energy. This process occurs primarily in the chloroplasts, where chlorophyll absorbs light. Dr. Jan Ingenhousz first described this process in 1779 during his stay in Vienna. The reaction produces glucose and oxygen as byproducts, which are essential for most life on Earth.`;
@@ -68,6 +68,7 @@ const DEFAULT_LEARNING_POOL = {
 const DEFAULT_GENERATION_OPTIONS = {
   contentFocus: 'important' as ContentFocus,
   difficultyLevel: 'mixed' as DifficultyLevel,
+  questionStyle: 'conceptual' as QuestionStyle,
   customInstructions: '',
 };
 
@@ -217,6 +218,17 @@ export default function SettingsPage({ settings, setSettings }: SettingsPageProp
                 { value: 'easy', label: 'Easy', description: 'Basic recall and definitions' },
                 { value: 'medium', label: 'Medium', description: 'Understanding and relationships' },
                 { value: 'hard', label: 'Hard', description: 'Analysis and application' },
+              ]}
+            />
+
+            <SelectSetting
+              label="Question Style"
+              description="How questions and hints are phrased"
+              value={settings.questionStyle || 'conceptual'}
+              onChange={(value) => handleChange("questionStyle", value)}
+              options={[
+                { value: 'conceptual', label: 'Conceptual', description: 'Test understanding of concepts (e.g., "What is the purpose of X?")' },
+                { value: 'text-based', label: 'Text-based', description: 'Test recall of text content (e.g., "What does the text say about X?")' },
               ]}
             />
 

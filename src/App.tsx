@@ -32,6 +32,7 @@ const DEFAULT_SETTINGS: Settings = {
   failedRetryCopies: 2,
   contentFocus: 'important',
   difficultyLevel: 'mixed',
+  questionStyle: 'conceptual',
   customInstructions: '',
 };
 
