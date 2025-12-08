@@ -29,34 +29,54 @@ export type QuestionType = typeof QuestionTypes[keyof typeof QuestionTypes];
 
 // Instructions for question generation prompts
 export class Instructions {
-  static readonly CLOSED_QUESTION = `
-    Each closed question object must have:
-    - "question": string,
-    - "answers": array of exactly 4 items, where each item must be built in form: {"content": string, "isCorrect": boolean}
-    Each answer must have exactly one "isCorrect": true property and three "isCorrect": false properties.
-  `;
-
-  static readonly CLOSED_QUESTION_MULTIPLE_ANSWERS = `
-    Each closed question object must have:
-    - "question": string,
-    - "answers": array of exactly 4 items, where each item must be built in form: {"content": string, "isCorrect": boolean}
-    There must be at least two "isCorrect": true properties and not more than three "isCorrect": false properties.
-    There can be 2, 3 or 4 "isCorrect": true properties.
-  `;
-
   static readonly OPEN_QUESTION = `
     Each open question object must have:
     - "question": string
   `;
 
-  static getInstruction(typeOfQuestion: QuestionType): string {
+  // Helper to format answer count specification
+  private static formatAnswerCount(min: number, max: number): string {
+    if (min === max) {
+      return `exactly ${min}`;
+    }
+    return `between ${min} and ${max}`;
+  }
+
+  // Dynamic closed question instruction
+  static getClosedQuestionInstruction(min: number, max: number): string {
+    const countSpec = Instructions.formatAnswerCount(min, max);
+    const incorrectCount = min === max
+      ? `${min - 1}`
+      : `the remaining`;
+    return `
+    Each closed question object must have:
+    - "question": string,
+    - "answers": array of ${countSpec} items, where each item must be built in form: {"content": string, "isCorrect": boolean}
+    Each answer must have exactly one "isCorrect": true property and ${incorrectCount} "isCorrect": false properties.
+  `;
+  }
+
+  // Dynamic closed question with multiple answers instruction
+  static getClosedQuestionMultipleAnswersInstruction(min: number, max: number): string {
+    const countSpec = Instructions.formatAnswerCount(min, max);
+    const maxCorrect = min === max ? min : max;
+    return `
+    Each closed question object must have:
+    - "question": string,
+    - "answers": array of ${countSpec} items, where each item must be built in form: {"content": string, "isCorrect": boolean}
+    There must be at least two "isCorrect": true properties.
+    There can be 2 to ${maxCorrect} "isCorrect": true properties, with the remaining being "isCorrect": false.
+  `;
+  }
+
+  static getInstruction(typeOfQuestion: QuestionType, minAnswers: number = 4, maxAnswers: number = 4): string {
     switch (typeOfQuestion) {
       case QuestionTypes.CLOSED:
-        return Instructions.CLOSED_QUESTION;
+        return Instructions.getClosedQuestionInstruction(minAnswers, maxAnswers);
       case QuestionTypes.OPEN:
         return Instructions.OPEN_QUESTION;
       case QuestionTypes.CLOSED_MULTI:
-        return Instructions.CLOSED_QUESTION_MULTIPLE_ANSWERS;
+        return Instructions.getClosedQuestionMultipleAnswersInstruction(minAnswers, maxAnswers);
       default:
         return '';
     }

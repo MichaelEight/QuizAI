@@ -696,10 +696,19 @@ export default function QuizPage({
       // Skip other shortcuts if typing in input field
       if (isInputFocused) return;
 
-      // Number keys 1-4 for answer selection (closed questions only)
+      // Number keys 1-9 and 0 for answer selection (closed questions only)
+      // 0 selects the 10th answer (or last answer if less than 10)
       if (!currentTask?.question.isOpen && !areAnswersChecked) {
+        const answerCount = currentTask?.answers?.length ?? 0;
+        if (e.key === '0' && answerCount > 0) {
+          // 0 = 10th answer, or last answer if fewer
+          const targetIndex = Math.min(9, answerCount - 1);
+          e.preventDefault();
+          handleAnswerToggle(targetIndex);
+          return;
+        }
         const num = parseInt(e.key);
-        if (num >= 1 && num <= 4 && currentTask?.answers?.[num - 1]) {
+        if (num >= 1 && num <= 9 && currentTask?.answers?.[num - 1]) {
           e.preventDefault();
           handleAnswerToggle(num - 1);
           return;

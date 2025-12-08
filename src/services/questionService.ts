@@ -25,6 +25,8 @@ interface GenerationOptions {
   difficultyLevel: DifficultyLevel;
   questionStyle: QuestionStyle;
   customInstructions: string;
+  minAnswersPerQuestion: number;
+  maxAnswersPerQuestion: number;
 }
 
 async function generateQuestionsPerType(
@@ -44,6 +46,8 @@ async function generateQuestionsPerType(
     difficultyLevel: options.difficultyLevel,
     questionStyle: options.questionStyle,
     customInstructions: options.customInstructions,
+    minAnswersPerQuestion: options.minAnswersPerQuestion,
+    maxAnswersPerQuestion: options.maxAnswersPerQuestion,
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_QUESTIONS, {
     userText: text,
@@ -77,6 +81,8 @@ export async function generateQuestions(
     difficultyLevel,
     questionStyle,
     customInstructions,
+    minAnswersPerQuestion = 4,
+    maxAnswersPerQuestion = 4,
   } = settings;
 
   const generationOptions: GenerationOptions = {
@@ -84,6 +90,8 @@ export async function generateQuestions(
     difficultyLevel,
     questionStyle,
     customInstructions,
+    minAnswersPerQuestion,
+    maxAnswersPerQuestion,
   };
 
   try {

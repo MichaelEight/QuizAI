@@ -19,6 +19,8 @@ interface GenerateQuestionsArgs {
   difficultyLevel?: DifficultyLevel;
   questionStyle?: QuestionStyle;
   customInstructions?: string;
+  minAnswersPerQuestion?: number;
+  maxAnswersPerQuestion?: number;
 }
 
 interface CheckOpenQuestionArgs {
@@ -114,8 +116,10 @@ class Prompts {
     difficultyLevel: DifficultyLevel = 'mixed',
     questionStyle: QuestionStyle = 'conceptual',
     customInstructions: string = '',
+    minAnswers: number = 4,
+    maxAnswers: number = 4,
   ): string {
-    const instruction = Instructions.getInstruction(typeOfQuestion);
+    const instruction = Instructions.getInstruction(typeOfQuestion, minAnswers, maxAnswers);
     const focusInstruction = CONTENT_FOCUS_INSTRUCTIONS[contentFocus];
     const difficultyInstruction = DIFFICULTY_INSTRUCTIONS[difficultyLevel];
     const styleInstruction = QUESTION_STYLE_INSTRUCTIONS[questionStyle];
@@ -266,6 +270,8 @@ Explain why this answer is correct, quoting the source text.`;
             genArgs?.difficultyLevel ?? 'mixed',
             genArgs?.questionStyle ?? 'conceptual',
             genArgs?.customInstructions ?? '',
+            genArgs?.minAnswersPerQuestion ?? 4,
+            genArgs?.maxAnswersPerQuestion ?? 4,
           );
         case PromptRank.DEVELOPER:
           return Prompts.devGenerateQuestions();

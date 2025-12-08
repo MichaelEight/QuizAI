@@ -8,6 +8,9 @@ export type Settings = {
   amountOfOpenQuestions: number,
   allowMultipleCorrectAnswers: boolean,
   forceMultipleCorrectAnswers: boolean,
+  // Answer count settings
+  minAnswersPerQuestion: number,     // Minimum answers per closed question (2-10, default: 4)
+  maxAnswersPerQuestion: number,     // Maximum answers per closed question (2-10, default: 4)
   // Pool settings
   defaultPoolSize: number,           // How many copies of each question start in pool (default: 2)
   failedOriginalCopies: number,      // Copies added when failing original question (default: 3)

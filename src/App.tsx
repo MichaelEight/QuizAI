@@ -33,6 +33,8 @@ const DEFAULT_SETTINGS: Settings = {
   amountOfOpenQuestions: 1,
   allowMultipleCorrectAnswers: false,
   forceMultipleCorrectAnswers: false,
+  minAnswersPerQuestion: 4,
+  maxAnswersPerQuestion: 4,
   defaultPoolSize: 2,
   failedOriginalCopies: 3,
   failedRetryCopies: 2,
@@ -46,7 +48,18 @@ function loadFromStorage<T>(key: string, defaultValue: T): T {
   try {
     const stored = localStorage.getItem(key);
     if (stored) {
-      return JSON.parse(stored) as T;
+      const parsed = JSON.parse(stored) as T;
+      // Validate array types - if default is array, parsed must be array too
+      if (Array.isArray(defaultValue) && !Array.isArray(parsed)) {
+        console.warn(`Expected array for ${key}, got object. Using default.`);
+        return defaultValue;
+      }
+      // Merge with defaults to handle new fields added in updates
+      // Only merge plain objects, not arrays
+      if (typeof defaultValue === 'object' && defaultValue !== null && !Array.isArray(defaultValue)) {
+        return { ...defaultValue, ...parsed };
+      }
+      return parsed;
     }
   } catch (error) {
     console.error(`Error loading ${key} from localStorage:`, error);

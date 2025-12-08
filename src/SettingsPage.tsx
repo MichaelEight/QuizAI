@@ -57,6 +57,8 @@ const DEFAULT_QUESTION_AMOUNTS = {
 const DEFAULT_QUESTION_OPTIONS = {
   allowMultipleCorrectAnswers: false,
   forceMultipleCorrectAnswers: false,
+  minAnswersPerQuestion: 4,
+  maxAnswersPerQuestion: 4,
 };
 
 const DEFAULT_LEARNING_POOL = {
@@ -184,6 +186,29 @@ export default function SettingsPage({ settings, setSettings }: SettingsPageProp
               checked={settings.forceMultipleCorrectAnswers}
               onChange={(checked) => handleChange("forceMultipleCorrectAnswers", checked)}
               disabled={!settings.allowMultipleCorrectAnswers}
+            />
+
+            <RangeSetting
+              label="Answers per Question"
+              description="Number of answer options for closed questions (2-10)"
+              minValue={settings.minAnswersPerQuestion}
+              maxValue={settings.maxAnswersPerQuestion}
+              onMinChange={(value) => {
+                handleChange("minAnswersPerQuestion", value);
+                // Ensure max >= min
+                if (value > settings.maxAnswersPerQuestion) {
+                  handleChange("maxAnswersPerQuestion", value);
+                }
+              }}
+              onMaxChange={(value) => {
+                handleChange("maxAnswersPerQuestion", value);
+                // Ensure min <= max
+                if (value < settings.minAnswersPerQuestion) {
+                  handleChange("minAnswersPerQuestion", value);
+                }
+              }}
+              absoluteMin={2}
+              absoluteMax={10}
             />
           </div>
         </div>
@@ -521,6 +546,102 @@ function TextareaSetting({ label, description, value, onChange, placeholder }: T
         rows={3}
         className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
       />
+    </div>
+  );
+}
+
+interface RangeSettingProps {
+  label: string;
+  description: string;
+  minValue: number;
+  maxValue: number;
+  onMinChange: (value: number) => void;
+  onMaxChange: (value: number) => void;
+  absoluteMin: number;
+  absoluteMax: number;
+}
+
+function RangeSetting({
+  label,
+  description,
+  minValue,
+  maxValue,
+  onMinChange,
+  onMaxChange,
+  absoluteMin,
+  absoluteMax,
+}: RangeSettingProps) {
+  const isVariable = minValue !== maxValue;
+
+  return (
+    <div className="py-3 px-4 rounded-lg hover:bg-slate-700/30 transition-colors duration-200">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <p className="text-slate-100 font-medium">{label}</p>
+          <p className="text-sm text-slate-400">{description}</p>
+        </div>
+        {isVariable && (
+          <span className="px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-full">
+            Variable
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-400 w-8">Min</span>
+          <button
+            onClick={() => onMinChange(Math.max(absoluteMin, minValue - 1))}
+            className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={minValue <= absoluteMin}
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          </button>
+          <span className="w-8 h-7 flex items-center justify-center bg-slate-700 border border-slate-600 rounded-md text-slate-100 font-medium text-sm">
+            {minValue}
+          </span>
+          <button
+            onClick={() => onMinChange(Math.min(absoluteMax, minValue + 1))}
+            className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={minValue >= absoluteMax}
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
+        <span className="text-slate-500">—</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-400 w-8">Max</span>
+          <button
+            onClick={() => onMaxChange(Math.max(absoluteMin, maxValue - 1))}
+            className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={maxValue <= absoluteMin}
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          </button>
+          <span className="w-8 h-7 flex items-center justify-center bg-slate-700 border border-slate-600 rounded-md text-slate-100 font-medium text-sm">
+            {maxValue}
+          </span>
+          <button
+            onClick={() => onMaxChange(Math.min(absoluteMax, maxValue + 1))}
+            className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={maxValue >= absoluteMax}
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <p className="text-xs text-slate-500 mt-2">
+        {isVariable
+          ? `Each question will have ${minValue}-${maxValue} answer options`
+          : `All questions will have exactly ${minValue} answer options`}
+      </p>
     </div>
   );
 }
