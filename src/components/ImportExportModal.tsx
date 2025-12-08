@@ -9,6 +9,7 @@ import {
   downloadFile,
 } from '../services/legacyFormatService';
 import { generateOpenQuestionAnswer } from '../backendService';
+import { BaseModal } from './BaseModal';
 
 interface ImportExportModalProps {
   isOpen: boolean;
@@ -38,12 +39,6 @@ export function ImportExportModal({
   const handleClose = () => {
     setStatus({ type: 'idle', message: '' });
     onClose();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      handleClose();
-    }
   };
 
   // Import Legacy (.txt files)
@@ -199,19 +194,9 @@ export function ImportExportModal({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" onKeyDown={handleKeyDown}>
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={handleClose}
-      />
-
-      {/* Modal */}
-      <div className="relative bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl shadow-black/50 animate-fade-in">
-        {/* Close button */}
+    <BaseModal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md">
+      {/* Close button */}
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 transition-colors duration-200"
@@ -350,7 +335,6 @@ export function ImportExportModal({
         <div className="mt-4 text-center text-xs text-slate-500">
           {tasks.length} questions currently loaded
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

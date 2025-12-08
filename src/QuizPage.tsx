@@ -11,7 +11,7 @@ import { CelebrationOverlay, CorrectAnswerEffect, LearntEffect } from "./compone
 import { AchievementToast } from "./components/AchievementToast";
 import { AchievementModal } from "./components/AchievementModal";
 import { Achievement } from "./types/gamification";
-import { SaveQuizModal } from "./components/SaveQuizModal";
+import { useSaveQuizModal } from "./context/SaveQuizModalContext";
 import { SuccessToast } from "./components/SuccessToast";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
@@ -128,8 +128,8 @@ export default function QuizPage({
   const [correctAnswers, setCorrectAnswers] = useState<number>(savedProgress?.correctAnswers ?? 0);
   const [incorrectAnswers, setIncorrectAnswers] = useState<number>(savedProgress?.incorrectAnswers ?? 0);
   const [showEndQuizModal, setShowEndQuizModal] = useState<boolean>(false);
-  const [showSaveQuizModal, setShowSaveQuizModal] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { openSaveQuizModal } = useSaveQuizModal();
 
   // State for "Show Answer" feature
   const [revealedOpenAnswer, setRevealedOpenAnswer] = useState<string | null>(null);
@@ -802,7 +802,12 @@ export default function QuizPage({
               Start Quiz
             </button>
             <button
-              onClick={() => setShowSaveQuizModal(true)}
+              onClick={() => openSaveQuizModal({
+                tasks,
+                sourceText: combinedText,
+                uploadedFileNames: uploadedFiles.map(f => f.name),
+                onSaved: () => setSuccessMessage('Quiz saved to library!')
+              })}
               className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-600"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -811,16 +816,6 @@ export default function QuizPage({
               Save to Library
             </button>
           </div>
-
-          {/* Save Quiz Modal */}
-          <SaveQuizModal
-            isOpen={showSaveQuizModal}
-            onClose={() => setShowSaveQuizModal(false)}
-            tasks={tasks}
-            sourceText={combinedText}
-            uploadedFileNames={uploadedFiles.map(f => f.name)}
-            onSaved={() => setSuccessMessage('Quiz saved to library!')}
-          />
         </div>
 
         {/* Success Toast - outside centered container */}
@@ -877,7 +872,12 @@ export default function QuizPage({
               Try Again
             </button>
             <button
-              onClick={() => setShowSaveQuizModal(true)}
+              onClick={() => openSaveQuizModal({
+                tasks,
+                sourceText: combinedText,
+                uploadedFileNames: uploadedFiles.map(f => f.name),
+                onSaved: () => setSuccessMessage('Quiz saved to library!')
+              })}
               className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -892,16 +892,6 @@ export default function QuizPage({
               New Quiz
             </Link>
           </div>
-
-          {/* Save Quiz Modal */}
-          <SaveQuizModal
-            isOpen={showSaveQuizModal}
-            onClose={() => setShowSaveQuizModal(false)}
-            tasks={tasks}
-            sourceText={combinedText}
-            uploadedFileNames={uploadedFiles.map(f => f.name)}
-            onSaved={() => setSuccessMessage('Quiz saved to library!')}
-          />
         </div>
 
         {/* Success Toast - outside centered container */}

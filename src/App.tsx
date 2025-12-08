@@ -12,10 +12,12 @@ import { UploadedFile } from "./services/fileExtractService";
 import { ApiKeyProvider, useApiKey } from "./context/ApiKeyContext";
 import { GamificationProvider } from "./context/GamificationContext";
 import { QuizLibraryProvider } from "./context/QuizLibraryContext";
+import { SaveQuizModalProvider } from "./context/SaveQuizModalContext";
 import { ApiKeyModal } from "./components/ApiKeyModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
 import { ImportExportButton } from "./components/ImportExportButton";
 import { ImportExportModal } from "./components/ImportExportModal";
+import { SaveQuizModal } from "./components/SaveQuizModal";
 import { version } from "../package.json";
 import "./App.css";
 
@@ -118,6 +120,7 @@ function AppContent() {
         setTasks={setTasks}
         sourceText={sourceText}
       />
+      <SaveQuizModal />
       <div className="min-h-screen bg-slate-900">
         {/* Navigation */}
         <nav className="sticky top-0 z-40 bg-slate-800/80 backdrop-blur-md border-b border-slate-700">
@@ -221,7 +224,9 @@ function App() {
     <ApiKeyProvider>
       <GamificationProvider>
         <QuizLibraryProvider>
-          <AppContent />
+          <SaveQuizModalProvider>
+            <AppContent />
+          </SaveQuizModalProvider>
         </QuizLibraryProvider>
       </GamificationProvider>
     </ApiKeyProvider>
