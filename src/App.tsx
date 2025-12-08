@@ -148,9 +148,7 @@ function AppContent() {
             <div className="flex items-center justify-between h-14 sm:h-16">
               {/* Logo */}
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">Q</span>
-                </div>
+                <img src="/favicon.svg" alt="QuizAI" className="w-8 h-8" />
                 <span className="text-slate-100 font-semibold text-lg">QuizAI</span>
               </div>
 
