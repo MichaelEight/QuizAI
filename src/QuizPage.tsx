@@ -40,6 +40,16 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+function shuffleTaskAnswers(task: Task): Task {
+  if (!task.answers || task.answers.length === 0) {
+    return task;
+  }
+  return {
+    ...task,
+    answers: shuffleArray(task.answers),
+  };
+}
+
 function createPool(tasks: Task[], poolSize: number): Task[] {
   // Create poolSize copies of each question
   const pool: Task[] = [];
@@ -111,7 +121,9 @@ export default function QuizPage({
   }, [uploadedFiles, sourceText]);
 
   const [taskPool, setTaskPool] = useState<Task[]>(savedProgress?.taskPool ?? []);
-  const [currentTask, setCurrentTask] = useState<Task | undefined>(savedProgress?.currentTask);
+  const [currentTask, setCurrentTask] = useState<Task | undefined>(
+    savedProgress?.currentTask ? shuffleTaskAnswers(savedProgress.currentTask) : undefined
+  );
   const [areAnswersChecked, setAreAnswersChecked] = useState<boolean>(savedProgress?.areAnswersChecked ?? false);
   const [isRoundWon, setIsRoundWon] = useState<boolean>(savedProgress?.isRoundWon ?? false);
   const [isChecking, setIsChecking] = useState<boolean>(false);
@@ -364,7 +376,8 @@ export default function QuizPage({
     }
 
     const [nextTask, ...remainingTasks] = taskPool;
-    setCurrentTask(nextTask);
+    // Shuffle answers each time a question is displayed
+    setCurrentTask(shuffleTaskAnswers(nextTask));
     setTaskPool(remainingTasks);
     // Start timer for the new question
     gamification.startTimer();
@@ -486,7 +499,7 @@ export default function QuizPage({
       setCurrentTask(undefined);
     } else {
       const [nextTask, ...rest] = remainingPool;
-      setCurrentTask(nextTask);
+      setCurrentTask(shuffleTaskAnswers(nextTask));
       setTaskPool(rest);
     }
   };
