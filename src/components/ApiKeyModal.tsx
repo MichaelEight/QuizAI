@@ -23,7 +23,13 @@ export function ApiKeyModal({
 
   // Reset editing state when modal opens/closes
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      // When opening, ensure we're in non-editing mode to show asterisks
+      setInputValue('');
+      setIsEditing(false);
+      setError('');
+    } else {
+      // When closing, also reset
       setInputValue('');
       setIsEditing(false);
       setError('');
@@ -35,6 +41,19 @@ export function ApiKeyModal({
 
   // Show asterisks if key exists and not editing
   const displayValue = !isEditing && hasApiKey && !inputValue ? '••••••••••••••••••••••••••••••••' : inputValue;
+
+  // Debug logging
+  useEffect(() => {
+    if (isOpen && apiMode === 'own-key') {
+      console.log('ApiKeyModal debug:', {
+        hasApiKey,
+        isEditing,
+        inputValue,
+        displayValue,
+        shouldShowAsterisks: !isEditing && hasApiKey && !inputValue
+      });
+    }
+  }, [isOpen, hasApiKey, isEditing, inputValue, displayValue, apiMode]);
 
   const handleSubmit = () => {
     const trimmedKey = inputValue.trim();
@@ -183,7 +202,7 @@ export function ApiKeyModal({
             onKeyDown={handleKeyDown}
             placeholder="sk-..."
             className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            autoFocus={apiMode === 'own-key'}
+            autoFocus={apiMode === 'own-key' && !hasApiKey}
           />
           {error && (
             <p className="mt-2 text-sm text-rose-400">{error}</p>
