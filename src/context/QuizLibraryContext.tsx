@@ -8,7 +8,9 @@ import {
   createSavedQuiz,
   generateQuizId,
 } from '../types/quizLibrary';
-import { getDefaultStorageProvider } from '../services/storage/storageFactory';
+import { getStorageProviderForAuth } from '../services/storage/storageFactory';
+import { useAuth } from './AuthContext';
+import { syncLocalQuizzesToCloud } from '../services/syncService';
 
 interface QuizLibraryContextType {
   // State
@@ -48,14 +50,44 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
   const [quizzes, setQuizzes] = useState<SavedQuiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasSynced, setHasSynced] = useState(false);
 
-  const storage = getDefaultStorageProvider();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const storage = getStorageProviderForAuth(isAuthenticated);
 
-  // Load quizzes on mount
+  // Auto-sync local quizzes to cloud on first login
   useEffect(() => {
-    refreshQuizzes();
+    if (isAuthenticated && !hasSynced && !authLoading) {
+      handleAutoSync();
+    }
+  }, [isAuthenticated, hasSynced, authLoading]);
+
+  const handleAutoSync = async () => {
+    try {
+      console.log('Auto-syncing local quizzes to cloud...');
+      const result = await syncLocalQuizzesToCloud();
+
+      if (result.syncedCount > 0) {
+        console.log(`Synced ${result.syncedCount} quizzes to cloud`);
+        // Refresh to show cloud quizzes
+        await refreshQuizzes();
+      }
+
+      setHasSynced(true);
+    } catch (err) {
+      console.error('Auto-sync failed:', err);
+      // Don't block the user if sync fails
+      setHasSynced(true);
+    }
+  };
+
+  // Load quizzes on mount and when auth state changes
+  useEffect(() => {
+    if (!authLoading) {
+      refreshQuizzes();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   const refreshQuizzes = useCallback(async () => {
     setIsLoading(true);

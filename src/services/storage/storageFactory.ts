@@ -1,26 +1,32 @@
 import { IStorageProvider } from '../../types/quizLibrary';
 import { getIndexedDBProvider } from './IndexedDBProvider';
+import { OnlineStorageProvider } from './OnlineStorageProvider';
 
 /**
- * Storage provider type - can be extended for online storage in the future
+ * Storage provider type
  */
 export type StorageProviderType = 'indexeddb' | 'online';
 
+// Singleton instance for online provider
+let onlineProviderInstance: OnlineStorageProvider | null = null;
+
+function getOnlineStorageProvider(): OnlineStorageProvider {
+  if (!onlineProviderInstance) {
+    onlineProviderInstance = new OnlineStorageProvider();
+  }
+  return onlineProviderInstance;
+}
+
 /**
  * Get the current storage provider
- *
- * Future expansion:
- * - Add 'online' provider type when server sync is implemented
- * - Check authentication state to determine which provider to use
- * - Could implement hybrid mode (local + sync)
  */
 export function getStorageProvider(type: StorageProviderType = 'indexeddb'): IStorageProvider {
   switch (type) {
     case 'indexeddb':
       return getIndexedDBProvider();
 
-    // Future: case 'online':
-    //   return getOnlineStorageProvider();
+    case 'online':
+      return getOnlineStorageProvider();
 
     default:
       return getIndexedDBProvider();
@@ -28,13 +34,11 @@ export function getStorageProvider(type: StorageProviderType = 'indexeddb'): ISt
 }
 
 /**
- * Get the default storage provider for the application
- * This is what most of the app should use
+ * Get storage provider based on authentication state
  */
-export function getDefaultStorageProvider(): IStorageProvider {
-  // Future: Check if user is authenticated and online mode is enabled
-  // const isOnline = checkOnlineMode();
-  // return getStorageProvider(isOnline ? 'online' : 'indexeddb');
-
+export function getStorageProviderForAuth(isAuthenticated: boolean): IStorageProvider {
+  if (isAuthenticated) {
+    return getStorageProvider('online');
+  }
   return getStorageProvider('indexeddb');
 }
