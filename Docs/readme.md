@@ -12,8 +12,10 @@ App to help with learning text material by answering closed and open questions r
 - Spaced repetition learning with configurable question pool
 - Progress tracking with learning and accuracy bars
 - Dark theme UI with modern design
+- **Fully responsive** - works on desktop, tablet, and mobile devices
 - Settings persistence in localStorage
 - Quiz progress saved across page reloads
+- **Quiz Library** - save and organize your quizzes for later use
 
 ### Learning Assistance
 
@@ -29,6 +31,21 @@ App to help with learning text material by answering closed and open questions r
 - **Content Focus**: Focus on important content only or include everything
 - **Difficulty Level**: Easy, Medium, Hard, or Mixed
 - **Custom Instructions**: Add your own instructions for question generation
+- **Answer Count**: Configure min/max answers per closed question (2-10 range)
+
+### Gamification
+
+- **Points System**: Earn points for correct answers with streak multipliers
+- **Achievements**: Unlock badges for milestones, streaks, speed, mastery, and more
+- **Statistics**: Track your progress with detailed stats and accuracy metrics
+
+### Quiz Library
+
+- Save quizzes with title, description, subject, and teacher info
+- Load quizzes from your library
+- Edit quiz metadata
+- Duplicate quizzes
+- Delete unwanted quizzes
 
 ### Import & Export
 
@@ -40,13 +57,23 @@ App to help with learning text material by answering closed and open questions r
 
 - Configure number of closed/open questions
 - Allow/force multiple correct answers
+- **Configurable answer count** (2-10 answers per question)
 - Customize learning pool behavior (initial copies, retry copies)
 - Configure question style, difficulty, and content focus
 
+### Keyboard Shortcuts
+
+- **1-9, 0**: Select answer options (0 = 10th answer)
+- **Space/Enter**: Check answer or proceed to next question
+- **S**: Show answer (before checking)
+- **H**: Get hint (before checking)
+- **E**: Show explanation (after checking)
+- **Escape**: Close modals
+
 ## Future Plans
 
-- Points system and timer
-- User profiles and text library
+- User profiles and cloud sync
+- Public quiz sharing
 
 ## Installation
 
