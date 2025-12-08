@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Link } from "react-router";
 import { Task, AnswerOverride } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
@@ -147,6 +147,10 @@ export default function QuizPage({
   const [showLearntEffect, setShowLearntEffect] = useState(false);
   const [toastAchievement, setToastAchievement] = useState<Achievement | null>(null);
   const [modalAchievement, setModalAchievement] = useState<Achievement | null>(null);
+
+  // Keyboard shortcuts state
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const openAnswerInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const totalQuestions = tasks.length;
 
@@ -668,6 +672,86 @@ export default function QuizPage({
     }
   };
 
+  // Handler for toggling answers via keyboard (closed questions)
+  const handleAnswerToggle = useCallback((index: number) => {
+    if (!currentTask?.answers || areAnswersChecked) return;
+    const updatedAnswers = currentTask.answers.map((answer, i) =>
+      i === index ? { ...answer, isSelected: !answer.isSelected } : answer
+    );
+    setCurrentTask({ ...currentTask, answers: updatedAnswers });
+  }, [currentTask, areAnswersChecked, setCurrentTask]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle shortcuts if quiz not started or ended
+      if (!isQuizStarted || isQuizEnded) return;
+
+      // Allow ESC even when input focused (to unfocus)
+      if (e.key === 'Escape') {
+        openAnswerInputRef.current?.blur();
+        return;
+      }
+
+      // Skip other shortcuts if typing in input field
+      if (isInputFocused) return;
+
+      // Number keys 1-4 for answer selection (closed questions only)
+      if (!currentTask?.question.isOpen && !areAnswersChecked) {
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= 4 && currentTask?.answers?.[num - 1]) {
+          e.preventDefault();
+          handleAnswerToggle(num - 1);
+          return;
+        }
+      }
+
+      // S - Show answer
+      if (e.key.toLowerCase() === 's' && !areAnswersChecked && !isChecking && !isLoadingHint) {
+        e.preventDefault();
+        handleShowAnswer();
+        return;
+      }
+
+      // H - Hint
+      if (e.key.toLowerCase() === 'h' && !areAnswersChecked && !isChecking && !isLoadingHint && combinedText) {
+        e.preventDefault();
+        handleGetHint();
+        return;
+      }
+
+      // E - Explanation (only after checking)
+      if (e.key.toLowerCase() === 'e' && areAnswersChecked && combinedText) {
+        e.preventDefault();
+        handleGetExplanation();
+        return;
+      }
+
+      // Space - Check or Next
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (!areAnswersChecked) {
+          // Check (if valid to check)
+          const canCheck = !isChecking && !isLoadingHint &&
+            !(currentTask?.question.isOpen && !openAnswer.trim());
+          if (canCheck) {
+            handleCheckAnswersClick();
+          }
+        } else {
+          // Next
+          handleNextQuestionClick();
+        }
+        return;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isQuizStarted, isQuizEnded, isInputFocused, currentTask, areAnswersChecked,
+    isChecking, isLoadingHint, openAnswer, combinedText, handleAnswerToggle
+  ]);
+
   // No tasks available
   if (!tasks || tasks.length === 0) {
     return (
@@ -945,6 +1029,9 @@ export default function QuizPage({
             currentTask={currentTask}
             setCurrentTask={setCurrentTask}
             areAnswersChecked={areAnswersChecked}
+            inputRef={openAnswerInputRef}
+            onInputFocus={() => setIsInputFocused(true)}
+            onInputBlur={() => setIsInputFocused(false)}
           />
         </div>
       )}

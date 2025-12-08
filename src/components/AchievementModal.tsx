@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Achievement } from '../types/gamification';
 import { AchievementIcon } from './AchievementIcon';
 
@@ -7,6 +8,18 @@ interface AchievementModalProps {
 }
 
 export function AchievementModal({ achievement, onClose }: AchievementModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (achievement) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [achievement, onClose]);
+
   if (!achievement) return null;
 
   const getBackgroundStyle = () => {

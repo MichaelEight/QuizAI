@@ -6,6 +6,9 @@ interface AnswerFieldProps {
   currentTask: Task;
   setCurrentTask: (task: Task) => void;
   areAnswersChecked: boolean;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  onInputFocus?: () => void;
+  onInputBlur?: () => void;
 }
 
 export default function AnswerField({
@@ -14,12 +17,18 @@ export default function AnswerField({
   currentTask,
   setCurrentTask,
   areAnswersChecked,
+  inputRef,
+  onInputFocus,
+  onInputBlur,
 }: AnswerFieldProps) {
   return currentTask.question.isOpen ? (
     <OpenAnswer
       openAnswer={openAnswer}
       setOpenAnswer={setOpenAnswer}
       areAnswersChecked={areAnswersChecked}
+      inputRef={inputRef}
+      onFocus={onInputFocus}
+      onBlur={onInputBlur}
     />
   ) : (
     <ClosedAnswer
@@ -34,9 +43,12 @@ interface OpenAnswerProps {
   openAnswer: string;
   setOpenAnswer: (answer: string) => void;
   areAnswersChecked: boolean;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
-function OpenAnswer({ openAnswer, setOpenAnswer, areAnswersChecked }: OpenAnswerProps) {
+function OpenAnswer({ openAnswer, setOpenAnswer, areAnswersChecked, inputRef, onFocus, onBlur }: OpenAnswerProps) {
   const handleOpenAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setOpenAnswer(e.target.value);
   };
@@ -47,6 +59,7 @@ function OpenAnswer({ openAnswer, setOpenAnswer, areAnswersChecked }: OpenAnswer
         Your Answer
       </label>
       <textarea
+        ref={inputRef}
         id="openAnswer"
         className={`w-full h-32 bg-slate-900 border rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 transition-all duration-200 resize-none ${
           areAnswersChecked
@@ -57,6 +70,9 @@ function OpenAnswer({ openAnswer, setOpenAnswer, areAnswersChecked }: OpenAnswer
         value={openAnswer}
         onChange={handleOpenAnswerChange}
         disabled={areAnswersChecked}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        autoFocus
       />
       <div className="flex justify-end mt-2">
         <span className="text-sm text-slate-500">{openAnswer.length} characters</span>
