@@ -45,6 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleLogout = () => {
       setState({ isAuthenticated: false, isLoading: false, user: null });
       apiClient.setAccessToken(null);
+      // Switch to own-key mode when logged out
+      localStorage.setItem('quizai_api_mode', 'own-key');
+      window.dispatchEvent(new CustomEvent('apiMode:change', { detail: 'own-key' }));
     };
     window.addEventListener('auth:logout', handleLogout);
 
@@ -87,6 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       apiClient.setAccessToken(null);
       setState({ isAuthenticated: false, isLoading: false, user: null });
+      // Switch to own-key mode when logged out
+      localStorage.setItem('quizai_api_mode', 'own-key');
+      window.dispatchEvent(new CustomEvent('apiMode:change', { detail: 'own-key' }));
     }
   }
 

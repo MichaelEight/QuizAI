@@ -15,15 +15,27 @@ interface ApiResponse<T> {
   meta?: Record<string, unknown>;
 }
 
+const ACCESS_TOKEN_KEY = 'quizai_access_token';
+
 class ApiClient {
   private accessToken: string | null = null;
   private refreshPromise: Promise<boolean> | null = null;
+
+  constructor() {
+    // Restore access token from localStorage on init
+    this.accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+  }
 
   /**
    * Set access token (called after login)
    */
   setAccessToken(token: string | null) {
     this.accessToken = token;
+    if (token) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+    }
   }
 
   /**

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApiKey } from '../context/ApiKeyContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,11 +17,24 @@ export function ApiKeyModal({
 }: ApiKeyModalProps) {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
-  const { setApiKey, apiMode, setApiMode } = useApiKey();
+  const [isEditing, setIsEditing] = useState(false);
+  const { setApiKey, apiMode, setApiMode, hasApiKey } = useApiKey();
   const { isAuthenticated, user } = useAuth();
+
+  // Reset editing state when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setInputValue('');
+      setIsEditing(false);
+      setError('');
+    }
+  }, [isOpen]);
 
   // Check if user can use server processing
   const canUseServerProcessing = isAuthenticated && user && ['free', 'premium', 'admin'].includes(user.tier);
+
+  // Show asterisks if key exists and not editing
+  const displayValue = !isEditing && hasApiKey && !inputValue ? '••••••••••••••••••••••••••••••••' : inputValue;
 
   const handleSubmit = () => {
     const trimmedKey = inputValue.trim();
@@ -38,7 +51,19 @@ export function ApiKeyModal({
 
     setApiKey(trimmedKey);
     setInputValue('');
+    setIsEditing(false);
     setError('');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    setIsEditing(true);
+  };
+
+  const handleInputFocus = () => {
+    if (hasApiKey && !inputValue) {
+      setIsEditing(true);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -152,12 +177,13 @@ export function ApiKeyModal({
           <input
             id="apiKey"
             type="password"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            value={displayValue}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
             onKeyDown={handleKeyDown}
             placeholder="sk-..."
             className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            autoFocus
+            autoFocus={apiMode === 'own-key'}
           />
           {error && (
             <p className="mt-2 text-sm text-rose-400">{error}</p>
@@ -185,25 +211,18 @@ export function ApiKeyModal({
           {apiMode === 'own-key' && (
             <button
               onClick={handleSubmit}
-              className="flex-1 bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200 active:scale-[0.98]"
+              disabled={!inputValue.trim()}
+              className="flex-1 bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg px-4 py-3 transition-all duration-200"
             >
-              Save Key
-            </button>
-          )}
-          {apiMode === 'server' && allowClose && (
-            <button
-              onClick={onClose}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200"
-            >
-              Use Server Processing
+              {hasApiKey ? 'Update API Key' : 'Save API Key'}
             </button>
           )}
           {allowClose && onClose && (
             <button
               onClick={onClose}
-              className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg transition-all duration-200"
+              className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-4 py-3 transition-all duration-200"
             >
-              Cancel
+              {apiMode === 'server' || (apiMode === 'own-key' && hasApiKey) ? 'Done' : 'Cancel'}
             </button>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { OpenAIClientManager } from '../services/openaiClient';
 
 type ApiMode = 'own-key' | 'server';
@@ -20,11 +20,20 @@ interface ApiKeyProviderProps {
 }
 
 const API_MODE_KEY = 'quizai_api_mode';
+const ACCESS_TOKEN_KEY = 'quizai_access_token';
 
 export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
   const [hasApiKey, setHasApiKey] = useState(OpenAIClientManager.hasApiKey());
   const [apiMode, setApiModeState] = useState<ApiMode>(() => {
     const stored = localStorage.getItem(API_MODE_KEY);
+    const hasAccessToken = !!localStorage.getItem(ACCESS_TOKEN_KEY);
+
+    // If stored mode is 'server' but no access token, force 'own-key'
+    if (stored === 'server' && !hasAccessToken) {
+      localStorage.setItem(API_MODE_KEY, 'own-key');
+      return 'own-key';
+    }
+
     return (stored === 'server' || stored === 'own-key') ? stored : 'own-key';
   });
   const [showApiKeyModal, setShowApiKeyModal] = useState(
@@ -54,6 +63,44 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
       setShowApiKeyModal(true);
     }
   };
+
+  // Listen for mode changes from logout
+  useEffect(() => {
+    const handleModeChange = (e: CustomEvent<ApiMode>) => {
+      setApiModeState(e.detail);
+    };
+    window.addEventListener('apiMode:change', handleModeChange as EventListener);
+    return () => window.removeEventListener('apiMode:change', handleModeChange as EventListener);
+  }, []);
+
+  // Validate mode whenever authentication status changes
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const hasAccessToken = !!localStorage.getItem(ACCESS_TOKEN_KEY);
+
+      // If in server mode but no access token, force switch to own-key
+      if (apiMode === 'server' && !hasAccessToken) {
+        setApiModeState('own-key');
+        localStorage.setItem(API_MODE_KEY, 'own-key');
+
+        // Show modal if no API key is set
+        if (!hasApiKey) {
+          setShowApiKeyModal(true);
+        }
+      }
+    };
+
+    // Listen for logout events
+    window.addEventListener('auth:logout', handleAuthChange);
+
+    // Also check periodically (in case token was cleared by another means)
+    const interval = setInterval(handleAuthChange, 5000);
+
+    return () => {
+      window.removeEventListener('auth:logout', handleAuthChange);
+      clearInterval(interval);
+    };
+  }, [apiMode, hasApiKey]);
 
   return (
     <ApiKeyContext.Provider
