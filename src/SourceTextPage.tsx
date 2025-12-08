@@ -165,16 +165,16 @@ export default function SourceTextPage({
   return (
     <div className="animate-fade-in max-w-3xl mx-auto">
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-100 mb-2">Input Source Text</h1>
-          <p className="text-slate-400">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-1 sm:mb-2">Input Source Text</h1>
+          <p className="text-sm sm:text-base text-slate-400">
             Upload files or paste text to generate quiz questions
           </p>
         </div>
         <Link
           to="/library"
-          className="flex items-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors border border-slate-600"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors border border-slate-600 w-full sm:w-auto"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -184,7 +184,7 @@ export default function SourceTextPage({
       </div>
 
       {/* Main Card */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-lg shadow-black/20 p-6">
+      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-lg shadow-black/20 p-4 sm:p-6">
         {/* Drop Zone */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -266,7 +266,7 @@ export default function SourceTextPage({
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span className="text-slate-300 max-w-[150px] truncate">{file.name}</span>
+                  <span className="text-slate-300 max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
                   <span className="text-slate-500 text-xs">{formatFileSize(file.size)}</span>
                   <button
                     onClick={(e) => {

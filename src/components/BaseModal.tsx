@@ -36,7 +36,7 @@ export function BaseModal({
       />
 
       {/* Modal */}
-      <div className={`relative bg-slate-800 border border-slate-700 rounded-2xl p-6 ${maxWidth} w-full mx-4 shadow-2xl shadow-black/50 animate-fade-in max-h-[85vh] overflow-y-auto`}>
+      <div className={`relative bg-slate-800 border border-slate-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 ${maxWidth} w-full mx-2 sm:mx-4 shadow-2xl shadow-black/50 animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto`}>
         {children}
       </div>
     </div>

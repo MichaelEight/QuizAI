@@ -868,25 +868,25 @@ export default function QuizPage({
           </p>
 
           {/* Final Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-8 max-w-md mx-auto">
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-              <p className="text-2xl font-bold text-emerald-400">{correctAnswers}</p>
-              <p className="text-sm text-slate-400">Correct</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8 max-w-md mx-auto">
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl font-bold text-emerald-400">{correctAnswers}</p>
+              <p className="text-xs sm:text-sm text-slate-400">Correct</p>
             </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-              <p className="text-2xl font-bold text-rose-400">{incorrectAnswers}</p>
-              <p className="text-sm text-slate-400">Incorrect</p>
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl font-bold text-rose-400">{incorrectAnswers}</p>
+              <p className="text-xs sm:text-sm text-slate-400">Incorrect</p>
             </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-              <p className="text-2xl font-bold text-indigo-400">{accuracyPercent}%</p>
-              <p className="text-sm text-slate-400">Accuracy</p>
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl font-bold text-indigo-400">{accuracyPercent}%</p>
+              <p className="text-xs sm:text-sm text-slate-400">Accuracy</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0">
             <button
               onClick={resetQuiz}
-              className="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -900,7 +900,7 @@ export default function QuizPage({
                 uploadedFileNames: uploadedFiles.map(f => f.name),
                 onSaved: () => setSuccessMessage('Quiz saved to library!')
               })}
-              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -909,7 +909,7 @@ export default function QuizPage({
             </button>
             <Link
               to="/sourcePage"
-              className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-6 py-3 transition-all duration-200"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-6 py-3 transition-all duration-200"
             >
               New Quiz
             </Link>
@@ -1057,7 +1057,7 @@ export default function QuizPage({
             ? "bg-amber-500/10 border-amber-500/20"
             : "bg-rose-500/10 border-rose-500/20"
         } animate-fade-in`}>
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                 isRoundWon ? "bg-emerald-500/20" : isAnswerRevealed ? "bg-amber-500/20" : "bg-rose-500/20"
@@ -1095,26 +1095,28 @@ export default function QuizPage({
             </div>
             {/* Disagree buttons - only show when not revealed */}
             {!isAnswerRevealed && (
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 ml-0 sm:ml-auto sm:shrink-0">
                 <button
                   onClick={handleAcceptMyAnswer}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-200"
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-200"
                   title="Mark my answer as correct"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Accept My Answer
+                  <span className="hidden sm:inline">Accept My Answer</span>
+                  <span className="sm:hidden">Accept</span>
                 </button>
                 <button
                   onClick={handleRemoveQuestion}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-rose-500/20 border border-slate-600 hover:border-rose-500/30 rounded-lg transition-all duration-200"
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-rose-500/20 border border-slate-600 hover:border-rose-500/30 rounded-lg transition-all duration-200"
                   title="Remove this question from the quiz"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  Remove Question
+                  <span className="hidden sm:inline">Remove Question</span>
+                  <span className="sm:hidden">Remove</span>
                 </button>
               </div>
             )}
@@ -1192,12 +1194,12 @@ export default function QuizPage({
       )}
 
       {/* Action buttons - Order: Show, Hint, Check (primary), Next */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {/* Show Answer */}
         <button
           onClick={handleShowAnswer}
           disabled={areAnswersChecked || isChecking || isLoadingHint}
-          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
               : "bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 border border-orange-500/30 active:scale-[0.98]"
@@ -1205,15 +1207,15 @@ export default function QuizPage({
         >
           {isChecking && isAnswerRevealed ? (
             <>
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Loading...
+              <span className="hidden sm:inline">Loading...</span>
             </>
           ) : (
             <>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
@@ -1226,7 +1228,7 @@ export default function QuizPage({
         <button
           onClick={handleGetHint}
           disabled={areAnswersChecked || isChecking || isLoadingHint || !combinedText}
-          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint || !combinedText
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
               : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 active:scale-[0.98]"
@@ -1234,15 +1236,15 @@ export default function QuizPage({
         >
           {isLoadingHint ? (
             <>
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Loading...
+              <span className="hidden sm:inline">Loading...</span>
             </>
           ) : (
             <>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
               Hint
@@ -1254,7 +1256,7 @@ export default function QuizPage({
         <button
           onClick={handleCheckAnswersClick}
           disabled={areAnswersChecked || isChecking || isLoadingHint || (currentTask?.question.isOpen && !openAnswer.trim())}
-          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all duration-200 ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint || (currentTask?.question.isOpen && !openAnswer.trim())
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
               : "bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg shadow-emerald-500/25 active:scale-[0.98]"
@@ -1262,15 +1264,15 @@ export default function QuizPage({
         >
           {isChecking && !isAnswerRevealed ? (
             <>
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Checking...
+              <span className="hidden sm:inline">Checking...</span>
             </>
           ) : (
             <>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Check
@@ -1282,13 +1284,13 @@ export default function QuizPage({
         <button
           onClick={handleNextQuestionClick}
           disabled={!areAnswersChecked}
-          className={`flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all duration-200 ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked
               ? "bg-indigo-500 hover:bg-indigo-400 text-white active:scale-[0.98]"
               : "bg-slate-700/50 text-slate-500 cursor-not-allowed"
           }`}
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
           Next

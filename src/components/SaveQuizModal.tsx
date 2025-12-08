@@ -129,8 +129,8 @@ export function SaveQuizModal() {
         </div>
 
         {/* Subject row */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-300 mb-1.5">
               Subject <span className="text-slate-500">(optional)</span>
             </label>

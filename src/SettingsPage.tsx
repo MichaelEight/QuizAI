@@ -117,14 +117,14 @@ export default function SettingsPage({ settings, setSettings }: SettingsPageProp
   return (
     <div className="animate-fade-in max-w-2xl mx-auto">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-100 mb-2">Settings</h1>
-          <p className="text-slate-400">Configure your quiz generation preferences</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-1 sm:mb-2">Settings</h1>
+          <p className="text-sm sm:text-base text-slate-400">Configure your quiz generation preferences</p>
         </div>
         <button
           onClick={resetAll}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-200"
+          className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-200 w-full sm:w-auto"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -136,7 +136,7 @@ export default function SettingsPage({ settings, setSettings }: SettingsPageProp
       {/* Settings Card */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-lg shadow-black/20 overflow-hidden">
         {/* Question Amounts Section */}
-        <div className="p-6 border-b border-slate-700">
+        <div className="p-4 sm:p-6 border-b border-slate-700">
           <SectionHeader
             title="Question Amounts"
             description="Set how many questions to generate"
@@ -165,7 +165,7 @@ export default function SettingsPage({ settings, setSettings }: SettingsPageProp
         </div>
 
         {/* Question Options Section */}
-        <div className="p-6 border-b border-slate-700">
+        <div className="p-4 sm:p-6 border-b border-slate-700">
           <SectionHeader
             title="Question Options"
             description="Configure closed question behavior"
@@ -214,7 +214,7 @@ export default function SettingsPage({ settings, setSettings }: SettingsPageProp
         </div>
 
         {/* Question Generation Section */}
-        <div className="p-6 border-b border-slate-700">
+        <div className="p-4 sm:p-6 border-b border-slate-700">
           <SectionHeader
             title="Question Generation"
             description="Control AI question generation behavior"
@@ -274,7 +274,7 @@ export default function SettingsPage({ settings, setSettings }: SettingsPageProp
         </div>
 
         {/* Pool Settings Section */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <SectionHeader
             title="Learning Pool"
             description="Configure spaced repetition behavior"
@@ -586,24 +586,24 @@ function RangeSetting({
           </span>
         )}
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
         <div className="flex items-center gap-2">
           <span className="text-sm text-slate-400 w-8">Min</span>
           <button
             onClick={() => onMinChange(Math.max(absoluteMin, minValue - 1))}
-            className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={minValue <= absoluteMin}
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
             </svg>
           </button>
-          <span className="w-8 h-7 flex items-center justify-center bg-slate-700 border border-slate-600 rounded-md text-slate-100 font-medium text-sm">
+          <span className="w-10 h-8 sm:w-8 sm:h-7 flex items-center justify-center bg-slate-700 border border-slate-600 rounded-md text-slate-100 font-medium text-sm">
             {minValue}
           </span>
           <button
             onClick={() => onMinChange(Math.min(absoluteMax, minValue + 1))}
-            className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={minValue >= absoluteMax}
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -611,24 +611,24 @@ function RangeSetting({
             </svg>
           </button>
         </div>
-        <span className="text-slate-500">—</span>
+        <span className="hidden sm:inline text-slate-500">—</span>
         <div className="flex items-center gap-2">
           <span className="text-sm text-slate-400 w-8">Max</span>
           <button
             onClick={() => onMaxChange(Math.max(absoluteMin, maxValue - 1))}
-            className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={maxValue <= absoluteMin}
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
             </svg>
           </button>
-          <span className="w-8 h-7 flex items-center justify-center bg-slate-700 border border-slate-600 rounded-md text-slate-100 font-medium text-sm">
+          <span className="w-10 h-8 sm:w-8 sm:h-7 flex items-center justify-center bg-slate-700 border border-slate-600 rounded-md text-slate-100 font-medium text-sm">
             {maxValue}
           </span>
           <button
             onClick={() => onMaxChange(Math.min(absoluteMax, maxValue + 1))}
-            className="w-7 h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={maxValue >= absoluteMax}
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

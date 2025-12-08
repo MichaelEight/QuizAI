@@ -4,32 +4,32 @@ export default function Homepage() {
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
-      <div className="text-center py-16">
-        <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-4 py-2 mb-6">
+      <div className="text-center py-8 sm:py-12 md:py-16">
+        <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6">
           <span className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" />
-          <span className="text-indigo-400 text-sm font-medium">Powered by AI</span>
+          <span className="text-indigo-400 text-xs sm:text-sm font-medium">Powered by AI</span>
         </div>
 
-        <h1 className="text-5xl font-bold text-slate-100 mb-4">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-100 mb-3 sm:mb-4">
           Generate Quizzes
           <span className="text-indigo-400"> Instantly</span>
         </h1>
 
-        <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-8">
+        <p className="text-base sm:text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
           Transform any text into interactive quizzes with AI. Perfect for studying,
           teaching, or testing your knowledge.
         </p>
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0">
           <Link
             to="/sourcePage"
-            className="bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white font-semibold rounded-lg px-8 py-4 transition-all duration-200 active:scale-[0.98] shadow-lg shadow-indigo-500/25"
+            className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white font-semibold rounded-lg px-6 sm:px-8 py-3 sm:py-4 transition-all duration-200 active:scale-[0.98] shadow-lg shadow-indigo-500/25"
           >
             Get Started
           </Link>
           <Link
             to="/settingsPage"
-            className="bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold rounded-lg px-8 py-4 transition-all duration-200 active:scale-[0.98]"
+            className="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold rounded-lg px-6 sm:px-8 py-3 sm:py-4 transition-all duration-200 active:scale-[0.98]"
           >
             Settings
           </Link>
@@ -37,7 +37,7 @@ export default function Homepage() {
       </div>
 
       {/* Feature Cards */}
-      <div className="grid md:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
         <FeatureCard
           icon={
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,7 +73,7 @@ export default function Homepage() {
       </div>
 
       {/* Second row of features */}
-      <div className="grid md:grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mt-4 sm:mt-6">
         <FeatureCard
           icon={
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,12 +109,12 @@ export default function Homepage() {
       </div>
 
       {/* How it works */}
-      <div className="mt-20">
-        <h2 className="text-2xl font-bold text-slate-100 text-center mb-12">
+      <div className="mt-12 sm:mt-16 md:mt-20">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-100 text-center mb-8 sm:mb-12">
           How It Works
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
           <StepCard
             number="1"
             title="Paste Your Text"
@@ -145,12 +145,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon, title, description, delay }: FeatureCardProps) {
   return (
-    <div className={`bg-slate-800 border border-slate-700 rounded-xl p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/5 hover:border-slate-600 animate-fade-in opacity-0 ${delay}`}>
-      <div className="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-400 mb-4">
+    <div className={`bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/5 hover:border-slate-600 animate-fade-in opacity-0 ${delay}`}>
+      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-400 mb-3 sm:mb-4">
         {icon}
       </div>
-      <h3 className="text-lg font-semibold text-slate-100 mb-2">{title}</h3>
-      <p className="text-slate-400">{description}</p>
+      <h3 className="text-base sm:text-lg font-semibold text-slate-100 mb-1.5 sm:mb-2">{title}</h3>
+      <p className="text-sm sm:text-base text-slate-400">{description}</p>
     </div>
   );
 }

@@ -213,10 +213,10 @@ export default function LibraryPage({ setTasks, setSourceText }: LibraryPageProp
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Quiz Library</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-100">Quiz Library</h1>
+          <p className="text-sm sm:text-base text-slate-400 mt-1">
             {quizzes.length === 0
               ? 'No saved quizzes yet'
               : `${quizzes.length} quiz${quizzes.length === 1 ? '' : 'zes'} saved`}
@@ -224,7 +224,7 @@ export default function LibraryPage({ setTasks, setSourceText }: LibraryPageProp
         </div>
         <button
           onClick={() => navigate('/sourcePage')}
-          className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+          className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -291,8 +291,88 @@ export default function LibraryPage({ setTasks, setSourceText }: LibraryPageProp
             </p>
           )}
 
-          {/* Table */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+          {/* Mobile Cards View */}
+          <div className="md:hidden space-y-3">
+            {filteredQuizzes.length === 0 ? (
+              <div className="p-6 bg-slate-800/50 border border-slate-700 rounded-xl text-center text-slate-500">
+                No quizzes match your search
+              </div>
+            ) : (
+              filteredQuizzes.map((quiz) => (
+                <div
+                  key={quiz.id}
+                  className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3"
+                >
+                  {/* Title and description */}
+                  <div>
+                    <h3 className="font-medium text-slate-100">{quiz.title}</h3>
+                    {quiz.description && (
+                      <p className="text-sm text-slate-500 mt-1 line-clamp-2">{quiz.description}</p>
+                    )}
+                  </div>
+
+                  {/* Metadata row */}
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    {(quiz.subjectName || quiz.subjectCode) && (
+                      <span className="px-2 py-0.5 bg-slate-700 rounded text-slate-300 text-xs">
+                        {quiz.subjectName || quiz.subjectCode}
+                      </span>
+                    )}
+                    <span className="text-slate-400">
+                      {quiz.totalQuestionCount} questions
+                    </span>
+                    <span className="text-slate-500">
+                      {formatDate(quiz.createdAt)}
+                    </span>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-700">
+                    <button
+                      onClick={() => handleLoadQuiz(quiz)}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-colors font-medium"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Start
+                    </button>
+                    <button
+                      onClick={() => handleEditClick(quiz)}
+                      className="p-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
+                      title="Edit"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDuplicate(quiz)}
+                      className="p-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
+                      title="Duplicate"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setDeletingQuiz(quiz)}
+                      className="p-2.5 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -478,8 +558,8 @@ export default function LibraryPage({ setTasks, setSourceText }: LibraryPageProp
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-300 mb-1.5">
                     Subject
                   </label>
