@@ -43,6 +43,9 @@ export default function AuthCallbackPage() {
       // Store access token
       apiClient.setAccessToken(accessToken);
 
+      // Clear any stored invite code
+      sessionStorage.removeItem('pending_invite_code');
+
       // Refresh auth state to get user info
       await refreshAuth();
 
@@ -59,6 +62,15 @@ export default function AuthCallbackPage() {
   function handleError(errorType: string) {
     switch (errorType) {
       case 'invite_required':
+        // Check if we have a stored invite code from a previous attempt
+        const storedInviteCode = sessionStorage.getItem('pending_invite_code');
+
+        if (storedInviteCode) {
+          // We just came back from entering the invite code, but backend didn't receive it
+          // This shouldn't happen with the state parameter, but clear it to prevent loops
+          sessionStorage.removeItem('pending_invite_code');
+        }
+
         // Show invite code modal
         const emailParam = searchParams.get('email');
         setEmail(emailParam);

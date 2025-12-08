@@ -9,7 +9,7 @@ export const ENDPOINTS = {
   AUTH_REFRESH: '/auth/refresh',
   AUTH_LOGOUT: '/auth/logout',
   AUTH_ME: '/auth/me',
-  AUTH_VALIDATE_INVITE: '/auth/invite/validate',
+  AUTH_VALIDATE_INVITE: '/auth/validate-invite',
 
   // Quizzes
   QUIZZES: '/quizzes',

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApiKey } from '../context/ApiKeyContext';
+import { useAuth } from '../context/AuthContext';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -16,7 +17,11 @@ export function ApiKeyModal({
 }: ApiKeyModalProps) {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
-  const { setApiKey } = useApiKey();
+  const { setApiKey, apiMode, setApiMode } = useApiKey();
+  const { isAuthenticated, user } = useAuth();
+
+  // Check if user can use server processing
+  const canUseServerProcessing = isAuthenticated && user && ['free', 'premium', 'admin'].includes(user.tier);
 
   const handleSubmit = () => {
     const trimmedKey = inputValue.trim();
@@ -82,15 +87,65 @@ export function ApiKeyModal({
           </div>
         </div>
 
-        {/* Info */}
-        <div className="mb-4 p-3 bg-slate-700/30 rounded-lg">
-          <p className="text-sm text-slate-400">
-            Your API key is stored locally in your browser and only sent to OpenAI.
-          </p>
-        </div>
+        {/* Mode Switcher (only for authenticated users) */}
+        {canUseServerProcessing && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Processing Mode
+            </label>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-lg">
+              <button
+                onClick={() => setApiMode('server')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                  apiMode === 'server'
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                  </svg>
+                  Server
+                </div>
+              </button>
+              <button
+                onClick={() => setApiMode('own-key')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                  apiMode === 'own-key'
+                    ? 'bg-emerald-600 text-white shadow-lg'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  Own Key
+                </div>
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              {apiMode === 'server'
+                ? 'Using server API processing (free tier included)'
+                : 'Use your own OpenAI API key'
+              }
+            </p>
+          </div>
+        )}
 
-        {/* Input */}
-        <div className="mb-4">
+        {/* Info */}
+        {apiMode === 'own-key' && (
+          <div className="mb-4 p-3 bg-slate-700/30 rounded-lg">
+            <p className="text-sm text-slate-400">
+              Your API key is stored locally in your browser and only sent to OpenAI.
+            </p>
+          </div>
+        )}
+
+        {/* Input (only show for own-key mode) */}
+        {apiMode === 'own-key' && (
+          <div className="mb-4">
           <label htmlFor="apiKey" className="block text-sm font-medium text-slate-300 mb-2">
             API Key
           </label>
@@ -107,29 +162,42 @@ export function ApiKeyModal({
           {error && (
             <p className="mt-2 text-sm text-rose-400">{error}</p>
           )}
-        </div>
+          </div>
+        )}
 
-        {/* Help link */}
-        <p className="mb-6 text-xs text-slate-500">
-          Get your API key from{' '}
-          <a
-            href="https://platform.openai.com/api-keys"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-indigo-400 hover:text-indigo-300 underline"
-          >
-            platform.openai.com/api-keys
-          </a>
-        </p>
+        {/* Help link (only for own-key mode) */}
+        {apiMode === 'own-key' && (
+          <p className="mb-6 text-xs text-slate-500">
+            Get your API key from{' '}
+            <a
+              href="https://platform.openai.com/api-keys"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-400 hover:text-indigo-300 underline"
+            >
+              platform.openai.com/api-keys
+            </a>
+          </p>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">
-          <button
-            onClick={handleSubmit}
-            className="flex-1 bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200 active:scale-[0.98]"
-          >
-            Save Key
-          </button>
+          {apiMode === 'own-key' && (
+            <button
+              onClick={handleSubmit}
+              className="flex-1 bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200 active:scale-[0.98]"
+            >
+              Save Key
+            </button>
+          )}
+          {apiMode === 'server' && allowClose && (
+            <button
+              onClick={onClose}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200"
+            >
+              Use Server Processing
+            </button>
+          )}
           {allowClose && onClose && (
             <button
               onClick={onClose}

@@ -47,7 +47,8 @@ export function InviteCodeModal({ isOpen, onClose, email }: InviteCodeModalProps
 
       if (data?.valid) {
         setIsValid(true);
-        // Redirect to Google OAuth with invite code
+        // Store invite code in sessionStorage and redirect to OAuth
+        sessionStorage.setItem('pending_invite_code', code.trim());
         const authUrl = `${config.apiUrl}${ENDPOINTS.AUTH_GOOGLE}?invite_code=${encodeURIComponent(code.trim())}`;
         window.location.href = authUrl;
       } else {
