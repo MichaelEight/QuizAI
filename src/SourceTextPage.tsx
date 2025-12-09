@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import { generateQuestions } from "./backendService";
 import { Task } from "./QuestionsTypes";
@@ -10,6 +10,8 @@ import {
   UploadedFile,
 } from "./services/fileExtractService";
 import { FilePreviewModal } from "./components/FilePreviewModal";
+import { useApiKey } from "./context/ApiKeyContext";
+import { useAuth } from "./context/AuthContext";
 import { countTokens, formatNumber, estimateCost, getAvailableTokens } from "./services/tokenCounterService";
 
 interface SourceTextPageProps {
@@ -19,6 +21,7 @@ interface SourceTextPageProps {
   settings: Settings;
   uploadedFiles: UploadedFile[];
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>;
+  setShowAIAccessModal: (show: boolean) => void;
 }
 
 export default function SourceTextPage({
@@ -28,6 +31,7 @@ export default function SourceTextPage({
   settings,
   uploadedFiles,
   setUploadedFiles,
+  setShowAIAccessModal,
 }: SourceTextPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +40,19 @@ export default function SourceTextPage({
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  const { hasApiKey, apiMode } = useApiKey();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Check if user has AI access configured
+  const hasAIAccess = hasApiKey || (isAuthenticated && apiMode === 'server');
+
+  // Show access modal on page load if no AI access is configured
+  useEffect(() => {
+    if (!authLoading && !hasAIAccess) {
+      setShowAIAccessModal(true);
+    }
+  }, [authLoading, hasAIAccess, setShowAIAccessModal]);
 
   const totalQuestions = settings.amountOfClosedQuestions + settings.amountOfOpenQuestions;
 

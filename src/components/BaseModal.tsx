@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 interface BaseModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   children: React.ReactNode;
   maxWidth?: string;
 }
@@ -15,7 +15,7 @@ export function BaseModal({
 }: BaseModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && onClose) {
         onClose();
       }
     };

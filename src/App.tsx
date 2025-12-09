@@ -17,6 +17,7 @@ import { QuizLibraryProvider } from "./context/QuizLibraryContext";
 import { SaveQuizModalProvider } from "./context/SaveQuizModalContext";
 import { ApiKeyModal } from "./components/ApiKeyModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
+import { AIAccessModal } from "./components/AIAccessModal";
 import { LoginButton } from "./components/LoginButton";
 import { UserMenu } from "./components/UserMenu";
 import { ImportExportButton } from "./components/ImportExportButton";
@@ -116,6 +117,7 @@ function AppContent() {
 
   const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
   const [showImportExportModal, setShowImportExportModal] = useState(false);
+  const [showAIAccessModal, setShowAIAccessModal] = useState(false);
   const location = useLocation();
 
   // Close mobile menu on navigation
@@ -143,6 +145,10 @@ function AppContent() {
         tasks={tasks}
         setTasks={setTasks}
         sourceText={sourceText}
+      />
+      <AIAccessModal
+        isOpen={showAIAccessModal}
+        onClose={() => setShowAIAccessModal(false)}
       />
       <SaveQuizModal />
       <div className="min-h-screen bg-slate-900">
@@ -286,6 +292,7 @@ function AppContent() {
                   setTasks={setTasks}
                   settings={settings}
                   uploadedFiles={uploadedFiles}
+                  setShowAIAccessModal={setShowAIAccessModal}
                   setUploadedFiles={setUploadedFiles}
                 />
               }

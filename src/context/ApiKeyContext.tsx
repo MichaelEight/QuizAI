@@ -36,9 +36,8 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
 
     return (stored === 'server' || stored === 'own-key') ? stored : 'own-key';
   });
-  const [showApiKeyModal, setShowApiKeyModal] = useState(
-    !OpenAIClientManager.hasApiKey() && apiMode === 'own-key',
-  );
+  // Don't auto-show modal - let pages decide when to show it
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   const handleSetApiKey = (key: string) => {
     OpenAIClientManager.setApiKey(key);
@@ -57,11 +56,6 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
   const handleSetApiMode = (mode: ApiMode) => {
     setApiModeState(mode);
     localStorage.setItem(API_MODE_KEY, mode);
-
-    // If switching to own-key mode but no key is set, show modal
-    if (mode === 'own-key' && !hasApiKey) {
-      setShowApiKeyModal(true);
-    }
   };
 
   // Listen for mode changes from logout
@@ -82,11 +76,6 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
       if (apiMode === 'server' && !hasAccessToken) {
         setApiModeState('own-key');
         localStorage.setItem(API_MODE_KEY, 'own-key');
-
-        // Show modal if no API key is set
-        if (!hasApiKey) {
-          setShowApiKeyModal(true);
-        }
       }
     };
 
@@ -100,7 +89,7 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
       window.removeEventListener('auth:logout', handleAuthChange);
       clearInterval(interval);
     };
-  }, [apiMode, hasApiKey]);
+  }, [apiMode]);
 
   return (
     <ApiKeyContext.Provider

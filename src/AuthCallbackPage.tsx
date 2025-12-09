@@ -43,15 +43,24 @@ export default function AuthCallbackPage() {
       // Store access token
       apiClient.setAccessToken(accessToken);
 
-      // Clear any stored invite code
-      sessionStorage.removeItem('pending_invite_code');
+      // Get the stored invite code if any
+      const storedInviteCode = sessionStorage.getItem('invite_code');
 
       // Refresh auth state to get user info
       await refreshAuth();
 
-      // Redirect to home page
+      // For new users returning after claiming invite code, redirect to home
+      // Otherwise redirect to the page they were trying to access (sourcePage by default)
+      const returnUrl = storedInviteCode && isNewUser ? '/' : '/sourcePage';
+
+      // Clean up stored invite code
+      if (storedInviteCode && isNewUser) {
+        sessionStorage.removeItem('invite_code');
+      }
+
+      // Redirect
       setTimeout(() => {
-        navigate('/', { replace: true });
+        navigate(returnUrl, { replace: true });
       }, 1000);
     } catch (err) {
       console.error('Auth callback error:', err);
@@ -62,19 +71,12 @@ export default function AuthCallbackPage() {
   function handleError(errorType: string) {
     switch (errorType) {
       case 'invite_required':
-        // Check if we have a stored invite code from a previous attempt
-        const storedInviteCode = sessionStorage.getItem('pending_invite_code');
-
-        if (storedInviteCode) {
-          // We just came back from entering the invite code, but backend didn't receive it
-          // This shouldn't happen with the state parameter, but clear it to prevent loops
-          sessionStorage.removeItem('pending_invite_code');
-        }
-
-        // Show invite code modal
-        const emailParam = searchParams.get('email');
-        setEmail(emailParam);
-        setShowInviteModal(true);
+        // New user needs invite code - redirect to source page
+        // where AIAccessModal will be shown
+        setError('Sign-in successful. Please enter an invite code to continue.');
+        setTimeout(() => {
+          navigate('/sourcePage', { replace: true });
+        }, 2000);
         break;
 
       case 'invalid_invite':

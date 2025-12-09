@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { BaseModal } from './components/BaseModal';
 import { useQuizLibrary } from './context/QuizLibraryContext';
+import { useAuth } from './context/AuthContext';
 import { SavedQuiz, SortConfig, SortField } from './types/quizLibrary';
 import { Task } from './QuestionsTypes';
 
@@ -11,7 +13,16 @@ interface LibraryPageProps {
 
 export default function LibraryPage({ setTasks, setSourceText }: LibraryPageProps) {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading, login } = useAuth();
   const { quizzes, isLoading, error, deleteQuiz, duplicateQuiz, updateQuiz, refreshQuizzes } = useQuizLibrary();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Show auth modal if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setShowAuthModal(true);
+    }
+  }, [authLoading, isAuthenticated]);
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -182,7 +193,8 @@ export default function LibraryPage({ setTasks, setSourceText }: LibraryPageProp
     });
   };
 
-  if (isLoading) {
+  // Show loading while checking auth or loading quizzes
+  if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex items-center gap-3 text-slate-400">
@@ -193,6 +205,63 @@ export default function LibraryPage({ setTasks, setSourceText }: LibraryPageProp
           <span>Loading library...</span>
         </div>
       </div>
+    );
+  }
+
+  // Don't render library content if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-slate-700/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-slate-100 mb-2">Authentication Required</h2>
+            <p className="text-slate-400">Please sign in to access your quiz library</p>
+          </div>
+        </div>
+
+        {/* Auth Modal */}
+        <BaseModal isOpen={showAuthModal} onClose={() => {
+          setShowAuthModal(false);
+          navigate('/');
+        }}>
+          <div className="text-center">
+            <div className="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-100 mb-2">Sign In Required</h2>
+            <p className="text-slate-400 mb-6">
+              You must be logged in to access this feature
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  login();
+                }}
+                className="flex-1 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg px-4 py-3 transition-all"
+              >
+                OK, Sign In
+              </button>
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  navigate('/');
+                }}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-4 py-3 transition-all"
+              >
+                No, Thanks
+              </button>
+            </div>
+          </div>
+        </BaseModal>
+      </>
     );
   }
 

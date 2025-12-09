@@ -14,6 +14,7 @@ interface User {
   name: string;
   pictureUrl?: string;
   tier: 'free' | 'premium' | 'admin';
+  canPublish: boolean;
 }
 
 interface AuthState {
