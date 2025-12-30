@@ -148,7 +148,7 @@ function AppContent() {
             <div className="flex items-center justify-between h-14 sm:h-16">
               {/* Logo */}
               <div className="flex items-center gap-2">
-                <img src="/favicon.svg" alt="QuizAI" className="w-8 h-8" />
+                <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="QuizAI" className="w-8 h-8" />
                 <span className="text-slate-100 font-semibold text-lg">QuizAI</span>
               </div>
 
