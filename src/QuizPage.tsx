@@ -756,10 +756,38 @@ export default function QuizPage({
     let correctAnswers: string[] = [];
     if (currentTask.question.isOpen) {
       // For open questions, use generated answer or user's accepted answer
-      const answer =
+      let answer =
         currentTask.answerOverride?.generatedOpenAnswer ||
         currentTask.answerOverride?.acceptedOpenAnswer ||
         revealedOpenAnswer;
+
+      // If no answer available, generate one first
+      if (!answer) {
+        setIsLoadingExplanation(true);
+        const generatedAnswer = await generateOpenQuestionAnswer(
+          combinedText,
+          currentTask.question.value,
+        );
+
+        if (generatedAnswer) {
+          answer = generatedAnswer;
+          // Cache the generated answer
+          const updateAnswerOverride = (t: Task): Task =>
+            t.id === currentTask.id
+              ? {
+                  ...t,
+                  answerOverride: {
+                    ...t.answerOverride,
+                    generatedOpenAnswer: generatedAnswer,
+                    overriddenAt: Date.now(),
+                  },
+                }
+              : t;
+          setTasks((prevTasks) => prevTasks.map(updateAnswerOverride));
+          setTaskPool((prevPool) => prevPool.map(updateAnswerOverride));
+        }
+      }
+
       if (answer) {
         correctAnswers = [answer];
       }
@@ -771,6 +799,7 @@ export default function QuizPage({
     }
 
     if (correctAnswers.length === 0) {
+      setIsLoadingExplanation(false);
       setExplanation(
         "Cannot generate explanation: no correct answer available.",
       );

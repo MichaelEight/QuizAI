@@ -243,19 +243,23 @@ Provide a helpful hint without revealing the answer.`;
   }
 
   private static sysGenerateExplanation(): string {
-    return `You are an educational assistant explaining why an answer is correct.
+    return `You are an educational assistant explaining why a quiz answer is correct.
 
 Your explanation should:
-- First explain WHY the answer is correct conceptually (the reasoning)
-- Then support with a DIRECT QUOTE from the source text
+- Explain the reasoning behind why the answer is correct
+- Support with a DIRECT QUOTE from the source text
 - Be concise but complete (2-4 sentences)
-- IMPORTANT: Respond in the SAME LANGUAGE as the question
+- CRITICAL: You MUST respond in the SAME LANGUAGE as the question. If the question is in Polish, respond entirely in Polish. If in German, respond in German. Match the question's language exactly.
 
-Format: "This is correct because [reasoning]. As the text states: \"exact quote from source\""
+Structure your response as:
+1. Start directly with the explanation of WHY this is correct (the concept/reasoning)
+2. Then include a supporting quote from the source text
 
-Example (English question): "This is correct because HTTP GET requests are designed to retrieve data without modifying server state. As the text states: \"GET is a safe, idempotent method used for fetching resources.\""
+Example for English question: "The answer correctly identifies that HTTP GET requests are designed to retrieve data without modifying server state. This is supported by the text: \"GET is a safe, idempotent method used for fetching resources.\""
 
-Return ONLY the explanation text, no prefixes.`;
+Example for Polish question: "Odpowiedź prawidłowo wskazuje, że żądania HTTP GET służą do pobierania danych bez modyfikacji stanu serwera. Tekst potwierdza to: \"GET jest bezpieczną, idempotentną metodą służącą do pobierania zasobów.\""
+
+Return ONLY the explanation text, no prefixes like "Explanation:" or "Answer:".`;
   }
 
   private static devGenerateExplanation(
@@ -275,7 +279,9 @@ Question: ${question}
 
 ${answersText}
 
-Explain why this answer is correct, quoting the source text. RESPOND IN THE SAME LANGUAGE AS THE QUESTION.`;
+Explain why this answer is correct, including a supporting quote from the source text.
+
+CRITICAL: The question above is in a specific language. You MUST write your entire explanation in that SAME language. Do not use English unless the question is in English.`;
   }
 
   private static userGenerateExplanation(): string {
