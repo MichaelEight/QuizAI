@@ -51,7 +51,11 @@ export class Instructions {
     Each closed question object must have:
     - "question": string,
     - "answers": array of ${countSpec} items, where each item must be built in form: {"content": string, "isCorrect": boolean}
-    Each answer must have exactly one "isCorrect": true property and ${incorrectCount} "isCorrect": false properties.
+
+    CRITICAL REQUIREMENT - SINGLE CORRECT ANSWER ONLY:
+    Each question MUST have EXACTLY ONE answer with "isCorrect": true.
+    All other ${incorrectCount} answers MUST have "isCorrect": false.
+    Do NOT create questions with multiple correct answers.
   `;
   }
 
@@ -66,8 +70,11 @@ export class Instructions {
     Each closed question object must have:
     - "question": string,
     - "answers": array of ${countSpec} items, where each item must be built in form: {"content": string, "isCorrect": boolean}
-    There must be at least two "isCorrect": true properties.
-    There can be 2 to ${maxCorrect} "isCorrect": true properties, with the remaining being "isCorrect": false.
+
+    CRITICAL REQUIREMENT - MULTIPLE CORRECT ANSWERS:
+    Each question MUST have AT LEAST TWO answers with "isCorrect": true.
+    You can have 2 to ${maxCorrect} correct answers, with the remaining being "isCorrect": false.
+    Do NOT create questions with only one correct answer.
   `;
   }
 

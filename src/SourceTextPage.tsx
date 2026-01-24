@@ -138,24 +138,32 @@ export default function SourceTextPage({
     ));
   };
 
-  const handleGenerateButtonClick = async () => {
+  const handleGenerateButtonClick = async (useBatchMode: boolean = false) => {
     if (!canGenerate) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = await generateQuestions(combinedText, settings);
+      const result = await generateQuestions(combinedText, settings, useBatchMode);
 
       if (!result || result.length === 0) {
-        setError("No questions were generated. Please try with different text.");
+        setError(
+          useBatchMode
+            ? "No questions were generated in batch mode. Try regular generation or check settings."
+            : "No questions were generated. Please try with different text."
+        );
         return;
       }
 
       setTasks(result);
       navigate("/quizPage");
     } catch (err) {
-      setError("Failed to generate questions. Please check your API key and try again.");
+      setError(
+        useBatchMode
+          ? "Failed to generate questions in batch mode. Please try again."
+          : "Failed to generate questions. Please check your API key and try again."
+      );
       console.error("Error generating questions:", err);
     } finally {
       setIsLoading(false);
@@ -384,7 +392,7 @@ export default function SourceTextPage({
 
         {/* Generate Button */}
         <button
-          onClick={handleGenerateButtonClick}
+          onClick={() => handleGenerateButtonClick(false)}
           disabled={!canGenerate || isLoading || isExtracting || isOverLimit}
           className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold transition-all duration-200 ${
             canGenerate && !isLoading && !isExtracting && !isOverLimit
@@ -418,6 +426,49 @@ export default function SourceTextPage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               Generate Questions
+            </>
+          )}
+        </button>
+
+        {/* Batch Generation Button (BETA) */}
+        <button
+          onClick={() => handleGenerateButtonClick(true)}
+          disabled={!canGenerate || isLoading || isExtracting || isOverLimit}
+          className={`w-4/5 mx-auto mt-3 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+            canGenerate && !isLoading && !isExtracting && !isOverLimit
+              ? "bg-indigo-600/70 hover:bg-indigo-600/90 text-white shadow-md shadow-indigo-500/15"
+              : "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+          }`}
+        >
+          {isLoading ? (
+            <>
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Generating...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Generate in Batches
+              <span className="px-1.5 py-0.5 bg-amber-500/30 text-amber-200 rounded text-xs font-semibold">
+                BETA
+              </span>
             </>
           )}
         </button>

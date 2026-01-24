@@ -1898,7 +1898,9 @@ export default function QuizPage({
               }`}>
               {currentTask.question.isOpen
                 ? "Open Question"
-                : "Multiple Choice"}
+                : (currentTask.answers?.filter(a => a.isCorrect).length === 1
+                    ? "Single Choice"
+                    : "Multiple Choice")}
             </span>
           </div>
 

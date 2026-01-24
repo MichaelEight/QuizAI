@@ -46,6 +46,10 @@ interface GenerationOptions {
   quizLanguage: QuizLanguage;
 }
 
+// Batch generation constants
+const BATCH_SIZE = 10;  // Questions per batch
+const MAX_RETRIES = 2;  // Retry failed batches
+
 async function generateQuestionsPerType(
   text: string,
   amount: number,
@@ -74,7 +78,14 @@ async function generateQuestionsPerType(
   try {
     const ans = await makeApiRequest(sysPrompt, "", userPrompt);
     const corrected = correctTrailingComma(ans);
-    return JSON.parse(corrected) as QuestionResponse;
+    const parsed = JSON.parse(corrected) as QuestionResponse;
+
+    // Validate and filter questions
+    if (Array.isArray(parsed)) {
+      return validateAndFilterQuestions(parsed, type);
+    }
+
+    return parsed;
   } catch (error) {
     console.error("Error in generateQuestionsPerType:", error);
     return {
@@ -84,9 +95,108 @@ async function generateQuestionsPerType(
   }
 }
 
+function validateQuestionType(
+  question: GeneratedQuestion,
+  expectedType: string
+): boolean {
+  if (!question.answers || question.answers.length === 0) {
+    return true; // Open question, no validation needed
+  }
+
+  const correctCount = question.answers.filter(a => a.isCorrect).length;
+
+  if (expectedType === QuestionTypes.CLOSED) {
+    // Single choice: must have exactly 1 correct answer
+    return correctCount === 1;
+  } else if (expectedType === QuestionTypes.CLOSED_MULTI) {
+    // Multiple choice: must have 2+ correct answers
+    return correctCount >= 2;
+  }
+
+  return true;
+}
+
+function validateAndFilterQuestions(
+  questions: GeneratedQuestion[],
+  expectedType: string
+): GeneratedQuestion[] {
+  const validated = questions.filter(q => validateQuestionType(q, expectedType));
+
+  if (validated.length < questions.length) {
+    console.warn(
+      `AI generated ${questions.length - validated.length} questions that don't match expected type ${expectedType}. ` +
+      `Filtered them out.`
+    );
+  }
+
+  return validated;
+}
+
+async function generateQuestionsInBatches(
+  text: string,
+  amount: number,
+  type: QuestionType,
+  options: GenerationOptions,
+): Promise<GeneratedQuestion[]> {
+  if (amount <= 0) return [];
+
+  const allQuestions: GeneratedQuestion[] = [];
+  const batches = Math.ceil(amount / BATCH_SIZE);
+
+  console.log(`Batch mode: Generating ${amount} ${type} questions in ${batches} batches`);
+
+  for (let i = 0; i < batches; i++) {
+    const batchStart = i * BATCH_SIZE;
+    const batchEnd = Math.min((i + 1) * BATCH_SIZE, amount);
+    const batchSize = batchEnd - batchStart;
+
+    console.log(`  Batch ${i + 1}/${batches}: Requesting ${batchSize} questions`);
+
+    let retries = 0;
+    let batchResult: QuestionResponse | null = null;
+
+    // Retry logic for failed batches
+    while (retries <= MAX_RETRIES && !batchResult) {
+      try {
+        batchResult = await generateQuestionsPerType(
+          text,
+          batchSize,
+          type,
+          options,
+        );
+
+        if (Array.isArray(batchResult) && batchResult.length > 0) {
+          allQuestions.push(...batchResult);
+          console.log(`    ✓ Batch ${i + 1} complete: Got ${batchResult.length} questions`);
+          break;
+        } else {
+          console.warn(`    ⚠ Batch ${i + 1} returned empty, retrying...`);
+          retries++;
+        }
+      } catch (error) {
+        console.error(`    ✗ Batch ${i + 1} failed:`, error);
+        retries++;
+      }
+    }
+
+    if (retries > MAX_RETRIES) {
+      console.error(`    ✗ Batch ${i + 1} failed after ${MAX_RETRIES} retries`);
+    }
+
+    // Small delay between batches to avoid rate limiting
+    if (i < batches - 1) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+
+  console.log(`Batch generation complete: ${allQuestions.length}/${amount} ${type} questions generated`);
+  return allQuestions;
+}
+
 export async function generateQuestions(
   text: string,
   settings: Settings,
+  useBatchMode: boolean = false,
 ): Promise<Task[]> {
   const allQuestions: GeneratedQuestion[] = [];
 
@@ -117,12 +227,24 @@ export async function generateQuestions(
   try {
     // Generate open questions
     if (openAmount > 0) {
-      const result = await generateQuestionsPerType(
-        text,
-        openAmount,
-        QuestionTypes.OPEN,
-        generationOptions,
-      );
+      let result: QuestionResponse;
+
+      if (useBatchMode) {
+        result = await generateQuestionsInBatches(
+          text,
+          openAmount,
+          QuestionTypes.OPEN,
+          generationOptions,
+        );
+      } else {
+        result = await generateQuestionsPerType(
+          text,
+          openAmount,
+          QuestionTypes.OPEN,
+          generationOptions,
+        );
+      }
+
       if (Array.isArray(result)) {
         allQuestions.push(...result);
       }
@@ -131,12 +253,24 @@ export async function generateQuestions(
     // Generate closed questions
     if (closedAmount > 0) {
       if (forceMultipleCorrectAnswers) {
-        const result = await generateQuestionsPerType(
-          text,
-          closedAmount,
-          QuestionTypes.CLOSED_MULTI,
-          generationOptions,
-        );
+        let result: QuestionResponse;
+
+        if (useBatchMode) {
+          result = await generateQuestionsInBatches(
+            text,
+            closedAmount,
+            QuestionTypes.CLOSED_MULTI,
+            generationOptions,
+          );
+        } else {
+          result = await generateQuestionsPerType(
+            text,
+            closedAmount,
+            QuestionTypes.CLOSED_MULTI,
+            generationOptions,
+          );
+        }
+
         if (Array.isArray(result)) {
           allQuestions.push(...result);
         }
@@ -144,36 +278,74 @@ export async function generateQuestions(
         const [singleAmount, multipleAmount] =
           generateSingleMultipleDistribution(closedAmount);
 
+        // Generate single-choice in batches or all at once
         if (singleAmount > 0) {
-          const singleResult = await generateQuestionsPerType(
-            text,
-            singleAmount,
-            QuestionTypes.CLOSED,
-            generationOptions,
-          );
+          let singleResult: QuestionResponse;
+
+          if (useBatchMode) {
+            singleResult = await generateQuestionsInBatches(
+              text,
+              singleAmount,
+              QuestionTypes.CLOSED,
+              generationOptions,
+            );
+          } else {
+            singleResult = await generateQuestionsPerType(
+              text,
+              singleAmount,
+              QuestionTypes.CLOSED,
+              generationOptions,
+            );
+          }
+
           if (Array.isArray(singleResult)) {
             allQuestions.push(...singleResult);
           }
         }
 
+        // Generate multiple-choice in batches or all at once
         if (multipleAmount > 0) {
-          const multiResult = await generateQuestionsPerType(
-            text,
-            multipleAmount,
-            QuestionTypes.CLOSED_MULTI,
-            generationOptions,
-          );
+          let multiResult: QuestionResponse;
+
+          if (useBatchMode) {
+            multiResult = await generateQuestionsInBatches(
+              text,
+              multipleAmount,
+              QuestionTypes.CLOSED_MULTI,
+              generationOptions,
+            );
+          } else {
+            multiResult = await generateQuestionsPerType(
+              text,
+              multipleAmount,
+              QuestionTypes.CLOSED_MULTI,
+              generationOptions,
+            );
+          }
+
           if (Array.isArray(multiResult)) {
             allQuestions.push(...multiResult);
           }
         }
       } else {
-        const result = await generateQuestionsPerType(
-          text,
-          closedAmount,
-          QuestionTypes.CLOSED,
-          generationOptions,
-        );
+        let result: QuestionResponse;
+
+        if (useBatchMode) {
+          result = await generateQuestionsInBatches(
+            text,
+            closedAmount,
+            QuestionTypes.CLOSED,
+            generationOptions,
+          );
+        } else {
+          result = await generateQuestionsPerType(
+            text,
+            closedAmount,
+            QuestionTypes.CLOSED,
+            generationOptions,
+          );
+        }
+
         if (Array.isArray(result)) {
           allQuestions.push(...result);
         }
