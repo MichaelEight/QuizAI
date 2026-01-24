@@ -4,6 +4,7 @@ import { useQuizLibrary } from "./context/QuizLibraryContext";
 import { SavedQuiz, SortConfig, SortField } from "./types/quizLibrary";
 import { Task } from "./QuestionsTypes";
 import { QuizLanguage } from "./SettingsType";
+import { SourceTextModal } from "./components/SourceTextModal";
 
 interface LibraryPageProps {
   setTasks: (tasks: Task[]) => void;
@@ -62,6 +63,10 @@ export default function LibraryPage({
 
   // Language version selector state
   const [showingVersionsFor, setShowingVersionsFor] =
+    useState<SavedQuiz | null>(null);
+
+  // Source text modal state
+  const [viewingSourceQuiz, setViewingSourceQuiz] =
     useState<SavedQuiz | null>(null);
 
   // Get unique subjects for filter dropdown
@@ -600,6 +605,23 @@ export default function LibraryPage({
                         />
                       </svg>
                     </button>
+                    <button
+                      onClick={() => setViewingSourceQuiz(quiz)}
+                      className="p-2.5 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                      title="View Source Text">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                    </button>
                     {quiz.previousVersionId && (
                       <button
                         onClick={() => handleRestoreBackup(quiz)}
@@ -847,6 +869,23 @@ export default function LibraryPage({
                                   strokeLinejoin="round"
                                   strokeWidth={2}
                                   d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => setViewingSourceQuiz(quiz)}
+                              className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                              title="View Source Text">
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                               </svg>
                             </button>
@@ -1283,6 +1322,16 @@ export default function LibraryPage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Source Text Modal */}
+      {viewingSourceQuiz && (
+        <SourceTextModal
+          isOpen={!!viewingSourceQuiz}
+          onClose={() => setViewingSourceQuiz(null)}
+          sourceText={viewingSourceQuiz.sourceText}
+          quizTitle={viewingSourceQuiz.title}
+        />
       )}
     </div>
   );
