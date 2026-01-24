@@ -1,12 +1,18 @@
-import { makeApiRequest } from './openaiClient';
-import { QuestionTypes, QuestionType, PromptTypes } from './constants';
-import { getSysPrompt, getDevPrompt, getUserPrompt } from './promptService';
+import { makeApiRequest } from "./openaiClient";
+import { QuestionTypes, QuestionType, PromptTypes } from "./constants";
+import { getSysPrompt, getDevPrompt, getUserPrompt } from "./promptService";
 import {
   generateSingleMultipleDistribution,
   correctTrailingComma,
-} from './questionUtilities';
-import { Task, Answer } from '../QuestionsTypes';
-import { Settings, ContentFocus, DifficultyLevel, QuestionStyle } from '../SettingsType';
+} from "./questionUtilities";
+import { Task, Answer } from "../QuestionsTypes";
+import {
+  Settings,
+  ContentFocus,
+  DifficultyLevel,
+  QuestionStyle,
+  QuizLanguage,
+} from "../SettingsType";
 
 interface GeneratedQuestion {
   question: string;
@@ -14,7 +20,7 @@ interface GeneratedQuestion {
 }
 
 interface ErrorResponse {
-  status: 'error';
+  status: "error";
   content: string;
 }
 
@@ -27,6 +33,7 @@ interface GenerationOptions {
   customInstructions: string;
   minAnswersPerQuestion: number;
   maxAnswersPerQuestion: number;
+  quizLanguage: QuizLanguage;
 }
 
 async function generateQuestionsPerType(
@@ -48,20 +55,21 @@ async function generateQuestionsPerType(
     customInstructions: options.customInstructions,
     minAnswersPerQuestion: options.minAnswersPerQuestion,
     maxAnswersPerQuestion: options.maxAnswersPerQuestion,
+    quizLanguage: options.quizLanguage,
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_QUESTIONS, {
     userText: text,
   });
 
   try {
-    const ans = await makeApiRequest(sysPrompt, '', userPrompt);
+    const ans = await makeApiRequest(sysPrompt, "", userPrompt);
     const corrected = correctTrailingComma(ans);
     return JSON.parse(corrected) as QuestionResponse;
   } catch (error) {
-    console.error('Error in generateQuestionsPerType:', error);
+    console.error("Error in generateQuestionsPerType:", error);
     return {
-      status: 'error',
-      content: 'invalid answer format',
+      status: "error",
+      content: "invalid answer format",
     };
   }
 }
@@ -83,6 +91,7 @@ export async function generateQuestions(
     customInstructions,
     minAnswersPerQuestion = 4,
     maxAnswersPerQuestion = 4,
+    quizLanguage = "english",
   } = settings;
 
   const generationOptions: GenerationOptions = {
@@ -92,6 +101,7 @@ export async function generateQuestions(
     customInstructions,
     minAnswersPerQuestion,
     maxAnswersPerQuestion,
+    quizLanguage,
   };
 
   try {
@@ -178,7 +188,7 @@ export async function generateQuestions(
       }),
     );
   } catch (error) {
-    console.error('Error in generateQuestions:', error);
+    console.error("Error in generateQuestions:", error);
     return [];
   }
 }
@@ -204,13 +214,13 @@ export async function checkOpenAnswer(
     const score = parseInt(ans, 10);
 
     if (isNaN(score) || score < 0 || score > 100) {
-      console.error('Invalid score received:', ans);
+      console.error("Invalid score received:", ans);
       return -1;
     }
 
     return score;
   } catch (error) {
-    console.error('Error in checkOpenAnswer:', error);
+    console.error("Error in checkOpenAnswer:", error);
     return -1;
   }
 }
@@ -230,15 +240,15 @@ export async function generateOpenQuestionAnswer(
     const answer = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
     return answer.trim();
   } catch (error) {
-    console.error('Error in generateOpenQuestionAnswer:', error);
-    return '';
+    console.error("Error in generateOpenQuestionAnswer:", error);
+    return "";
   }
 }
 
 export async function generateHint(
   text: string,
   question: string,
-  questionStyle: QuestionStyle = 'conceptual',
+  questionStyle: QuestionStyle = "conceptual",
 ): Promise<string> {
   const sysPrompt = getSysPrompt(PromptTypes.GENERATE_HINT, {
     questionStyle,
@@ -253,8 +263,8 @@ export async function generateHint(
     const hint = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
     return hint.trim();
   } catch (error) {
-    console.error('Error in generateHint:', error);
-    return '';
+    console.error("Error in generateHint:", error);
+    return "";
   }
 }
 
@@ -275,7 +285,7 @@ export async function generateExplanation(
     const explanation = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
     return explanation.trim();
   } catch (error) {
-    console.error('Error in generateExplanation:', error);
-    return '';
+    console.error("Error in generateExplanation:", error);
+    return "";
   }
 }

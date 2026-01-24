@@ -1,31 +1,31 @@
 // Prompt type identifiers
 export class PromptTypes {
-  static readonly GENERATE_QUESTIONS = 'generate-questions' as const;
-  static readonly CHECK_OPEN_QUESTION = 'check-open-question' as const;
-  static readonly GENERATE_OPEN_ANSWER = 'generate-open-answer' as const;
-  static readonly GENERATE_HINT = 'generate-hint' as const;
-  static readonly GENERATE_EXPLANATION = 'generate-explanation' as const;
+  static readonly GENERATE_QUESTIONS = "generate-questions" as const;
+  static readonly CHECK_OPEN_QUESTION = "check-open-question" as const;
+  static readonly GENERATE_OPEN_ANSWER = "generate-open-answer" as const;
+  static readonly GENERATE_HINT = "generate-hint" as const;
+  static readonly GENERATE_EXPLANATION = "generate-explanation" as const;
 }
 
-export type PromptType = typeof PromptTypes[keyof typeof PromptTypes];
+export type PromptType = (typeof PromptTypes)[keyof typeof PromptTypes];
 
 // Prompt role ranks for OpenAI API
 export class PromptRank {
-  static readonly SYSTEM = 'system' as const;
-  static readonly DEVELOPER = 'developer' as const;
-  static readonly USER = 'user' as const;
+  static readonly SYSTEM = "system" as const;
+  static readonly DEVELOPER = "developer" as const;
+  static readonly USER = "user" as const;
 }
 
-export type PromptRankType = typeof PromptRank[keyof typeof PromptRank];
+export type PromptRankType = (typeof PromptRank)[keyof typeof PromptRank];
 
 // Question type identifiers
 export class QuestionTypes {
-  static readonly CLOSED = 'closed' as const;
-  static readonly OPEN = 'open' as const;
-  static readonly CLOSED_MULTI = 'closed-multi' as const;
+  static readonly CLOSED = "closed" as const;
+  static readonly OPEN = "open" as const;
+  static readonly CLOSED_MULTI = "closed-multi" as const;
 }
 
-export type QuestionType = typeof QuestionTypes[keyof typeof QuestionTypes];
+export type QuestionType = (typeof QuestionTypes)[keyof typeof QuestionTypes];
 
 // Instructions for question generation prompts
 export class Instructions {
@@ -45,9 +45,7 @@ export class Instructions {
   // Dynamic closed question instruction
   static getClosedQuestionInstruction(min: number, max: number): string {
     const countSpec = Instructions.formatAnswerCount(min, max);
-    const incorrectCount = min === max
-      ? `${min - 1}`
-      : `the remaining`;
+    const incorrectCount = min === max ? `${min - 1}` : `the remaining`;
     return `
     Each closed question object must have:
     - "question": string,
@@ -57,7 +55,10 @@ export class Instructions {
   }
 
   // Dynamic closed question with multiple answers instruction
-  static getClosedQuestionMultipleAnswersInstruction(min: number, max: number): string {
+  static getClosedQuestionMultipleAnswersInstruction(
+    min: number,
+    max: number,
+  ): string {
     const countSpec = Instructions.formatAnswerCount(min, max);
     const maxCorrect = min === max ? min : max;
     return `
@@ -69,30 +70,40 @@ export class Instructions {
   `;
   }
 
-  static getInstruction(typeOfQuestion: QuestionType, minAnswers: number = 4, maxAnswers: number = 4): string {
+  static getInstruction(
+    typeOfQuestion: QuestionType,
+    minAnswers: number = 4,
+    maxAnswers: number = 4,
+  ): string {
     switch (typeOfQuestion) {
       case QuestionTypes.CLOSED:
-        return Instructions.getClosedQuestionInstruction(minAnswers, maxAnswers);
+        return Instructions.getClosedQuestionInstruction(
+          minAnswers,
+          maxAnswers,
+        );
       case QuestionTypes.OPEN:
         return Instructions.OPEN_QUESTION;
       case QuestionTypes.CLOSED_MULTI:
-        return Instructions.getClosedQuestionMultipleAnswersInstruction(minAnswers, maxAnswers);
+        return Instructions.getClosedQuestionMultipleAnswersInstruction(
+          minAnswers,
+          maxAnswers,
+        );
       default:
-        return '';
+        return "";
     }
   }
 }
 
 // Storage constants
-export const OPENAI_API_KEY_STORAGE_KEY = 'openai_api_key';
-export const DEFAULT_MODEL = 'gpt-4o-mini';
+export const OPENAI_API_KEY_STORAGE_KEY = "openai_api_key";
+export const DEFAULT_MODEL = "gpt-4o-mini";
 
 // Utility constants
 export const TRAILING_COMMA_REGEX = /,\s*([\]\}])/g;
 
 // Content focus instructions with examples
 export const CONTENT_FOCUS_INSTRUCTIONS = {
-  all: '',
+  all: "",
   important: `IMPORTANT: Focus on the most important, substantive content in the text. Prioritize:
 - Core concepts, theories, and technical information
 - Key definitions and terminology
@@ -111,7 +122,7 @@ EXAMPLE - Given text: "Photosynthesis converts sunlight into chemical energy in 
 
 // Difficulty level instructions with examples
 export const DIFFICULTY_INSTRUCTIONS = {
-  mixed: '',
+  mixed: "",
   easy: `Generate EASY questions only. Focus on:
 - Direct recall of facts and definitions
 - Simple "what is" or "who/what/when" questions
@@ -154,8 +165,16 @@ EXAMPLES:
 - GOOD: "What is the purpose of photosynthesis?"
 - BAD: "Look at the section describing HTTP methods. Which ones are listed?"
 - GOOD: "What HTTP methods are commonly used for data retrieval?"`,
-  'text-based': `TEXT-BASED STYLE: Questions may reference the text directly.
+  "text-based": `TEXT-BASED STYLE: Questions may reference the text directly.
 - Can ask "What does the text say about X?"
 - Can reference specific sections or parts of the text
 - Focus on recall of what was written`,
+} as const;
+
+// Language instructions for quiz generation
+export const LANGUAGE_INSTRUCTIONS = {
+  english: `LANGUAGE: Generate all questions and answers in ENGLISH.`,
+  polish: `LANGUAGE: Generate all questions and answers in POLISH (Polski). All text output must be in Polish language.`,
+  spanish: `LANGUAGE: Generate all questions and answers in SPANISH (Español). All text output must be in Spanish language.`,
+  german: `LANGUAGE: Generate all questions and answers in GERMAN (Deutsch). All text output must be in German language.`,
 } as const;

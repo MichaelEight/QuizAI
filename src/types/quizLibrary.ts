@@ -1,20 +1,23 @@
-import { Task } from '../QuestionsTypes';
+import { Task } from "../QuestionsTypes";
+import { QuizLanguage } from "../SettingsType";
 
 /**
  * Saved quiz with metadata for the library
  */
 export interface SavedQuiz {
-  id: string;                    // UUID
-  title: string;                 // Required
-  description?: string;          // Optional
-  teacher?: string;              // Optional
-  subjectName?: string;          // Optional
-  subjectCode?: string;          // Optional (e.g., "CS101")
+  id: string; // UUID
+  title: string; // Required
+  description?: string; // Optional
+  teacher?: string; // Optional
+  subjectName?: string; // Optional
+  subjectCode?: string; // Optional (e.g., "CS101")
+  language?: QuizLanguage; // Language of the quiz content
+  originalQuizId?: string; // If this is a translation, references the original
 
   // Content
-  tasks: Task[];                 // The questions
-  sourceText: string;            // Always saved with quiz
-  uploadedFileNames?: string[];  // Names only (not content - too large)
+  tasks: Task[]; // The questions
+  sourceText: string; // Always saved with quiz
+  uploadedFileNames?: string[]; // Names only (not content - too large)
 
   // Stats (denormalized for display/filtering)
   closedQuestionCount: number;
@@ -35,6 +38,8 @@ export interface CreateQuizData {
   teacher?: string;
   subjectName?: string;
   subjectCode?: string;
+  language?: QuizLanguage;
+  originalQuizId?: string;
   tasks: Task[];
   sourceText: string;
   uploadedFileNames?: string[];
@@ -54,8 +59,12 @@ export interface UpdateQuizData {
 /**
  * Sort options for library view
  */
-export type SortField = 'title' | 'createdAt' | 'updatedAt' | 'totalQuestionCount';
-export type SortDirection = 'asc' | 'desc';
+export type SortField =
+  | "title"
+  | "createdAt"
+  | "updatedAt"
+  | "totalQuestionCount";
+export type SortDirection = "asc" | "desc";
 
 export interface SortConfig {
   field: SortField;
@@ -102,8 +111,8 @@ export function generateQuizId(): string {
  */
 export function createSavedQuiz(data: CreateQuizData): SavedQuiz {
   const now = Date.now();
-  const closedCount = data.tasks.filter(t => !t.question.isOpen).length;
-  const openCount = data.tasks.filter(t => t.question.isOpen).length;
+  const closedCount = data.tasks.filter((t) => !t.question.isOpen).length;
+  const openCount = data.tasks.filter((t) => t.question.isOpen).length;
 
   return {
     id: generateQuizId(),
@@ -112,6 +121,8 @@ export function createSavedQuiz(data: CreateQuizData): SavedQuiz {
     teacher: data.teacher,
     subjectName: data.subjectName,
     subjectCode: data.subjectCode,
+    language: data.language,
+    originalQuizId: data.originalQuizId,
     tasks: data.tasks,
     sourceText: data.sourceText,
     uploadedFileNames: data.uploadedFileNames,
