@@ -41,6 +41,9 @@ interface QuizProgressState {
   correctAnswers: number;
   incorrectAnswers: number;
   tasksHash: string; // To detect if tasks changed
+  hint: string | null;
+  explanation: string | null;
+  revealedOpenAnswer: string | null;
 }
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -180,13 +183,17 @@ export default function QuizPage({
 
   // State for "Show Answer" feature
   const [revealedOpenAnswer, setRevealedOpenAnswer] = useState<string | null>(
-    null,
+    savedProgress?.revealedOpenAnswer ?? null,
   );
   const [isAnswerRevealed, setIsAnswerRevealed] = useState<boolean>(false);
 
   // State for Hint and Explanation features
-  const [hint, setHint] = useState<string | null>(null);
-  const [explanation, setExplanation] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(
+    savedProgress?.hint ?? null,
+  );
+  const [explanation, setExplanation] = useState<string | null>(
+    savedProgress?.explanation ?? null,
+  );
   const [isLoadingHint, setIsLoadingHint] = useState<boolean>(false);
   const [isLoadingExplanation, setIsLoadingExplanation] =
     useState<boolean>(false);
@@ -267,6 +274,9 @@ export default function QuizPage({
       correctAnswers,
       incorrectAnswers,
       tasksHash: getTasksHash(tasks),
+      hint,
+      explanation,
+      revealedOpenAnswer,
     };
     saveQuizProgress(state);
   }, [
@@ -282,12 +292,40 @@ export default function QuizPage({
     correctAnswers,
     incorrectAnswers,
     tasks,
+    hint,
+    explanation,
+    revealedOpenAnswer,
   ]);
 
   // Save progress on state changes
   useEffect(() => {
     saveProgress();
   }, [saveProgress]);
+
+  // Restore cached data from answerOverride when currentTask changes
+  useEffect(() => {
+    if (!currentTask) {
+      // Clear state when no current task
+      setHint(null);
+      setExplanation(null);
+      setRevealedOpenAnswer(null);
+      return;
+    }
+
+    // Restore cached data from answerOverride if it exists
+    const override = currentTask.answerOverride;
+    if (override) {
+      if (override.hint) {
+        setHint(override.hint);
+      }
+      if (override.explanation) {
+        setExplanation(override.explanation);
+      }
+      if (override.generatedOpenAnswer) {
+        setRevealedOpenAnswer(override.generatedOpenAnswer);
+      }
+    }
+  }, [currentTask?.id]); // Only when task ID changes
 
   useEffect(() => {
     createPoolIfEmpty();
