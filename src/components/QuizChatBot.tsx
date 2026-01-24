@@ -109,6 +109,15 @@ export function QuizChatBot({
     }
   };
 
+  const handleClearChat = useCallback(() => {
+    setMessages((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(questionId, []);
+      return newMap;
+    });
+    setError(null);
+  }, [questionId]);
+
   // Render using portal to escape any parent container constraints
   return createPortal(
     <>
@@ -196,22 +205,44 @@ export function QuizChatBot({
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => onToggle(false)}
-              className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded-lg transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1">
+              {currentMessages.length > 0 && (
+                <button
+                  onClick={handleClearChat}
+                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-700 rounded-lg transition-colors"
+                  title="Clear chat">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={() => onToggle(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
+                title="Close chat">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Messages Area */}
