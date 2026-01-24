@@ -3,6 +3,7 @@ export class PromptTypes {
   static readonly GENERATE_QUESTIONS = "generate-questions" as const;
   static readonly CHECK_OPEN_QUESTION = "check-open-question" as const;
   static readonly GENERATE_OPEN_ANSWER = "generate-open-answer" as const;
+  static readonly GENERATE_SCORE_TEMPLATE = "generate-score-template" as const;
   static readonly GENERATE_HINT = "generate-hint" as const;
   static readonly GENERATE_EXPLANATION = "generate-explanation" as const;
 }

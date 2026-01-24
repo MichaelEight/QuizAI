@@ -5,7 +5,12 @@ import {
   generateSingleMultipleDistribution,
   correctTrailingComma,
 } from "./questionUtilities";
-import { Task, Answer, ScoreBreakdownItem } from "../QuestionsTypes";
+import {
+  Task,
+  Answer,
+  ScoreBreakdownItem,
+  ScoreBreakdownTemplate,
+} from "../QuestionsTypes";
 import {
   Settings,
   ContentFocus,
@@ -202,12 +207,14 @@ export async function checkOpenAnswer(
   text: string,
   question: string,
   answer: string,
+  template: ScoreBreakdownTemplate,
   acceptedAnswer?: string,
 ): Promise<CheckAnswerResult> {
   const sysPrompt = getSysPrompt(PromptTypes.CHECK_OPEN_QUESTION);
   const devPrompt = getDevPrompt(PromptTypes.CHECK_OPEN_QUESTION, {
     text,
     question,
+    template,
     acceptedAnswer,
   });
   const userPrompt = getUserPrompt(PromptTypes.CHECK_OPEN_QUESTION, {
@@ -221,7 +228,12 @@ export async function checkOpenAnswer(
     const parsed = JSON.parse(ans);
     const breakdown: ScoreBreakdownItem[] = Array.isArray(parsed.breakdown)
       ? parsed.breakdown.map(
-          (item: { points: number; type?: string; reason: string }) => ({
+          (item: {
+            points: number;
+            type?: string;
+            reason: string;
+            templateIndex?: number;
+          }) => ({
             points: item.points,
             type:
               item.type === "achieved" ||
@@ -232,11 +244,30 @@ export async function checkOpenAnswer(
                   ? "achieved"
                   : "incorrect", // fallback for old format
             reason: item.reason,
+            templateIndex: item.templateIndex,
           }),
         )
       : [];
 
-    // Calculate score: sum of achieved points minus incorrect penalties
+    // Validate and cap negative points at -50
+    const negativeTotal = breakdown
+      .filter((item) => item.type === "incorrect")
+      .reduce((sum, item) => sum + item.points, 0);
+
+    if (negativeTotal < -50) {
+      console.warn(
+        `Negative points (${negativeTotal}) exceed -50 cap, adjusting...`,
+      );
+      // Proportionally scale down negative points
+      const scale = -50 / negativeTotal;
+      breakdown.forEach((item) => {
+        if (item.type === "incorrect") {
+          item.points = Math.round(item.points * scale);
+        }
+      });
+    }
+
+    // Calculate score: sum of achieved points + incorrect penalties (already capped)
     // Missed items don't count toward score (they show what was missing)
     let calculatedScore = breakdown.reduce((sum, item) => {
       if (item.type === "achieved") return sum + item.points;
@@ -253,14 +284,57 @@ export async function checkOpenAnswer(
   }
 }
 
+export async function generateScoreTemplate(
+  text: string,
+  question: string,
+): Promise<ScoreBreakdownTemplate> {
+  const sysPrompt = getSysPrompt(PromptTypes.GENERATE_SCORE_TEMPLATE);
+  const devPrompt = getDevPrompt(PromptTypes.GENERATE_SCORE_TEMPLATE, {
+    text,
+    question,
+  });
+  const userPrompt = getUserPrompt(PromptTypes.GENERATE_SCORE_TEMPLATE);
+
+  try {
+    const ans = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    const parsed = JSON.parse(ans);
+
+    // Validate template structure
+    if (!parsed.template || !Array.isArray(parsed.template)) {
+      console.error("Invalid template structure:", parsed);
+      return [];
+    }
+
+    const template: ScoreBreakdownTemplate = parsed.template.map(
+      (item: { points: number; description: string }) => ({
+        points: item.points,
+        description: item.description,
+      }),
+    );
+
+    // Validate points sum to ~100 (allow 95-105 range for flexibility)
+    const totalPoints = template.reduce((sum, item) => sum + item.points, 0);
+    if (totalPoints < 95 || totalPoints > 105) {
+      console.warn(`Template points sum to ${totalPoints}, expected ~100`);
+    }
+
+    return template;
+  } catch (error) {
+    console.error("Error in generateScoreTemplate:", error);
+    return [];
+  }
+}
+
 export async function generateOpenQuestionAnswer(
   text: string,
   question: string,
+  template?: ScoreBreakdownTemplate,
 ): Promise<string> {
   const sysPrompt = getSysPrompt(PromptTypes.GENERATE_OPEN_ANSWER);
   const devPrompt = getDevPrompt(PromptTypes.GENERATE_OPEN_ANSWER, {
     text,
     question,
+    template,
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_OPEN_ANSWER);
 

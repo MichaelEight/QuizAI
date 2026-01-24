@@ -1,11 +1,13 @@
-import { Task } from "./QuestionsTypes";
+import { Task, ScoreBreakdownTemplate } from "./QuestionsTypes";
 import { Settings, QuestionStyle } from "./SettingsType";
 import {
   generateQuestions as generateQuestionsService,
   checkOpenAnswer as checkOpenAnswerService,
   generateOpenQuestionAnswer as generateOpenQuestionAnswerService,
+  generateScoreTemplate as generateScoreTemplateService,
   generateHint as generateHintService,
   generateExplanation as generateExplanationService,
+  CheckAnswerResult,
 } from "./services/questionService";
 
 export type { CheckAnswerResult } from "./services/questionService";
@@ -14,6 +16,7 @@ export async function checkOpenAnswer(
   text: string,
   question: string,
   answer: string,
+  template: ScoreBreakdownTemplate,
   acceptedAnswer?: string,
 ): Promise<CheckAnswerResult> {
   if (!text || !question) {
@@ -27,6 +30,7 @@ export async function checkOpenAnswer(
       text,
       question,
       answer,
+      template,
       acceptedAnswer,
     );
 
@@ -60,9 +64,28 @@ export async function generateQuestions(
   }
 }
 
+export async function generateScoreTemplate(
+  text: string,
+  question: string,
+): Promise<ScoreBreakdownTemplate> {
+  if (!text || !question) {
+    throw new Error(
+      "Missing required values: 'text' and 'question' are required.",
+    );
+  }
+
+  try {
+    return await generateScoreTemplateService(text, question);
+  } catch (error) {
+    console.error("Error in generateScoreTemplate:", error);
+    return [];
+  }
+}
+
 export async function generateOpenQuestionAnswer(
   text: string,
   question: string,
+  template?: ScoreBreakdownTemplate,
 ): Promise<string> {
   if (!text || !question) {
     throw new Error(
@@ -71,7 +94,7 @@ export async function generateOpenQuestionAnswer(
   }
 
   try {
-    return await generateOpenQuestionAnswerService(text, question);
+    return await generateOpenQuestionAnswerService(text, question, template);
   } catch (error) {
     console.error("Error in generateOpenQuestionAnswer:", error);
     return "";

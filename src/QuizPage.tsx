@@ -7,6 +7,7 @@ import AnswerField from "./AnswerComponent";
 import {
   checkOpenAnswer,
   generateOpenQuestionAnswer,
+  generateScoreTemplate,
   generateHint,
   generateExplanation,
 } from "./backendService";
@@ -334,12 +335,55 @@ export default function QuizPage({
       : false;
 
     if (currentTask?.question.isOpen) {
-      // Get accepted answer from task if exists (for future retries)
+      // STEP 1: Ensure we have a score template
+      let template = currentTask.answerOverride?.scoreTemplate;
+
+      if (!template || template.length === 0) {
+        // Generate template on first check
+        console.log("Generating score template for first check...");
+        template = await generateScoreTemplate(
+          combinedText,
+          currentTask.question.value,
+        );
+
+        if (!template || template.length === 0) {
+          console.error("Failed to generate score template");
+          setIsChecking(false);
+          return;
+        }
+
+        // Cache the template immediately
+        const cacheTemplate = (t: Task): Task =>
+          t.id === currentTask.id
+            ? {
+                ...t,
+                answerOverride: {
+                  ...t.answerOverride,
+                  scoreTemplate: template,
+                  overriddenAt: Date.now(),
+                },
+              }
+            : t;
+
+        setTasks((prevTasks) => prevTasks.map(cacheTemplate));
+        setTaskPool((prevPool) => prevPool.map(cacheTemplate));
+        setCurrentTask({
+          ...currentTask,
+          answerOverride: {
+            ...currentTask.answerOverride,
+            scoreTemplate: template,
+            overriddenAt: Date.now(),
+          },
+        });
+      }
+
+      // STEP 2: Check answer using template
       const acceptedAnswer = currentTask.answerOverride?.acceptedOpenAnswer;
       const result = await checkOpenAnswer(
         combinedText,
         currentTask.question.value,
         openAnswer,
+        template,
         acceptedAnswer,
       );
       if (result.score === -1) {
@@ -348,7 +392,7 @@ export default function QuizPage({
         return;
       }
 
-      // Store the score breakdown in the task
+      // STEP 3: Cache the breakdown results
       if (result.breakdown.length > 0) {
         const updateBreakdown = (t: Task): Task =>
           t.id === currentTask.id
@@ -363,7 +407,6 @@ export default function QuizPage({
             : t;
         setTasks((prevTasks) => prevTasks.map(updateBreakdown));
         setTaskPool((prevPool) => prevPool.map(updateBreakdown));
-        // Update current task too
         setCurrentTask({
           ...currentTask,
           answerOverride: {
@@ -378,6 +421,34 @@ export default function QuizPage({
       setIsRoundWon(won);
       setAreAnswersChecked(true);
       setOpenAnswerScore(result.score);
+
+      // STEP 4: Generate/show expected answer (using template)
+      let expectedAnswer = currentTask.answerOverride?.generatedOpenAnswer;
+      if (!expectedAnswer && combinedText) {
+        expectedAnswer = await generateOpenQuestionAnswer(
+          combinedText,
+          currentTask.question.value,
+          template,
+        );
+        if (expectedAnswer) {
+          const updateAnswerOverride = (t: Task): Task =>
+            t.id === currentTask.id
+              ? {
+                  ...t,
+                  answerOverride: {
+                    ...t.answerOverride,
+                    generatedOpenAnswer: expectedAnswer,
+                    overriddenAt: Date.now(),
+                  },
+                }
+              : t;
+          setTasks((prevTasks) => prevTasks.map(updateAnswerOverride));
+          setTaskPool((prevPool) => prevPool.map(updateAnswerOverride));
+        }
+      }
+      if (expectedAnswer) {
+        setRevealedOpenAnswer(expectedAnswer);
+      }
 
       if (won) {
         setCorrectAnswers((prev) => prev + 1);
@@ -867,16 +938,34 @@ export default function QuizPage({
     if (!currentTask || !combinedText || !currentTask.question.isOpen) return;
 
     setIsChecking(true);
-    const generatedAnswer = await generateOpenQuestionAnswer(
+
+    // STEP 1: Regenerate template
+    const newTemplate = await generateScoreTemplate(
       combinedText,
       currentTask.question.value,
     );
+
+    if (!newTemplate || newTemplate.length === 0) {
+      console.error("Failed to regenerate score template");
+      setIsChecking(false);
+      setRevealedOpenAnswer("Could not regenerate template. Please try again.");
+      return;
+    }
+
+    // STEP 2: Regenerate answer using new template
+    const generatedAnswer = await generateOpenQuestionAnswer(
+      combinedText,
+      currentTask.question.value,
+      newTemplate,
+    );
+
     setIsChecking(false);
 
     if (generatedAnswer) {
       setRevealedOpenAnswer(generatedAnswer);
 
-      // Update cache
+      // STEP 3: Update cache with both new template and answer
+      // IMPORTANT: Clear scoreBreakdown since template changed
       const updateOverride = (t: Task): Task =>
         t.id === currentTask.id
           ? {
@@ -884,6 +973,8 @@ export default function QuizPage({
               answerOverride: {
                 ...t.answerOverride,
                 generatedOpenAnswer: generatedAnswer,
+                scoreTemplate: newTemplate,
+                scoreBreakdown: undefined,
                 overriddenAt: Date.now(),
               },
             }
@@ -891,6 +982,16 @@ export default function QuizPage({
 
       setTasks((prevTasks) => prevTasks.map(updateOverride));
       setTaskPool((prevPool) => prevPool.map(updateOverride));
+      setCurrentTask({
+        ...currentTask,
+        answerOverride: {
+          ...currentTask.answerOverride,
+          generatedOpenAnswer: generatedAnswer,
+          scoreTemplate: newTemplate,
+          scoreBreakdown: undefined,
+          overriddenAt: Date.now(),
+        },
+      });
     } else {
       setRevealedOpenAnswer("Could not generate answer. Please try again.");
     }
@@ -1418,13 +1519,36 @@ export default function QuizPage({
                       className="text-xs text-blue-400/60 hover:text-blue-400 transition-colors flex items-center gap-1"
                       title="Regenerate hint">
                       {isLoadingHint ? (
-                        <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        <svg
+                          className="animate-spin h-3 w-3"
+                          viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
                         </svg>
                       ) : (
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
                         </svg>
                       )}
                       <span>Regenerate</span>
@@ -1591,38 +1715,61 @@ export default function QuizPage({
           </div>
 
           {/* Revealed answer for open questions */}
-          {isAnswerRevealed && revealedOpenAnswer && (
-            <div className="mt-4 pt-4 border-t border-amber-500/20">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-amber-400">
-                  Expected Answer:
+          {(isAnswerRevealed || areAnswersChecked) &&
+            currentTask?.question.isOpen &&
+            revealedOpenAnswer && (
+              <div className="mt-4 pt-4 border-t border-amber-500/20">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-amber-400">
+                    Expected Answer:
+                  </p>
+                  <button
+                    onClick={handleRegenerateExpectedAnswer}
+                    disabled={isChecking}
+                    className="text-xs text-amber-400/60 hover:text-amber-400 transition-colors flex items-center gap-1"
+                    title="Regenerate expected answer">
+                    {isChecking ? (
+                      <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    )}
+                    <span>Regenerate</span>
+                  </button>
+                </div>
+                <p className="text-slate-100 bg-slate-800/50 rounded-lg p-3">
+                  {revealedOpenAnswer}
                 </p>
-                <button
-                  onClick={handleRegenerateExpectedAnswer}
-                  disabled={isChecking}
-                  className="text-xs text-amber-400/60 hover:text-amber-400 transition-colors flex items-center gap-1"
-                  title="Regenerate expected answer">
-                  {isChecking ? (
-                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  )}
-                  <span>Regenerate</span>
-                </button>
               </div>
-              <p className="text-slate-100 bg-slate-800/50 rounded-lg p-3">
-                {revealedOpenAnswer}
-              </p>
-            </div>
-          )}
+            )}
 
           {/* Revealed answers for closed questions */}
-          {isAnswerRevealed &&
+          {(isAnswerRevealed || (areAnswersChecked && !isRoundWon)) &&
             !currentTask?.question.isOpen &&
             currentTask?.answers && (
               <div className="mt-4 pt-4 border-t border-amber-500/20">
@@ -1734,13 +1881,36 @@ export default function QuizPage({
                         className="text-xs text-indigo-400/60 hover:text-indigo-400 transition-colors flex items-center gap-1"
                         title="Regenerate explanation">
                         {isLoadingExplanation ? (
-                          <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          <svg
+                            className="animate-spin h-3 w-3"
+                            viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
                           </svg>
                         ) : (
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
                           </svg>
                         )}
                         <span>Regenerate</span>

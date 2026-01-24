@@ -42,6 +42,7 @@ const DEFAULT_SETTINGS: Settings = {
   difficultyLevel: 'mixed',
   questionStyle: 'conceptual',
   customInstructions: '',
+  quizLanguage: 'english',
 };
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {
