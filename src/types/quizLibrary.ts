@@ -27,6 +27,11 @@ export interface SavedQuiz {
   // Timestamps
   createdAt: number;
   updatedAt: number;
+
+  // Versioning
+  version: number; // Version number (1, 2, 3, ...)
+  previousVersionId?: string; // ID of backup (previous version)
+  isBackup?: boolean; // True if this is a backup version
 }
 
 /**
@@ -95,6 +100,12 @@ export interface IStorageProvider {
   importBulk(quizzes: SavedQuiz[]): Promise<void>;
   exportAll(): Promise<SavedQuiz[]>;
 
+  // Versioning
+  saveNewVersion(quizId: string, newQuizData: SavedQuiz): Promise<void>;
+  getBackupVersion(quizId: string): Promise<SavedQuiz | null>;
+  restoreBackupVersion(quizId: string): Promise<void>;
+  deleteBackup(quizId: string): Promise<void>;
+
   // Initialization
   initialize(): Promise<void>;
 }
@@ -131,5 +142,6 @@ export function createSavedQuiz(data: CreateQuizData): SavedQuiz {
     totalQuestionCount: data.tasks.length,
     createdAt: now,
     updatedAt: now,
+    version: 1, // New quizzes start at version 1
   };
 }

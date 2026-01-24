@@ -192,6 +192,181 @@ export class IndexedDBProvider implements IStorageProvider {
   async exportAll(): Promise<SavedQuiz[]> {
     return this.getAll();
   }
+
+  async saveNewVersion(quizId: string, newQuizData: SavedQuiz): Promise<void> {
+    await this.initialize();
+
+    // 1. Get current version
+    const current = await this.getById(quizId);
+    if (!current) {
+      throw new Error(`Quiz with id ${quizId} not found`);
+    }
+
+    // 2. Delete old backup if exists
+    if (current.previousVersionId) {
+      await this.delete(current.previousVersionId);
+    }
+
+    // 3. Save current as backup
+    const backupId = `${quizId}-v${current.version || 1}-backup`;
+    const backup: SavedQuiz = {
+      ...current,
+      id: backupId,
+      isBackup: true,
+    };
+
+    return new Promise((resolve, reject) => {
+      const store = this.getStore('readwrite');
+
+      // Save backup
+      const backupRequest = store.put(backup);
+
+      backupRequest.onsuccess = () => {
+        // 4. Update current with new data + incremented version
+        const updated: SavedQuiz = {
+          ...newQuizData,
+          id: quizId,
+          version: (current.version || 1) + 1,
+          previousVersionId: backupId,
+          updatedAt: Date.now(),
+          createdAt: current.createdAt, // Preserve original creation time
+        };
+
+        const updateRequest = store.put(updated);
+
+        updateRequest.onsuccess = () => {
+          resolve();
+        };
+
+        updateRequest.onerror = () => {
+          console.error('Failed to save new version:', updateRequest.error);
+          reject(new Error('Failed to save new version'));
+        };
+      };
+
+      backupRequest.onerror = () => {
+        console.error('Failed to save backup:', backupRequest.error);
+        reject(new Error('Failed to save backup'));
+      };
+    });
+  }
+
+  async getBackupVersion(quizId: string): Promise<SavedQuiz | null> {
+    await this.initialize();
+
+    // First get the current quiz to find the backup ID
+    const current = await this.getById(quizId);
+    if (!current || !current.previousVersionId) {
+      return null;
+    }
+
+    return this.getById(current.previousVersionId);
+  }
+
+  async restoreBackupVersion(quizId: string): Promise<void> {
+    await this.initialize();
+
+    // Get current and backup
+    const current = await this.getById(quizId);
+    if (!current) {
+      throw new Error(`Quiz with id ${quizId} not found`);
+    }
+
+    if (!current.previousVersionId) {
+      throw new Error('No backup version available');
+    }
+
+    const backup = await this.getById(current.previousVersionId);
+    if (!backup) {
+      throw new Error('Backup version not found');
+    }
+
+    return new Promise((resolve, reject) => {
+      const store = this.getStore('readwrite');
+
+      // Swap: current becomes backup, backup becomes current
+      const newBackupId = `${quizId}-v${current.version || 1}-backup`;
+      const newBackup: SavedQuiz = {
+        ...current,
+        id: newBackupId,
+        isBackup: true,
+      };
+
+      const newCurrent: SavedQuiz = {
+        ...backup,
+        id: quizId,
+        version: (current.version || 1) + 1, // Increment version on restore
+        previousVersionId: newBackupId,
+        isBackup: false,
+        updatedAt: Date.now(),
+      };
+
+      // Delete old backup
+      const deleteRequest = store.delete(current.previousVersionId);
+
+      deleteRequest.onsuccess = () => {
+        // Save new backup
+        const backupRequest = store.put(newBackup);
+
+        backupRequest.onsuccess = () => {
+          // Update current
+          const currentRequest = store.put(newCurrent);
+
+          currentRequest.onsuccess = () => {
+            resolve();
+          };
+
+          currentRequest.onerror = () => {
+            console.error('Failed to restore current:', currentRequest.error);
+            reject(new Error('Failed to restore current version'));
+          };
+        };
+
+        backupRequest.onerror = () => {
+          console.error('Failed to save new backup:', backupRequest.error);
+          reject(new Error('Failed to save new backup'));
+        };
+      };
+
+      deleteRequest.onerror = () => {
+        console.error('Failed to delete old backup:', deleteRequest.error);
+        reject(new Error('Failed to delete old backup'));
+      };
+    });
+  }
+
+  async deleteBackup(quizId: string): Promise<void> {
+    await this.initialize();
+
+    const current = await this.getById(quizId);
+    if (!current || !current.previousVersionId) {
+      return; // No backup to delete
+    }
+
+    // Delete the backup
+    await this.delete(current.previousVersionId);
+
+    // Update current to remove previousVersionId reference
+    const updated: SavedQuiz = {
+      ...current,
+      previousVersionId: undefined,
+      updatedAt: Date.now(),
+    };
+
+    return new Promise((resolve, reject) => {
+      const store = this.getStore('readwrite');
+      const request = store.put(updated);
+
+      request.onsuccess = () => {
+        resolve();
+      };
+
+      request.onerror = () => {
+        console.error('Failed to update quiz after deleting backup:', request.error);
+        reject(new Error('Failed to update quiz'));
+      };
+    });
+  }
 }
 
 // Singleton instance

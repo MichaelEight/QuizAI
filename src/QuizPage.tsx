@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { Task, AnswerOverride } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
 import { UploadedFile } from "./services/fileExtractService";
@@ -16,6 +16,7 @@ import {
 } from "./backendService";
 import { QuizProgress } from "./components/QuizProgress";
 import { useGamification } from "./context/GamificationContext";
+import { useQuizLibrary } from "./context/QuizLibraryContext";
 import {
   CelebrationOverlay,
   CorrectAnswerEffect,
@@ -186,6 +187,25 @@ export default function QuizPage({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { openSaveQuizModal } = useSaveQuizModal();
 
+  // Track loaded quiz from library (for update functionality)
+  const location = useLocation();
+  const [loadedQuizId, setLoadedQuizId] = useState<string | null>(null);
+  const [loadedQuizVersion, setLoadedQuizVersion] = useState<number | null>(
+    null,
+  );
+
+  // Extract quiz ID from navigation state on mount
+  useEffect(() => {
+    const state = location.state as {
+      loadedQuizId?: string;
+      loadedQuizVersion?: number;
+    } | null;
+    if (state?.loadedQuizId) {
+      setLoadedQuizId(state.loadedQuizId);
+      setLoadedQuizVersion(state.loadedQuizVersion || null);
+    }
+  }, [location.state]);
+
   // State for "Show Answer" feature
   const [revealedOpenAnswer, setRevealedOpenAnswer] = useState<string | null>(
     savedProgress?.revealedOpenAnswer ?? null,
@@ -207,6 +227,9 @@ export default function QuizPage({
   const gamification = useGamification();
   const [showCorrectEffect, setShowCorrectEffect] = useState(false);
   const [showLearntEffect, setShowLearntEffect] = useState(false);
+
+  // Quiz library for update functionality
+  const { getQuizById } = useQuizLibrary();
   const [toastAchievement, setToastAchievement] = useState<Achievement | null>(
     null,
   );
@@ -1281,6 +1304,41 @@ export default function QuizPage({
     setOptionsField(null);
   };
 
+  // Handler for updating existing quiz
+  const handleUpdateExistingQuiz = async () => {
+    if (!loadedQuizId) {
+      console.error("No quiz ID to update");
+      return;
+    }
+
+    try {
+      const existingQuiz = await getQuizById(loadedQuizId);
+      if (!existingQuiz) {
+        console.error("Quiz not found");
+        return;
+      }
+
+      openSaveQuizModal({
+        tasks,
+        sourceText: combinedText,
+        uploadedFileNames: uploadedFiles.map((f) => f.name),
+        mode: "update",
+        quizId: loadedQuizId,
+        currentVersion: loadedQuizVersion || existingQuiz.version || 1,
+        existingMetadata: {
+          title: existingQuiz.title,
+          description: existingQuiz.description,
+          teacher: existingQuiz.teacher,
+          subjectName: existingQuiz.subjectName,
+          subjectCode: existingQuiz.subjectCode,
+        },
+        onSaved: () => setSuccessMessage(`Updated to v${(loadedQuizVersion || existingQuiz.version || 1) + 1}!`),
+      });
+    } catch (error) {
+      console.error("Failed to load quiz for update:", error);
+    }
+  };
+
   // Handler for toggling answers via keyboard (closed questions)
   const handleAnswerToggle = useCallback(
     (index: number) => {
@@ -1510,30 +1568,50 @@ export default function QuizPage({
               </svg>
               Start Quiz
             </button>
-            <button
-              onClick={() =>
-                openSaveQuizModal({
-                  tasks,
-                  sourceText: combinedText,
-                  uploadedFileNames: uploadedFiles.map((f) => f.name),
-                  onSaved: () => setSuccessMessage("Quiz saved to library!"),
-                })
-              }
-              className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-600">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                />
-              </svg>
-              Save to Library
-            </button>
+            {loadedQuizId ? (
+              <button
+                onClick={handleUpdateExistingQuiz}
+                className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg px-6 py-4 transition-all duration-200">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                Update v{loadedQuizVersion || 1}
+              </button>
+            ) : (
+              <button
+                onClick={() =>
+                  openSaveQuizModal({
+                    tasks,
+                    sourceText: combinedText,
+                    uploadedFileNames: uploadedFiles.map((f) => f.name),
+                    onSaved: () => setSuccessMessage("Quiz saved to library!"),
+                  })
+                }
+                className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-600">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                  />
+                </svg>
+                Save to Library
+              </button>
+            )}
           </div>
         </div>
 

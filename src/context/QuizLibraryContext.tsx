@@ -20,6 +20,7 @@ import {
   translateQuizMetadata,
 } from "../services/translationService";
 import { QuizLanguage } from "../SettingsType";
+import { Task } from "../QuestionsTypes";
 
 interface QuizLibraryContextType {
   // State
@@ -46,6 +47,20 @@ interface QuizLibraryContextType {
 
   // Filtering and sorting (client-side for now)
   getFilteredQuizzes: (filter?: FilterConfig, sort?: SortConfig) => SavedQuiz[];
+
+  // Versioning
+  updateQuizContent: (
+    quizId: string,
+    tasks: Task[],
+    sourceText: string,
+    uploadedFileNames?: string[],
+  ) => Promise<void>;
+  restoreBackup: (quizId: string) => Promise<void>;
+  deleteBackup: (quizId: string) => Promise<void>;
+
+  // Export/Import
+  exportLibrary: () => Promise<SavedQuiz[]>;
+  importLibrary: (quizzes: SavedQuiz[]) => Promise<void>;
 }
 
 const QuizLibraryContext = createContext<QuizLibraryContextType | null>(null);
@@ -309,6 +324,116 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
     [quizzes],
   );
 
+  const updateQuizContent = useCallback(
+    async (
+      quizId: string,
+      tasks: Task[],
+      sourceText: string,
+      uploadedFileNames?: string[],
+    ): Promise<void> => {
+      setError(null);
+      try {
+        const existing = await storage.getById(quizId);
+        if (!existing) {
+          throw new Error("Quiz not found");
+        }
+
+        // Preserve metadata, update content
+        const newQuizData: SavedQuiz = {
+          ...existing,
+          tasks,
+          sourceText,
+          uploadedFileNames,
+          closedQuestionCount: tasks.filter((t) => !t.question.isOpen).length,
+          openQuestionCount: tasks.filter((t) => t.question.isOpen).length,
+          totalQuestionCount: tasks.length,
+        };
+
+        await storage.saveNewVersion(quizId, newQuizData);
+        await refreshQuizzes();
+      } catch (err) {
+        console.error("Failed to update quiz content:", err);
+        setError("Failed to update quiz content");
+        throw err;
+      }
+    },
+    [storage, refreshQuizzes],
+  );
+
+  const restoreBackup = useCallback(
+    async (quizId: string): Promise<void> => {
+      setError(null);
+      try {
+        await storage.restoreBackupVersion(quizId);
+        await refreshQuizzes();
+      } catch (err) {
+        console.error("Failed to restore backup:", err);
+        setError("Failed to restore backup");
+        throw err;
+      }
+    },
+    [storage, refreshQuizzes],
+  );
+
+  const deleteBackup = useCallback(
+    async (quizId: string): Promise<void> => {
+      setError(null);
+      try {
+        await storage.deleteBackup(quizId);
+        await refreshQuizzes();
+      } catch (err) {
+        console.error("Failed to delete backup:", err);
+        setError("Failed to delete backup");
+        throw err;
+      }
+    },
+    [storage, refreshQuizzes],
+  );
+
+  const exportLibrary = useCallback(async (): Promise<SavedQuiz[]> => {
+    setError(null);
+    try {
+      const allQuizzes = await storage.exportAll();
+      // Filter out backup versions - only export current versions
+      const currentVersions = allQuizzes.filter((q) => !q.isBackup);
+      return currentVersions;
+    } catch (err) {
+      console.error("Failed to export library:", err);
+      setError("Failed to export library");
+      throw err;
+    }
+  }, [storage]);
+
+  const importLibrary = useCallback(
+    async (quizzes: SavedQuiz[]): Promise<void> => {
+      setError(null);
+      try {
+        // Sanitize imported quizzes:
+        // - Generate new IDs to avoid conflicts
+        // - Remove previousVersionId (don't import backup chain)
+        // - Preserve version number if present, otherwise default to 1
+        // - Remove isBackup flag
+        const sanitized = quizzes.map((quiz) => ({
+          ...quiz,
+          id: generateQuizId(),
+          previousVersionId: undefined,
+          isBackup: false,
+          version: quiz.version || 1,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }));
+
+        await storage.importBulk(sanitized);
+        await refreshQuizzes();
+      } catch (err) {
+        console.error("Failed to import library:", err);
+        setError("Failed to import library");
+        throw err;
+      }
+    },
+    [storage, refreshQuizzes],
+  );
+
   const value: QuizLibraryContextType = {
     quizzes,
     isLoading,
@@ -322,6 +447,11 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
     getTranslations,
     refreshQuizzes,
     getFilteredQuizzes,
+    updateQuizContent,
+    restoreBackup,
+    deleteBackup,
+    exportLibrary,
+    importLibrary,
   };
 
   return (

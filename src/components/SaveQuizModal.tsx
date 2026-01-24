@@ -4,7 +4,7 @@ import { useSaveQuizModal } from '../context/SaveQuizModalContext';
 import { BaseModal } from './BaseModal';
 
 export function SaveQuizModal() {
-  const { saveQuiz } = useQuizLibrary();
+  const { saveQuiz, updateQuizContent } = useQuizLibrary();
   const { isOpen, modalData, closeSaveQuizModal } = useSaveQuizModal();
 
   const [title, setTitle] = useState('');
@@ -15,7 +15,7 @@ export function SaveQuizModal() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset form when modal opens/closes
+  // Reset or pre-fill form when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       setTitle('');
@@ -24,12 +24,19 @@ export function SaveQuizModal() {
       setSubjectName('');
       setSubjectCode('');
       setError(null);
+    } else if (modalData?.mode === 'update' && modalData.existingMetadata) {
+      // Pre-fill form with existing metadata for update mode
+      setTitle(modalData.existingMetadata.title || '');
+      setDescription(modalData.existingMetadata.description || '');
+      setTeacher(modalData.existingMetadata.teacher || '');
+      setSubjectName(modalData.existingMetadata.subjectName || '');
+      setSubjectCode(modalData.existingMetadata.subjectCode || '');
     }
-  }, [isOpen]);
+  }, [isOpen, modalData]);
 
   if (!modalData) return null;
 
-  const { tasks, sourceText, uploadedFileNames, onSaved } = modalData;
+  const { tasks, sourceText, uploadedFileNames, onSaved, mode, quizId, currentVersion } = modalData;
 
   const closedCount = tasks.filter(t => !t.question.isOpen).length;
   const openCount = tasks.filter(t => t.question.isOpen).length;
@@ -48,21 +55,27 @@ export function SaveQuizModal() {
     setError(null);
 
     try {
-      await saveQuiz({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        teacher: teacher.trim() || undefined,
-        subjectName: subjectName.trim() || undefined,
-        subjectCode: subjectCode.trim() || undefined,
-        tasks: [...tasks],
-        sourceText,
-        uploadedFileNames,
-      });
+      if (mode === 'update' && quizId) {
+        // Update existing quiz content
+        await updateQuizContent(quizId, [...tasks], sourceText, uploadedFileNames);
+      } else {
+        // Save as new quiz
+        await saveQuiz({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          teacher: teacher.trim() || undefined,
+          subjectName: subjectName.trim() || undefined,
+          subjectCode: subjectCode.trim() || undefined,
+          tasks: [...tasks],
+          sourceText,
+          uploadedFileNames,
+        });
+      }
 
       handleClose();
       onSaved?.();
     } catch (err) {
-      setError('Failed to save quiz. Please try again.');
+      setError(mode === 'update' ? 'Failed to update quiz. Please try again.' : 'Failed to save quiz. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -88,13 +101,23 @@ export function SaveQuizModal() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-          <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-          </svg>
+          {mode === 'update' ? (
+            <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+          )}
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Save to Library</h2>
-          <p className="text-sm text-slate-400">Save this quiz for later use</p>
+          <h2 className="text-xl font-bold text-slate-100">
+            {mode === 'update' ? `Update Quiz (v${currentVersion} → v${(currentVersion || 1) + 1})` : 'Save to Library'}
+          </h2>
+          <p className="text-sm text-slate-400">
+            {mode === 'update' ? 'Update quiz with new content' : 'Save this quiz for later use'}
+          </p>
         </div>
       </div>
 
@@ -189,6 +212,21 @@ export function SaveQuizModal() {
           )}
         </div>
 
+        {/* Update mode warning */}
+        {mode === 'update' && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-2">
+            <svg className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-sm">
+              <p className="text-amber-400 font-medium">Updating existing quiz</p>
+              <p className="text-amber-300/80 mt-1">
+                A backup of v{currentVersion || 1} will be created. Only one backup is kept at a time.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Error */}
         {error && (
           <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-400 text-sm">
@@ -215,14 +253,20 @@ export function SaveQuizModal() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Saving...
+                {mode === 'update' ? 'Updating...' : 'Saving...'}
               </>
             ) : (
               <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Save Quiz
+                {mode === 'update' ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {mode === 'update' ? `Update to v${(currentVersion || 1) + 1}` : 'Save Quiz'}
               </>
             )}
           </button>

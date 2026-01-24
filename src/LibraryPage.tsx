@@ -25,6 +25,8 @@ export default function LibraryPage({
     getTranslations,
     updateQuiz,
     refreshQuizzes,
+    restoreBackup,
+    deleteBackup,
   } = useQuizLibrary();
 
   // Search and filter state
@@ -175,7 +177,12 @@ export default function LibraryPage({
   const handleLoadQuiz = (quiz: SavedQuiz) => {
     setTasks(quiz.tasks);
     setSourceText(quiz.sourceText);
-    navigate("/quizPage");
+    navigate("/quizPage", {
+      state: {
+        loadedQuizId: quiz.id,
+        loadedQuizVersion: quiz.version || 1,
+      },
+    });
   };
 
   const handleEditClick = (quiz: SavedQuiz) => {
@@ -260,6 +267,22 @@ export default function LibraryPage({
       );
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  const handleRestoreBackup = async (quiz: SavedQuiz) => {
+    if (!quiz.previousVersionId) return;
+
+    const confirmed = window.confirm(
+      `Restore previous version? Current version (v${quiz.version || 1}) will become the backup.`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await restoreBackup(quiz.id);
+    } catch (err) {
+      console.error("Failed to restore backup:", err);
     }
   };
 
@@ -470,6 +493,17 @@ export default function LibraryPage({
                         {getLanguageLabel(quiz.language)}
                       </span>
                     )}
+                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-xs font-medium">
+                      v{quiz.version || 1}
+                    </span>
+                    {quiz.previousVersionId && (
+                      <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-xs font-medium flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                        Backup
+                      </span>
+                    )}
                     {(quiz.subjectName || quiz.subjectCode) && (
                       <span className="px-2 py-0.5 bg-slate-700 rounded text-slate-300 text-xs">
                         {quiz.subjectName || quiz.subjectCode}
@@ -566,6 +600,25 @@ export default function LibraryPage({
                         />
                       </svg>
                     </button>
+                    {quiz.previousVersionId && (
+                      <button
+                        onClick={() => handleRestoreBackup(quiz)}
+                        className="p-2.5 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
+                        title="Restore Backup">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      </button>
+                    )}
                     <button
                       onClick={() => setDeletingQuiz(quiz)}
                       className="p-2.5 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
@@ -654,6 +707,17 @@ export default function LibraryPage({
                               {quiz.language && (
                                 <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-xs font-medium">
                                   {getLanguageLabel(quiz.language)}
+                                </span>
+                              )}
+                              <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-xs font-medium">
+                                v{quiz.version || 1}
+                              </span>
+                              {quiz.previousVersionId && (
+                                <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 rounded text-xs font-medium flex items-center gap-1">
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                  </svg>
+                                  Backup
                                 </span>
                               )}
                               {getTranslations(quiz.id).length > 1 && (
@@ -786,6 +850,25 @@ export default function LibraryPage({
                                 />
                               </svg>
                             </button>
+                            {quiz.previousVersionId && (
+                              <button
+                                onClick={() => handleRestoreBackup(quiz)}
+                                className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
+                                title="Restore Backup">
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                  />
+                                </svg>
+                              </button>
+                            )}
                             <button
                               onClick={() => setDeletingQuiz(quiz)}
                               className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"

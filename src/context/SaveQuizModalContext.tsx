@@ -1,11 +1,18 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Task } from '../QuestionsTypes';
+import { SavedQuiz } from '../types/quizLibrary';
 
 export interface SaveQuizModalData {
   tasks: readonly Task[];
   sourceText: string;
   uploadedFileNames?: string[];
   onSaved?: () => void;
+
+  // Update mode fields
+  mode?: 'create' | 'update';
+  quizId?: string;
+  currentVersion?: number;
+  existingMetadata?: Partial<SavedQuiz>;
 }
 
 interface SaveQuizModalContextType {
