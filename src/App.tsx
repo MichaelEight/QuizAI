@@ -18,6 +18,7 @@ import { ApiKeyButton } from "./components/ApiKeyButton";
 import { ImportExportButton } from "./components/ImportExportButton";
 import { ImportExportModal } from "./components/ImportExportModal";
 import { SaveQuizModal } from "./components/SaveQuizModal";
+import { useFastTooltips } from "./hooks/useFastTooltips";
 import { version } from "../package.json";
 import "./App.css";
 
@@ -114,6 +115,9 @@ function AppContent() {
   const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
   const [showImportExportModal, setShowImportExportModal] = useState(false);
   const location = useLocation();
+
+  // Enable fast tooltips (500ms delay instead of browser default 2-3s)
+  useFastTooltips();
 
   // Close mobile menu on navigation
   useEffect(() => {

@@ -1310,41 +1310,6 @@ export default function QuizPage({
     setOptionsField(null);
   };
 
-  // Handler for updating existing quiz
-  const handleUpdateExistingQuiz = async () => {
-    if (!loadedQuizId) {
-      console.error("No quiz ID to update");
-      return;
-    }
-
-    try {
-      const existingQuiz = await getQuizById(loadedQuizId);
-      if (!existingQuiz) {
-        console.error("Quiz not found");
-        return;
-      }
-
-      openSaveQuizModal({
-        tasks,
-        sourceText: combinedText,
-        uploadedFileNames: uploadedFiles.map((f) => f.name),
-        mode: "update",
-        quizId: loadedQuizId,
-        currentVersion: loadedQuizVersion || existingQuiz.version || 1,
-        existingMetadata: {
-          title: existingQuiz.title,
-          description: existingQuiz.description,
-          teacher: existingQuiz.teacher,
-          subjectName: existingQuiz.subjectName,
-          subjectCode: existingQuiz.subjectCode,
-        },
-        onSaved: () => setSuccessMessage(`Updated to v${(loadedQuizVersion || existingQuiz.version || 1) + 1}!`),
-      });
-    } catch (error) {
-      console.error("Failed to load quiz for update:", error);
-    }
-  };
-
   // Handler to show diff modal
   const handleShowDiffModal = async () => {
     if (!loadedQuizId) return;
