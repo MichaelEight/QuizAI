@@ -10,6 +10,9 @@ import {
   generateScoreTemplate,
   generateHint,
   generateExplanation,
+  generateMultipleExpectedAnswers,
+  generateMultipleExplanations,
+  generateMultipleScoreTemplates,
 } from "./backendService";
 import { QuizProgress } from "./components/QuizProgress";
 import { useGamification } from "./context/GamificationContext";
@@ -25,6 +28,8 @@ import { useSaveQuizModal } from "./context/SaveQuizModalContext";
 import { SuccessToast } from "./components/SuccessToast";
 import { QuizChatBot } from "./components/QuizChatBot";
 import { ChatContext } from "./services/chatService";
+import { OptionsSelectionModal } from "./components/OptionsSelectionModal";
+import { ScoreBreakdownTemplate } from "./QuestionsTypes";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
 
@@ -213,6 +218,16 @@ export default function QuizPage({
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const openAnswerInputRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Options selection modal state
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [generatedOptions, setGeneratedOptions] = useState<
+    (string | import("./QuestionsTypes").ScoreBreakdownTemplate)[]
+  >([]);
+  const [optionsField, setOptionsField] = useState<
+    "expectedAnswer" | "explanation" | "scoreTemplate" | null
+  >(null);
+  const [isGeneratingOptions, setIsGeneratingOptions] = useState(false);
 
   const totalQuestions = tasks.length;
 
@@ -977,24 +992,14 @@ export default function QuizPage({
 
     setIsChecking(true);
 
-    // STEP 1: Regenerate template
-    const newTemplate = await generateScoreTemplate(
-      combinedText,
-      currentTask.question.value,
-    );
+    // Use existing template if available
+    const template = currentTask.answerOverride?.scoreTemplate;
 
-    if (!newTemplate || newTemplate.length === 0) {
-      console.error("Failed to regenerate score template");
-      setIsChecking(false);
-      setRevealedOpenAnswer("Could not regenerate template. Please try again.");
-      return;
-    }
-
-    // STEP 2: Regenerate answer using new template
+    // Regenerate answer using existing template (or without template if not available)
     const generatedAnswer = await generateOpenQuestionAnswer(
       combinedText,
       currentTask.question.value,
-      newTemplate,
+      template,
     );
 
     setIsChecking(false);
@@ -1002,8 +1007,7 @@ export default function QuizPage({
     if (generatedAnswer) {
       setRevealedOpenAnswer(generatedAnswer);
 
-      // STEP 3: Update cache with both new template and answer
-      // IMPORTANT: Clear scoreBreakdown since template changed
+      // Update only the expected answer, preserve everything else
       const updateOverride = (t: Task): Task =>
         t.id === currentTask.id
           ? {
@@ -1011,8 +1015,6 @@ export default function QuizPage({
               answerOverride: {
                 ...t.answerOverride,
                 generatedOpenAnswer: generatedAnswer,
-                scoreTemplate: newTemplate,
-                scoreBreakdown: undefined,
                 overriddenAt: Date.now(),
               },
             }
@@ -1025,14 +1027,258 @@ export default function QuizPage({
         answerOverride: {
           ...currentTask.answerOverride,
           generatedOpenAnswer: generatedAnswer,
-          scoreTemplate: newTemplate,
-          scoreBreakdown: undefined,
           overriddenAt: Date.now(),
         },
       });
     } else {
       setRevealedOpenAnswer("Could not generate answer. Please try again.");
     }
+  };
+
+  const handleRegenerateScoreTemplate = async () => {
+    if (!currentTask || !combinedText || !currentTask.question.isOpen) return;
+
+    setIsChecking(true);
+
+    // Regenerate template
+    const newTemplate = await generateScoreTemplate(
+      combinedText,
+      currentTask.question.value,
+    );
+
+    if (!newTemplate || newTemplate.length === 0) {
+      console.error("Failed to regenerate score template");
+      setIsChecking(false);
+      return;
+    }
+
+    setIsChecking(false);
+
+    // Update template and clear breakdown (since template changed, old breakdown is invalid)
+    const updateOverride = (t: Task): Task =>
+      t.id === currentTask.id
+        ? {
+            ...t,
+            answerOverride: {
+              ...t.answerOverride,
+              scoreTemplate: newTemplate,
+              scoreBreakdown: undefined, // Clear breakdown when template changes
+              overriddenAt: Date.now(),
+            },
+          }
+        : t;
+
+    setTasks((prevTasks) => prevTasks.map(updateOverride));
+    setTaskPool((prevPool) => prevPool.map(updateOverride));
+    setCurrentTask({
+      ...currentTask,
+      answerOverride: {
+        ...currentTask.answerOverride,
+        scoreTemplate: newTemplate,
+        scoreBreakdown: undefined,
+        overriddenAt: Date.now(),
+      },
+    });
+  };
+
+  // Generate multiple expected answers
+  const handleGenerateMultipleExpectedAnswers = async () => {
+    if (!currentTask || !combinedText || !currentTask.question.isOpen) return;
+
+    setOptionsField("expectedAnswer");
+    setIsGeneratingOptions(true);
+    const template = currentTask.answerOverride?.scoreTemplate;
+
+    const options = await generateMultipleExpectedAnswers(
+      combinedText,
+      currentTask.question.value,
+      template,
+      3,
+    );
+
+    setIsGeneratingOptions(false);
+
+    if (options.length === 0) {
+      console.error("Failed to generate expected answer options");
+      setOptionsField(null);
+      return;
+    }
+
+    // Show modal
+    setGeneratedOptions(options);
+    setShowOptionsModal(true);
+  };
+
+  // Generate multiple explanations
+  const handleGenerateMultipleExplanations = async () => {
+    if (!currentTask || !combinedText) return;
+
+    // Get correct answers
+    let correctAnswers: string[] = [];
+    if (currentTask.question.isOpen) {
+      const answer =
+        currentTask.answerOverride?.generatedOpenAnswer ||
+        currentTask.answerOverride?.acceptedOpenAnswer ||
+        revealedOpenAnswer;
+      if (answer) {
+        correctAnswers = [answer];
+      }
+    } else {
+      correctAnswers =
+        currentTask.answers?.filter((a) => a.isCorrect).map((a) => a.value) ||
+        [];
+    }
+
+    if (correctAnswers.length === 0) {
+      console.error("Cannot generate explanations: no correct answer available");
+      return;
+    }
+
+    setOptionsField("explanation");
+    setIsGeneratingOptions(true);
+
+    const options = await generateMultipleExplanations(
+      combinedText,
+      currentTask.question.value,
+      correctAnswers,
+      3,
+    );
+
+    setIsGeneratingOptions(false);
+
+    if (options.length === 0) {
+      console.error("Failed to generate explanation options");
+      setOptionsField(null);
+      return;
+    }
+
+    // Show modal
+    setGeneratedOptions(options);
+    setShowOptionsModal(true);
+  };
+
+  // Generate multiple score templates
+  const handleGenerateMultipleTemplates = async () => {
+    if (!currentTask || !combinedText || !currentTask.question.isOpen) return;
+
+    setOptionsField("scoreTemplate");
+    setIsGeneratingOptions(true);
+
+    const options = await generateMultipleScoreTemplates(
+      combinedText,
+      currentTask.question.value,
+      3,
+    );
+
+    setIsGeneratingOptions(false);
+
+    if (options.length === 0) {
+      console.error("Failed to generate score template options");
+      setOptionsField(null);
+      return;
+    }
+
+    // Show modal
+    setGeneratedOptions(options);
+    setShowOptionsModal(true);
+  };
+
+  // Handle option selection from modal
+  const handleSelectOption = (index: number) => {
+    if (!optionsField || !currentTask) return;
+
+    const selected = generatedOptions[index];
+    if (!selected) return;
+
+    switch (optionsField) {
+      case "expectedAnswer": {
+        const answer = selected as string;
+        setRevealedOpenAnswer(answer);
+
+        // Update only expected answer, preserve everything else
+        const updateOverride = (t: Task): Task =>
+          t.id === currentTask.id
+            ? {
+                ...t,
+                answerOverride: {
+                  ...t.answerOverride,
+                  generatedOpenAnswer: answer,
+                  overriddenAt: Date.now(),
+                },
+              }
+            : t;
+
+        setTasks((prevTasks) => prevTasks.map(updateOverride));
+        setTaskPool((prevPool) => prevPool.map(updateOverride));
+        setCurrentTask({
+          ...currentTask,
+          answerOverride: {
+            ...currentTask.answerOverride,
+            generatedOpenAnswer: answer,
+            overriddenAt: Date.now(),
+          },
+        });
+        break;
+      }
+
+      case "explanation": {
+        const explanationText = selected as string;
+        setExplanation(explanationText);
+
+        // Cache the explanation
+        const updateOverride = (t: Task): Task =>
+          t.id === currentTask.id
+            ? {
+                ...t,
+                answerOverride: {
+                  ...t.answerOverride,
+                  explanation: explanationText,
+                  overriddenAt: Date.now(),
+                },
+              }
+            : t;
+
+        setTasks((prevTasks) => prevTasks.map(updateOverride));
+        setTaskPool((prevPool) => prevPool.map(updateOverride));
+        break;
+      }
+
+      case "scoreTemplate": {
+        const newTemplate = selected as ScoreBreakdownTemplate;
+
+        // Update template and clear breakdown
+        const updateOverride = (t: Task): Task =>
+          t.id === currentTask.id
+            ? {
+                ...t,
+                answerOverride: {
+                  ...t.answerOverride,
+                  scoreTemplate: newTemplate,
+                  scoreBreakdown: undefined,
+                  overriddenAt: Date.now(),
+                },
+              }
+            : t;
+
+        setTasks((prevTasks) => prevTasks.map(updateOverride));
+        setTaskPool((prevPool) => prevPool.map(updateOverride));
+        setCurrentTask({
+          ...currentTask,
+          answerOverride: {
+            ...currentTask.answerOverride,
+            scoreTemplate: newTemplate,
+            scoreBreakdown: undefined,
+            overriddenAt: Date.now(),
+          },
+        });
+        break;
+      }
+    }
+
+    // Close modal and reset state
+    setShowOptionsModal(false);
+    setGeneratedOptions([]);
+    setOptionsField(null);
   };
 
   // Handler for toggling answers via keyboard (closed questions)
@@ -1761,44 +2007,87 @@ export default function QuizPage({
                   <p className="text-sm font-medium text-amber-400">
                     Expected Answer:
                   </p>
-                  <button
-                    onClick={handleRegenerateExpectedAnswer}
-                    disabled={isChecking}
-                    className="text-xs text-amber-400/60 hover:text-amber-400 transition-colors flex items-center gap-1"
-                    title="Regenerate expected answer">
-                    {isChecking ? (
-                      <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleRegenerateExpectedAnswer}
+                      disabled={isChecking || isGeneratingOptions}
+                      className="text-xs text-amber-400/60 hover:text-amber-400 transition-colors flex items-center gap-1"
+                      title="Regenerate expected answer">
+                      {isChecking ? (
+                        <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-3 h-3"
                           fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                        />
-                      </svg>
-                    )}
-                    <span>Regenerate</span>
-                  </button>
+                          viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      )}
+                      <span>Regenerate</span>
+                    </button>
+                    <button
+                      onClick={handleGenerateMultipleExpectedAnswers}
+                      disabled={isChecking || isGeneratingOptions}
+                      className="text-xs text-amber-400/60 hover:text-amber-400 transition-colors flex items-center gap-1"
+                      title="Generate 3 options">
+                      {isGeneratingOptions && optionsField === "expectedAnswer" ? (
+                        <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      ) : (
+                        <div className="relative">
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                          <span className="absolute -top-1 -right-1 text-[8px] font-bold">3</span>
+                        </div>
+                      )}
+                      <span>Generate 3</span>
+                    </button>
+                  </div>
                 </div>
                 <p className="text-slate-100 bg-slate-800/50 rounded-lg p-3">
                   {revealedOpenAnswer}
@@ -1913,46 +2202,89 @@ export default function QuizPage({
                       <p className="text-sm font-medium text-indigo-400">
                         Explanation
                       </p>
-                      <button
-                        onClick={() => handleGetExplanation(true)}
-                        disabled={isLoadingExplanation}
-                        className="text-xs text-indigo-400/60 hover:text-indigo-400 transition-colors flex items-center gap-1"
-                        title="Regenerate explanation">
-                        {isLoadingExplanation ? (
-                          <svg
-                            className="animate-spin h-3 w-3"
-                            viewBox="0 0 24 24">
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleGetExplanation(true)}
+                          disabled={isLoadingExplanation || isGeneratingOptions}
+                          className="text-xs text-indigo-400/60 hover:text-indigo-400 transition-colors flex items-center gap-1"
+                          title="Regenerate explanation">
+                          {isLoadingExplanation ? (
+                            <svg
+                              className="animate-spin h-3 w-3"
+                              viewBox="0 0 24 24">
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                fill="none"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-3 h-3"
                               fill="none"
-                            />
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-3 h-3"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                            />
-                          </svg>
-                        )}
-                        <span>Regenerate</span>
-                      </button>
+                              viewBox="0 0 24 24"
+                              stroke="currentColor">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              />
+                            </svg>
+                          )}
+                          <span>Regenerate</span>
+                        </button>
+                        <button
+                          onClick={handleGenerateMultipleExplanations}
+                          disabled={isLoadingExplanation || isGeneratingOptions}
+                          className="text-xs text-indigo-400/60 hover:text-indigo-400 transition-colors flex items-center gap-1"
+                          title="Generate 3 options">
+                          {isGeneratingOptions && optionsField === "explanation" ? (
+                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                fill="none"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                          ) : (
+                            <div className="relative">
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                />
+                              </svg>
+                              <span className="absolute -top-1 -right-1 text-[8px] font-bold">3</span>
+                            </div>
+                          )}
+                          <span>Generate 3</span>
+                        </button>
+                      </div>
                     </div>
                     <p className="text-slate-200">{explanation}</p>
 
@@ -1960,9 +2292,94 @@ export default function QuizPage({
                     {currentTask?.answerOverride?.scoreBreakdown &&
                       currentTask.answerOverride.scoreBreakdown.length > 0 && (
                         <div className="mt-4 pt-4 border-t border-slate-700">
-                          <p className="text-sm font-medium text-slate-400 mb-2">
-                            Score Breakdown
-                          </p>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm font-medium text-slate-400">
+                              Score Breakdown
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={handleRegenerateScoreTemplate}
+                                disabled={isChecking || isGeneratingOptions}
+                                className="text-xs text-slate-400/60 hover:text-slate-400 transition-colors flex items-center gap-1"
+                                title="Regenerate score template">
+                                {isChecking ? (
+                                  <svg
+                                    className="animate-spin h-3 w-3"
+                                    viewBox="0 0 24 24">
+                                    <circle
+                                      className="opacity-25"
+                                      cx="12"
+                                      cy="12"
+                                      r="10"
+                                      stroke="currentColor"
+                                      strokeWidth="4"
+                                      fill="none"
+                                    />
+                                    <path
+                                      className="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
+                                  </svg>
+                                )}
+                                <span>Regenerate</span>
+                              </button>
+                              <button
+                                onClick={handleGenerateMultipleTemplates}
+                                disabled={isChecking || isGeneratingOptions}
+                                className="text-xs text-slate-400/60 hover:text-slate-400 transition-colors flex items-center gap-1"
+                                title="Generate 3 options">
+                                {isGeneratingOptions && optionsField === "scoreTemplate" ? (
+                                  <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                                    <circle
+                                      className="opacity-25"
+                                      cx="12"
+                                      cy="12"
+                                      r="10"
+                                      stroke="currentColor"
+                                      strokeWidth="4"
+                                      fill="none"
+                                    />
+                                    <path
+                                      className="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <div className="relative">
+                                    <svg
+                                      className="w-3 h-3"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor">
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                      />
+                                    </svg>
+                                    <span className="absolute -top-1 -right-1 text-[8px] font-bold">3</span>
+                                  </div>
+                                )}
+                                <span>Generate 3</span>
+                              </button>
+                            </div>
+                          </div>
                           <div className="space-y-1.5">
                             {currentTask.answerOverride.scoreBreakdown.map(
                               (item, idx) => {
@@ -2244,6 +2661,26 @@ export default function QuizPage({
           onToggle={setIsChatOpen}
         />
       )}
+
+      {/* Options Selection Modal */}
+      <OptionsSelectionModal
+        isOpen={showOptionsModal}
+        onClose={() => {
+          setShowOptionsModal(false);
+          setGeneratedOptions([]);
+          setOptionsField(null);
+        }}
+        onSelect={handleSelectOption}
+        options={generatedOptions}
+        title={
+          optionsField === "expectedAnswer"
+            ? "Choose Expected Answer"
+            : optionsField === "explanation"
+              ? "Choose Explanation"
+              : "Choose Score Template"
+        }
+        fieldType={optionsField || "expectedAnswer"}
+      />
     </div>
   );
 }

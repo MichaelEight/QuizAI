@@ -138,3 +138,77 @@ export async function generateExplanation(
     return "";
   }
 }
+
+export async function generateMultipleExpectedAnswers(
+  text: string,
+  question: string,
+  template?: ScoreBreakdownTemplate,
+  count: number = 3,
+): Promise<string[]> {
+  if (!text || !question) {
+    throw new Error(
+      "Missing required values: 'text' and 'question' are required.",
+    );
+  }
+
+  try {
+    const promises = Array(count)
+      .fill(null)
+      .map(() => generateOpenQuestionAnswer(text, question, template));
+    const results = await Promise.all(promises);
+    // Filter out empty results
+    return results.filter((result) => result !== "");
+  } catch (error) {
+    console.error("Error in generateMultipleExpectedAnswers:", error);
+    return [];
+  }
+}
+
+export async function generateMultipleExplanations(
+  text: string,
+  question: string,
+  correctAnswers: string[],
+  count: number = 3,
+): Promise<string[]> {
+  if (!text || !question || !correctAnswers || correctAnswers.length === 0) {
+    throw new Error(
+      "Missing required values: 'text', 'question', and 'correctAnswers' are required.",
+    );
+  }
+
+  try {
+    const promises = Array(count)
+      .fill(null)
+      .map(() => generateExplanation(text, question, correctAnswers));
+    const results = await Promise.all(promises);
+    // Filter out empty results
+    return results.filter((result) => result !== "");
+  } catch (error) {
+    console.error("Error in generateMultipleExplanations:", error);
+    return [];
+  }
+}
+
+export async function generateMultipleScoreTemplates(
+  text: string,
+  question: string,
+  count: number = 3,
+): Promise<ScoreBreakdownTemplate[]> {
+  if (!text || !question) {
+    throw new Error(
+      "Missing required values: 'text' and 'question' are required.",
+    );
+  }
+
+  try {
+    const promises = Array(count)
+      .fill(null)
+      .map(() => generateScoreTemplate(text, question));
+    const results = await Promise.all(promises);
+    // Filter out empty templates
+    return results.filter((result) => result.length > 0);
+  } catch (error) {
+    console.error("Error in generateMultipleScoreTemplates:", error);
+    return [];
+  }
+}
