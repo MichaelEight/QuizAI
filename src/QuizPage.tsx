@@ -203,7 +203,7 @@ export default function QuizPage({
 
   // Keyboard shortcuts state
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const [isChatFocused, setIsChatFocused] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const openAnswerInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const totalQuestions = tasks.length;
@@ -826,6 +826,23 @@ export default function QuizPage({
       // Don't handle shortcuts if quiz not started or ended
       if (!isQuizStarted || isQuizEnded) return;
 
+      // TAB - Toggle chat (always available, even when chat is open)
+      if (e.key === "Tab") {
+        e.preventDefault();
+        if (isChatOpen) {
+          // Close chat
+          setIsChatOpen(false);
+          // If question not checked and is open type, focus on question input
+          if (!areAnswersChecked && currentTask?.question.isOpen) {
+            setTimeout(() => openAnswerInputRef.current?.focus(), 50);
+          }
+        } else {
+          // Open chat (focus will be handled by QuizChatBot component)
+          setIsChatOpen(true);
+        }
+        return;
+      }
+
       // Allow ESC even when input focused (to unfocus)
       if (e.key === "Escape") {
         openAnswerInputRef.current?.blur();
@@ -833,7 +850,7 @@ export default function QuizPage({
       }
 
       // Skip other shortcuts if typing in input field or chat is open
-      if (isInputFocused || isChatFocused) return;
+      if (isInputFocused || isChatOpen) return;
 
       // Number keys 1-9 and 0 for answer selection (closed questions only)
       // 0 selects the 10th answer (or last answer if less than 10)
@@ -912,7 +929,7 @@ export default function QuizPage({
     isQuizStarted,
     isQuizEnded,
     isInputFocused,
-    isChatFocused,
+    isChatOpen,
     currentTask,
     areAnswersChecked,
     isChecking,
@@ -1824,7 +1841,8 @@ export default function QuizPage({
         <QuizChatBot
           context={chatContext}
           questionId={currentTask.id}
-          onFocusChange={setIsChatFocused}
+          isOpen={isChatOpen}
+          onToggle={setIsChatOpen}
         />
       )}
     </div>

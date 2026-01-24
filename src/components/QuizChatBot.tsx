@@ -9,7 +9,8 @@ import {
 interface QuizChatBotProps {
   readonly context: ChatContext;
   readonly questionId: string;
-  readonly onFocusChange?: (isFocused: boolean) => void;
+  readonly isOpen: boolean;
+  readonly onToggle: (open: boolean) => void;
 }
 
 let messageIdCounter = 0;
@@ -20,9 +21,9 @@ function generateMessageId(): string {
 export function QuizChatBot({
   context,
   questionId,
-  onFocusChange,
+  isOpen,
+  onToggle,
 }: Readonly<QuizChatBotProps>) {
-  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Map<string, ChatMessage[]>>(
     new Map(),
   );
@@ -48,11 +49,6 @@ export function QuizChatBot({
       inputRef.current.focus();
     }
   }, [isOpen]);
-
-  // Notify parent when chat focus changes
-  useEffect(() => {
-    onFocusChange?.(isOpen);
-  }, [isOpen, onFocusChange]);
 
   const handleSend = useCallback(async () => {
     const trimmedInput = inputValue.trim();
@@ -118,7 +114,7 @@ export function QuizChatBot({
     <>
       {/* Chat Toggle Button - positioned on right edge, above app version */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => onToggle(!isOpen)}
         style={{
           position: "fixed",
           bottom: "5rem",
@@ -201,7 +197,7 @@ export function QuizChatBot({
               </div>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => onToggle(false)}
               className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded-lg transition-colors">
               <svg
                 className="w-5 h-5"
