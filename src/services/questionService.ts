@@ -5,7 +5,7 @@ import {
   generateSingleMultipleDistribution,
   correctTrailingComma,
 } from "./questionUtilities";
-import { Task, Answer } from "../QuestionsTypes";
+import { Task, Answer, ScoreBreakdownItem } from "../QuestionsTypes";
 import {
   Settings,
   ContentFocus,
@@ -17,6 +17,11 @@ import {
 interface GeneratedQuestion {
   question: string;
   answers?: Array<{ content: string; isCorrect: boolean }>;
+}
+
+export interface CheckAnswerResult {
+  score: number;
+  breakdown: ScoreBreakdownItem[];
 }
 
 interface ErrorResponse {
@@ -198,7 +203,7 @@ export async function checkOpenAnswer(
   question: string,
   answer: string,
   acceptedAnswer?: string,
-): Promise<number> {
+): Promise<CheckAnswerResult> {
   const sysPrompt = getSysPrompt(PromptTypes.CHECK_OPEN_QUESTION);
   const devPrompt = getDevPrompt(PromptTypes.CHECK_OPEN_QUESTION, {
     text,
@@ -211,17 +216,40 @@ export async function checkOpenAnswer(
 
   try {
     const ans = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
-    const score = parseInt(ans, 10);
 
-    if (isNaN(score) || score < 0 || score > 100) {
-      console.error("Invalid score received:", ans);
-      return -1;
-    }
+    // Parse JSON response
+    const parsed = JSON.parse(ans);
+    const breakdown: ScoreBreakdownItem[] = Array.isArray(parsed.breakdown)
+      ? parsed.breakdown.map(
+          (item: { points: number; type?: string; reason: string }) => ({
+            points: item.points,
+            type:
+              item.type === "achieved" ||
+              item.type === "missed" ||
+              item.type === "incorrect"
+                ? item.type
+                : item.points >= 0
+                  ? "achieved"
+                  : "incorrect", // fallback for old format
+            reason: item.reason,
+          }),
+        )
+      : [];
 
-    return score;
+    // Calculate score: sum of achieved points minus incorrect penalties
+    // Missed items don't count toward score (they show what was missing)
+    let calculatedScore = breakdown.reduce((sum, item) => {
+      if (item.type === "achieved") return sum + item.points;
+      if (item.type === "incorrect") return sum + item.points; // points are already negative
+      return sum; // 'missed' items don't affect score
+    }, 0);
+    // Clamp to 0-100 range
+    calculatedScore = Math.max(0, Math.min(100, calculatedScore));
+
+    return { score: calculatedScore, breakdown };
   } catch (error) {
     console.error("Error in checkOpenAnswer:", error);
-    return -1;
+    return { score: -1, breakdown: [] };
   }
 }
 

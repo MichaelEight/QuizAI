@@ -342,16 +342,42 @@ export default function QuizPage({
         openAnswer,
         acceptedAnswer,
       );
-      if (result === -1) {
+      if (result.score === -1) {
         console.error("Error during checking open answer");
         setIsChecking(false);
         return;
       }
 
-      const won = result >= 51;
+      // Store the score breakdown in the task
+      if (result.breakdown.length > 0) {
+        const updateBreakdown = (t: Task): Task =>
+          t.id === currentTask.id
+            ? {
+                ...t,
+                answerOverride: {
+                  ...t.answerOverride,
+                  scoreBreakdown: result.breakdown,
+                  overriddenAt: Date.now(),
+                },
+              }
+            : t;
+        setTasks((prevTasks) => prevTasks.map(updateBreakdown));
+        setTaskPool((prevPool) => prevPool.map(updateBreakdown));
+        // Update current task too
+        setCurrentTask({
+          ...currentTask,
+          answerOverride: {
+            ...currentTask.answerOverride,
+            scoreBreakdown: result.breakdown,
+            overriddenAt: Date.now(),
+          },
+        });
+      }
+
+      const won = result.score >= 51;
       setIsRoundWon(won);
       setAreAnswersChecked(true);
-      setOpenAnswerScore(result);
+      setOpenAnswerScore(result.score);
 
       if (won) {
         setCorrectAnswers((prev) => prev + 1);
@@ -1626,11 +1652,57 @@ export default function QuizPage({
                       d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                     />
                   </svg>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium text-indigo-400 mb-2">
                       Explanation
                     </p>
                     <p className="text-slate-200">{explanation}</p>
+
+                    {/* Score Breakdown */}
+                    {currentTask?.answerOverride?.scoreBreakdown &&
+                      currentTask.answerOverride.scoreBreakdown.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-slate-700">
+                          <p className="text-sm font-medium text-slate-400 mb-2">
+                            Score Breakdown
+                          </p>
+                          <div className="space-y-1.5">
+                            {currentTask.answerOverride.scoreBreakdown.map(
+                              (item, idx) => {
+                                // Determine styling based on type
+                                const isAchieved = item.type === "achieved";
+                                const isMissed = item.type === "missed";
+                                const isIncorrect = item.type === "incorrect";
+
+                                return (
+                                  <div
+                                    key={`breakdown-${item.type}-${idx}`}
+                                    className={`flex items-start gap-2 text-sm ${
+                                      isAchieved
+                                        ? "text-emerald-400"
+                                        : isIncorrect
+                                          ? "text-rose-400"
+                                          : "text-slate-500 italic"
+                                    }`}>
+                                    <span className="font-mono font-medium w-14 shrink-0 text-right">
+                                      {isAchieved && `+${item.points}`}
+                                      {isMissed && `(${item.points})`}
+                                      {isIncorrect && `${item.points}`}
+                                    </span>
+                                    <span
+                                      className={
+                                        isMissed
+                                          ? "text-slate-500"
+                                          : "text-slate-300"
+                                      }>
+                                      {item.reason}
+                                    </span>
+                                  </div>
+                                );
+                              },
+                            )}
+                          </div>
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>

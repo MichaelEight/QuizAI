@@ -8,12 +8,14 @@ import {
   generateExplanation as generateExplanationService,
 } from "./services/questionService";
 
+export type { CheckAnswerResult } from "./services/questionService";
+
 export async function checkOpenAnswer(
   text: string,
   question: string,
   answer: string,
   acceptedAnswer?: string,
-): Promise<number> {
+): Promise<CheckAnswerResult> {
   if (!text || !question) {
     throw new Error(
       "Missing required values: 'text' and 'question' are required.",
@@ -21,17 +23,22 @@ export async function checkOpenAnswer(
   }
 
   try {
-    const result = await checkOpenAnswerService(text, question, answer, acceptedAnswer);
+    const result = await checkOpenAnswerService(
+      text,
+      question,
+      answer,
+      acceptedAnswer,
+    );
 
-    if (result < 0 || result > 100) {
+    if (result.score < 0 || result.score > 100) {
       console.error("Result score number not in range [0;100]");
-      return -1;
+      return { score: -1, breakdown: [] };
     }
 
     return result;
   } catch (error) {
     console.error("Error in checkOpenAnswer:", error);
-    return -1;
+    return { score: -1, breakdown: [] };
   }
 }
 
@@ -74,7 +81,7 @@ export async function generateOpenQuestionAnswer(
 export async function generateHint(
   text: string,
   question: string,
-  questionStyle: QuestionStyle = 'conceptual',
+  questionStyle: QuestionStyle = "conceptual",
 ): Promise<string> {
   if (!text || !question) {
     throw new Error(

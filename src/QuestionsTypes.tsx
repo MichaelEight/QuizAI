@@ -4,13 +4,20 @@
 // - Import should preserve user corrections
 // - Consider versioned export format for compatibility
 
+export type ScoreBreakdownItem = {
+  points: number; // Points value (positive for achieved, negative for incorrect, potential value for missed)
+  type: "achieved" | "missed" | "incorrect"; // achieved=got points, missed=didn't mention, incorrect=wrong info
+  reason: string; // Brief explanation
+};
+
 export type AnswerOverride = {
-  correctAnswerIndices?: number[];    // For closed: which answers are correct
-  acceptedOpenAnswer?: string;         // For open: user's accepted answer text
-  generatedOpenAnswer?: string;        // For open: cached AI-generated expected answer
-  hint?: string;                       // Cached hint for this question
-  explanation?: string;                // Cached explanation for this question
-  overriddenAt: number;                // Timestamp
+  correctAnswerIndices?: number[]; // For closed: which answers are correct
+  acceptedOpenAnswer?: string; // For open: user's accepted answer text
+  generatedOpenAnswer?: string; // For open: cached AI-generated expected answer
+  hint?: string; // Cached hint for this question
+  explanation?: string; // Cached explanation for this question
+  scoreBreakdown?: ScoreBreakdownItem[]; // Breakdown of how score was calculated
+  overriddenAt: number; // Timestamp
 };
 
 export type Task = {
@@ -18,9 +25,9 @@ export type Task = {
   question: Question;
   answers?: Answer[] | null;
   isDone?: boolean;
-  isRetry?: boolean;  // True if this is a retry instance (failed before)
-  isRemoved?: boolean;                 // True if user removed this question
-  answerOverride?: AnswerOverride;     // Override data if user marked as correct
+  isRetry?: boolean; // True if this is a retry instance (failed before)
+  isRemoved?: boolean; // True if user removed this question
+  answerOverride?: AnswerOverride; // Override data if user marked as correct
 };
 
 export type Question = {
