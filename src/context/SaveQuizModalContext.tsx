@@ -6,7 +6,7 @@ export interface SaveQuizModalData {
   tasks: readonly Task[];
   sourceText: string;
   uploadedFileNames?: string[];
-  onSaved?: () => void;
+  onSaved?: (savedQuiz?: SavedQuiz) => void;
 
   // Update mode fields
   mode?: 'create' | 'update';

@@ -301,11 +301,8 @@ export class IndexedDBProvider implements IStorageProvider {
         updatedAt: Date.now(),
       };
 
-      // Delete old backup
-      const deleteRequest = store.delete(current.previousVersionId);
-
-      deleteRequest.onsuccess = () => {
-        // Save new backup
+      // Helper to save backup and current
+      const saveBackupAndCurrent = () => {
         const backupRequest = store.put(newBackup);
 
         backupRequest.onsuccess = () => {
@@ -328,10 +325,22 @@ export class IndexedDBProvider implements IStorageProvider {
         };
       };
 
-      deleteRequest.onerror = () => {
-        console.error('Failed to delete old backup:', deleteRequest.error);
-        reject(new Error('Failed to delete old backup'));
-      };
+      // Delete old backup if it exists
+      if (current.previousVersionId) {
+        const deleteRequest = store.delete(current.previousVersionId);
+
+        deleteRequest.onsuccess = () => {
+          saveBackupAndCurrent();
+        };
+
+        deleteRequest.onerror = () => {
+          console.error('Failed to delete old backup:', deleteRequest.error);
+          reject(new Error('Failed to delete old backup'));
+        };
+      } else {
+        // No old backup to delete, proceed directly
+        saveBackupAndCurrent();
+      }
     });
   }
 

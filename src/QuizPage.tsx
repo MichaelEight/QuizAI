@@ -1608,7 +1608,13 @@ export default function QuizPage({
                   tasks,
                   sourceText: combinedText,
                   uploadedFileNames: uploadedFiles.map((f) => f.name),
-                  onSaved: () => setSuccessMessage("Quiz saved to library!"),
+                  onSaved: (savedQuiz) => {
+                    if (savedQuiz) {
+                      setLoadedQuizId(savedQuiz.id);
+                      setLoadedQuizVersion(savedQuiz.version || 1);
+                    }
+                    setSuccessMessage("Quiz saved to library!");
+                  },
                 })
               }
               className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-600">
@@ -1718,7 +1724,13 @@ export default function QuizPage({
                   tasks,
                   sourceText: combinedText,
                   uploadedFileNames: uploadedFiles.map((f) => f.name),
-                  onSaved: () => setSuccessMessage("Quiz saved to library!"),
+                  onSaved: (savedQuiz) => {
+                    if (savedQuiz) {
+                      setLoadedQuizId(savedQuiz.id);
+                      setLoadedQuizVersion(savedQuiz.version || 1);
+                    }
+                    setSuccessMessage("Quiz saved to library!");
+                  },
                 })
               }
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200">

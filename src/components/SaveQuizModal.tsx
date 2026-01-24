@@ -55,12 +55,14 @@ export function SaveQuizModal() {
     setError(null);
 
     try {
+      let savedQuiz;
+
       if (mode === 'update' && quizId) {
         // Update existing quiz content
         await updateQuizContent(quizId, [...tasks], sourceText, uploadedFileNames);
       } else {
         // Save as new quiz
-        await saveQuiz({
+        savedQuiz = await saveQuiz({
           title: title.trim(),
           description: description.trim() || undefined,
           teacher: teacher.trim() || undefined,
@@ -73,7 +75,7 @@ export function SaveQuizModal() {
       }
 
       handleClose();
-      onSaved?.();
+      onSaved?.(savedQuiz);
     } catch (err) {
       setError(mode === 'update' ? 'Failed to update quiz. Please try again.' : 'Failed to save quiz. Please try again.');
     } finally {

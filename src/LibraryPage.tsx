@@ -27,7 +27,6 @@ export default function LibraryPage({
     updateQuiz,
     refreshQuizzes,
     restoreBackup,
-    deleteBackup,
   } = useQuizLibrary();
 
   // Search and filter state
