@@ -31,6 +31,8 @@ import { QuizChatBot } from "./components/QuizChatBot";
 import { ChatContext } from "./services/chatService";
 import { OptionsSelectionModal } from "./components/OptionsSelectionModal";
 import { ScoreBreakdownTemplate } from "./QuestionsTypes";
+import { DiffModal } from "./components/DiffModal";
+import { compareQuizzes, QuizDiffSummary } from "./utils/quizDiff";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
 
@@ -229,7 +231,7 @@ export default function QuizPage({
   const [showLearntEffect, setShowLearntEffect] = useState(false);
 
   // Quiz library for update functionality
-  const { getQuizById } = useQuizLibrary();
+  const { getQuizById, updateQuizContent } = useQuizLibrary();
   const [toastAchievement, setToastAchievement] = useState<Achievement | null>(
     null,
   );
@@ -251,6 +253,10 @@ export default function QuizPage({
     "expectedAnswer" | "explanation" | "scoreTemplate" | null
   >(null);
   const [isGeneratingOptions, setIsGeneratingOptions] = useState(false);
+
+  // Diff modal state for quiz updates
+  const [showDiffModal, setShowDiffModal] = useState(false);
+  const [diffSummary, setDiffSummary] = useState<QuizDiffSummary | null>(null);
 
   const totalQuestions = tasks.length;
 
@@ -1339,6 +1345,69 @@ export default function QuizPage({
     }
   };
 
+  // Handler to show diff modal
+  const handleShowDiffModal = async () => {
+    if (!loadedQuizId) return;
+
+    try {
+      // Fetch library version
+      const libraryQuiz = await getQuizById(loadedQuizId);
+      if (!libraryQuiz) {
+        console.error("Quiz not found in library");
+        setSuccessMessage("Quiz not found in library");
+        return;
+      }
+
+      // Compare current tasks with library tasks
+      const summary = compareQuizzes(libraryQuiz.tasks, [...tasks]);
+
+      if (summary.totalChanges === 0) {
+        // No changes detected
+        setSuccessMessage("No changes detected");
+        return;
+      }
+
+      // Show diff modal
+      setDiffSummary(summary);
+      setShowDiffModal(true);
+    } catch (err) {
+      console.error("Failed to compare quizzes:", err);
+      setSuccessMessage("Failed to load quiz for comparison");
+    }
+  };
+
+  // Handler to confirm update after reviewing diff
+  const handleConfirmUpdate = async () => {
+    if (!loadedQuizId) return;
+
+    try {
+      const existingQuiz = await getQuizById(loadedQuizId);
+      if (!existingQuiz) {
+        console.error("Quiz not found");
+        return;
+      }
+
+      // Call updateQuizContent directly
+      await updateQuizContent(
+        loadedQuizId,
+        [...tasks],
+        combinedText,
+        uploadedFiles.map((f) => f.name)
+      );
+
+      // Update local version state
+      const newVersion = (loadedQuizVersion || existingQuiz.version || 1) + 1;
+      setLoadedQuizVersion(newVersion);
+
+      // Close modal and show success
+      setShowDiffModal(false);
+      setSuccessMessage(`Updated to v${newVersion}!`);
+    } catch (err) {
+      console.error("Failed to update quiz:", err);
+      setSuccessMessage("Failed to update quiz");
+    }
+  };
+
   // Handler for toggling answers via keyboard (closed questions)
   const handleAnswerToggle = useCallback(
     (index: number) => {
@@ -1568,50 +1637,30 @@ export default function QuizPage({
               </svg>
               Start Quiz
             </button>
-            {loadedQuizId ? (
-              <button
-                onClick={handleUpdateExistingQuiz}
-                className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg px-6 py-4 transition-all duration-200">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-                Update v{loadedQuizVersion || 1}
-              </button>
-            ) : (
-              <button
-                onClick={() =>
-                  openSaveQuizModal({
-                    tasks,
-                    sourceText: combinedText,
-                    uploadedFileNames: uploadedFiles.map((f) => f.name),
-                    onSaved: () => setSuccessMessage("Quiz saved to library!"),
-                  })
-                }
-                className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-600">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                  />
-                </svg>
-                Save to Library
-              </button>
-            )}
+            <button
+              onClick={() =>
+                openSaveQuizModal({
+                  tasks,
+                  sourceText: combinedText,
+                  uploadedFileNames: uploadedFiles.map((f) => f.name),
+                  onSaved: () => setSuccessMessage("Quiz saved to library!"),
+                })
+              }
+              className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-600">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                />
+              </svg>
+              Save to Library
+            </button>
           </div>
         </div>
 
@@ -1795,8 +1844,28 @@ export default function QuizPage({
         </div>
       )}
 
-      {/* End Quiz button */}
-      <div className="flex justify-end mb-2">
+      {/* Action buttons - top right of active quiz */}
+      <div className="flex items-center gap-2 justify-end mb-2">
+        {loadedQuizId && (
+          <button
+            onClick={handleShowDiffModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:text-emerald-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-emerald-500/50 rounded-lg transition-all duration-200"
+            title="Update quiz in library">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Update
+          </button>
+        )}
         <button
           onClick={() => setShowEndQuizModal(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all duration-200"
@@ -2759,6 +2828,17 @@ export default function QuizPage({
         }
         fieldType={optionsField || "expectedAnswer"}
       />
+
+      {/* Diff Modal */}
+      {diffSummary && (
+        <DiffModal
+          isOpen={showDiffModal}
+          onClose={() => setShowDiffModal(false)}
+          diffSummary={diffSummary}
+          currentVersion={loadedQuizVersion || 1}
+          onConfirmUpdate={handleConfirmUpdate}
+        />
+      )}
     </div>
   );
 }
