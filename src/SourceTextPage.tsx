@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import { generateQuestions } from "./backendService";
 import { Task } from "./QuestionsTypes";
@@ -11,6 +11,8 @@ import {
 } from "./services/fileExtractService";
 import { FilePreviewModal } from "./components/FilePreviewModal";
 import { countTokens, formatNumber, estimateCost, getAvailableTokens } from "./services/tokenCounterService";
+import { SuccessToast } from "./components/SuccessToast";
+import { BaseModal } from "./components/BaseModal";
 
 interface SourceTextPageProps {
   sourceText: string;
@@ -19,6 +21,97 @@ interface SourceTextPageProps {
   settings: Settings;
   uploadedFiles: UploadedFile[];
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>;
+}
+
+// Helper Components
+
+function HelpIcon({ tooltip }: { tooltip: string }) {
+  return (
+    <button
+      type="button"
+      title={tooltip}
+      className="inline-flex items-center justify-center w-4 h-4 text-slate-400 hover:text-slate-200 transition-colors duration-200 cursor-help"
+      onClick={(e) => e.preventDefault()}
+    >
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </button>
+  );
+}
+
+function TokenWarnings({ totalTokens, availableTokens }: { totalTokens: number; availableTokens: number }) {
+  const percentage = (totalTokens / availableTokens) * 100;
+  const remaining = availableTokens - totalTokens;
+
+  if (percentage < 80) return null;
+
+  return (
+    <div className="mb-4">
+      {percentage >= 80 && percentage < 100 && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-2">
+          <svg className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p className="text-sm text-amber-400 font-medium">Approaching token limit</p>
+            <p className="text-xs text-amber-400/80 mt-1">
+              {formatNumber(remaining)} tokens remaining. Consider removing some content if generation fails.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ConfirmClearModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  fileCount: number;
+}
+
+function ConfirmClearModal({ isOpen, onClose, onConfirm, fileCount }: ConfirmClearModalProps) {
+  return (
+    <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-md">
+      <div className="p-6">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+            <svg className="w-6 h-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-slate-100 mb-2">
+              Remove All Files?
+            </h2>
+            <p className="text-sm text-slate-400">
+              This will remove {fileCount} {fileCount === 1 ? 'file' : 'files'} from the upload list. This action cannot be undone.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 rounded-lg transition-colors duration-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 px-4 py-2 bg-rose-500 hover:bg-rose-400 text-white rounded-lg transition-colors duration-200"
+          >
+            Remove All Files
+          </button>
+        </div>
+      </div>
+    </BaseModal>
+  );
 }
 
 export default function SourceTextPage({
@@ -34,10 +127,47 @@ export default function SourceTextPage({
   const [isExtracting, setIsExtracting] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showClearModal, setShowClearModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const totalQuestions = settings.amountOfClosedQuestions + settings.amountOfOpenQuestions;
+
+  // Draft auto-save functionality
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (sourceText.trim()) {
+        localStorage.setItem('quizai_draft_text', sourceText);
+        localStorage.setItem('quizai_draft_timestamp', Date.now().toString());
+      } else {
+        localStorage.removeItem('quizai_draft_text');
+        localStorage.removeItem('quizai_draft_timestamp');
+      }
+    }, 1000); // Debounced 1 second
+
+    return () => clearTimeout(timer);
+  }, [sourceText]);
+
+  // Restore draft on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('quizai_draft_text');
+    const savedTimestamp = localStorage.getItem('quizai_draft_timestamp');
+
+    if (savedDraft && !sourceText && !uploadedFiles.length) {
+      const timestamp = savedTimestamp ? parseInt(savedTimestamp, 10) : 0;
+      const hoursSince = (Date.now() - timestamp) / (1000 * 60 * 60);
+
+      // Only restore if less than 24 hours old
+      if (hoursSince < 24) {
+        setSourceText(savedDraft);
+        setSuccessMessage("Draft restored from previous session");
+      } else {
+        localStorage.removeItem('quizai_draft_text');
+        localStorage.removeItem('quizai_draft_timestamp');
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Combine file content with manual text
   const combinedText = useMemo(() => {
@@ -73,15 +203,20 @@ export default function SourceTextPage({
 
   const processFiles = async (files: File[]) => {
     const validFiles = files.filter(isSupportedFile);
-    if (validFiles.length === 0) return;
+    if (validFiles.length === 0) {
+      setError("No supported files found. Please upload .txt or .pdf files.");
+      return;
+    }
 
     setIsExtracting(true);
     setError(null);
 
+    let successCount = 0;
     for (const file of validFiles) {
       try {
         const content = await extractTextFromFile(file);
         if (content.trim()) {
+          const tokens = countTokens(content);
           setUploadedFiles(prev => [...prev, {
             id: crypto.randomUUID(),
             name: file.name,
@@ -89,13 +224,37 @@ export default function SourceTextPage({
             content,
             size: file.size,
           }]);
+          successCount++;
+          // Show success for each file
+          setSuccessMessage(`${file.name} uploaded - ${formatNumber(tokens)} tokens extracted`);
+        } else {
+          setError(`${file.name} appears to be empty or contains no extractable text.`);
         }
       } catch (err) {
         console.error(`Failed to extract ${file.name}:`, err);
-        setError(`Failed to extract text from ${file.name}`);
+        const errorMessage = err instanceof Error ? err.message : '';
+
+        // More specific error messages
+        if (errorMessage.includes('size') || file.size > 10 * 1024 * 1024) {
+          setError(`${file.name} is too large (max 10MB). Try splitting into smaller files.`);
+        } else if (errorMessage.includes('password') || errorMessage.includes('encrypted')) {
+          setError(`${file.name} is password-protected. Please remove password and try again.`);
+        } else if (file.name.toLowerCase().endsWith('.pdf')) {
+          setError(`${file.name} extraction failed. Ensure it contains selectable text (not scanned images).`);
+        } else {
+          setError(`Failed to extract ${file.name}. The file may be corrupted or in an unsupported format.`);
+        }
       }
     }
+
     setIsExtracting(false);
+
+    // Summary message if multiple files
+    if (successCount > 1) {
+      setTimeout(() => {
+        setSuccessMessage(`${successCount} files uploaded successfully`);
+      }, 500);
+    }
   };
 
   const handleDrop = async (e: React.DragEvent) => {
@@ -129,7 +288,13 @@ export default function SourceTextPage({
   };
 
   const clearAllFiles = () => {
+    setShowClearModal(true);
+  };
+
+  const confirmClearAll = () => {
     setUploadedFiles([]);
+    setShowClearModal(false);
+    setSuccessMessage("All files removed");
   };
 
   const updateFileContent = (id: string, newContent: string) => {
@@ -195,10 +360,22 @@ export default function SourceTextPage({
       <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-lg shadow-black/20 p-4 sm:p-6">
         {/* Drop Zone */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Upload Files
-          </label>
+          <div className="flex items-center gap-2 mb-2">
+            <label className="block text-sm font-medium text-slate-300">
+              Upload Files
+            </label>
+            <HelpIcon tooltip="Upload PDF or TXT files. We extract text automatically and you can edit it after upload if needed." />
+          </div>
           <div
+            role="button"
+            aria-label="Upload files - drag and drop or click to browse"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -256,14 +433,16 @@ export default function SourceTextPage({
               <button
                 onClick={clearAllFiles}
                 className="text-xs text-slate-400 hover:text-rose-400 transition-colors duration-200"
+                aria-label={`Remove all ${uploadedFiles.length} files`}
               >
                 Clear all
               </button>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div role="list" aria-label="Uploaded files" className="flex flex-wrap gap-2">
               {uploadedFiles.map(file => (
                 <div
                   key={file.id}
+                  role="listitem"
                   className="group flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 border border-slate-600 rounded-lg text-sm hover:border-slate-500 transition-colors duration-200"
                 >
                   <svg
@@ -281,8 +460,8 @@ export default function SourceTextPage({
                       e.stopPropagation();
                       setPreviewFile(file);
                     }}
-                    className="text-slate-400 hover:text-indigo-400 transition-colors duration-200 opacity-0 group-hover:opacity-100"
-                    title="Edit extracted text"
+                    className="text-slate-400 hover:text-indigo-400 transition-colors duration-200 sm:opacity-0 sm:group-hover:opacity-100"
+                    aria-label={`Edit ${file.name}`}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -294,7 +473,7 @@ export default function SourceTextPage({
                       removeFile(file.id);
                     }}
                     className="text-slate-400 hover:text-rose-400 transition-colors duration-200"
-                    title="Remove file"
+                    aria-label={`Remove ${file.name}`}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -360,33 +539,79 @@ export default function SourceTextPage({
 
         {/* Settings Summary */}
         <div className="mb-4 p-4 bg-slate-700/30 rounded-lg">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-400 mb-2">
             <span className="text-slate-300 font-medium">Will generate:</span>{" "}
-            <span className="text-indigo-400">{settings.amountOfClosedQuestions}</span> closed +{" "}
-            <span className="text-indigo-400">{settings.amountOfOpenQuestions}</span> open ={" "}
+            <span className="text-indigo-400">{settings.amountOfClosedQuestions}</span> multiple-choice +{" "}
+            <span className="text-indigo-400">{settings.amountOfOpenQuestions}</span> free-response ={" "}
             <span className="text-slate-100 font-medium">{totalQuestions} questions</span>
           </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
+              {settings.difficultyLevel === 'mixed' ? 'Mixed difficulty' : `${settings.difficultyLevel} difficulty`}
+            </span>
+            <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
+              {settings.contentFocus === 'important' ? 'Key concepts only' : 'All content'}
+            </span>
+            <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
+              {settings.questionStyle === 'conceptual' ? 'Conceptual' : 'Text-based'}
+            </span>
+            {settings.quizLanguage !== 'english' && (
+              <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
+                {settings.quizLanguage === 'polish' ? 'Polski' :
+                 settings.quizLanguage === 'spanish' ? 'Español' :
+                 settings.quizLanguage === 'german' ? 'Deutsch' : settings.quizLanguage}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Token & Cost Summary */}
+        {/* Token Warnings */}
+        <TokenWarnings totalTokens={totalTokens} availableTokens={availableTokens} />
+
+        {/* Token & Cost Summary with Progress Bar */}
         <div className={`mb-6 p-4 rounded-lg ${isOverLimit ? 'bg-rose-500/10 border border-rose-500/20' : 'bg-slate-700/30'}`}>
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-400">
-              <span className="text-slate-300 font-medium">Total input:</span>{" "}
-              <span className={isOverLimit ? 'text-rose-400' : 'text-indigo-400'}>
-                {formatNumber(totalTokens)}
-              </span>{" "}
-              / {formatNumber(availableTokens)} tokens
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-300 font-medium">Token usage</span>
+              <HelpIcon tooltip="Tokens measure text length for AI processing. ~1 token ≈ 4 characters. The limit ensures quality and cost control." />
             </div>
             <div className="text-sm text-slate-400">
-              <span className="text-slate-300 font-medium">Estimated cost:</span>{" "}
+              <span className="text-slate-300 font-medium">Cost:</span>{" "}
               <span className="text-emerald-400">{estimateCost(totalTokens)}</span>
             </div>
           </div>
+
+          {/* Progress Bar */}
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-slate-400">
+                {formatNumber(totalTokens)} / {formatNumber(availableTokens)} tokens
+              </span>
+              <span className="text-xs text-slate-400">
+                {Math.min(Math.round((totalTokens / availableTokens) * 100), 100)}%
+              </span>
+            </div>
+            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  isOverLimit ? 'bg-rose-500' :
+                  (totalTokens / availableTokens) >= 0.8 ? 'bg-amber-500' :
+                  'bg-indigo-500'
+                }`}
+                style={{ width: `${Math.min((totalTokens / availableTokens) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+
           {isOverLimit && (
-            <p className="mt-2 text-sm text-rose-400">
-              Token limit exceeded. Remove some content to generate questions.
-            </p>
+            <div className="flex items-start gap-2">
+              <svg className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <p className="text-sm text-rose-400">
+                Token limit exceeded by {formatNumber(totalTokens - availableTokens)} tokens. Remove some content to continue.
+              </p>
+            </div>
           )}
         </div>
 
@@ -394,6 +619,8 @@ export default function SourceTextPage({
         <button
           onClick={() => handleGenerateButtonClick(false)}
           disabled={!canGenerate || isLoading || isExtracting || isOverLimit}
+          aria-label={`Generate ${totalQuestions} questions from ${formatNumber(totalTokens)} tokens`}
+          aria-busy={isLoading}
           className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold transition-all duration-200 ${
             canGenerate && !isLoading && !isExtracting && !isOverLimit
               ? "bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 active:scale-[0.99]"
@@ -431,15 +658,18 @@ export default function SourceTextPage({
         </button>
 
         {/* Batch Generation Button (BETA) */}
-        <button
-          onClick={() => handleGenerateButtonClick(true)}
-          disabled={!canGenerate || isLoading || isExtracting || isOverLimit}
-          className={`w-4/5 mx-auto mt-3 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-            canGenerate && !isLoading && !isExtracting && !isOverLimit
-              ? "bg-indigo-600/70 hover:bg-indigo-600/90 text-white shadow-md shadow-indigo-500/15"
-              : "bg-slate-700/50 text-slate-500 cursor-not-allowed"
-          }`}
-        >
+        <div className="relative w-4/5 mx-auto mt-3">
+          <button
+            onClick={() => handleGenerateButtonClick(true)}
+            disabled={!canGenerate || isLoading || isExtracting || isOverLimit}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+              canGenerate && !isLoading && !isExtracting && !isOverLimit
+                ? "bg-indigo-600/70 hover:bg-indigo-600/90 text-white shadow-md shadow-indigo-500/15"
+                : "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+            }`}
+            aria-label="Generate questions in batch mode"
+            aria-busy={isLoading}
+          >
           {isLoading ? (
             <>
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -471,7 +701,11 @@ export default function SourceTextPage({
               </span>
             </>
           )}
-        </button>
+          </button>
+          <div className="absolute -right-6 top-1/2 -translate-y-1/2 hidden sm:block">
+            <HelpIcon tooltip="Batch mode processes content in chunks for very long texts (50,000+ tokens). Slower but handles larger documents. Try regular mode first." />
+          </div>
+        </div>
 
         {/* Help Text */}
         {!canGenerate && !isLoading && (
@@ -500,6 +734,22 @@ export default function SourceTextPage({
         onClose={() => setPreviewFile(null)}
         file={previewFile}
         onSave={updateFileContent}
+      />
+
+      {/* Success Toast */}
+      {successMessage && (
+        <SuccessToast
+          message={successMessage}
+          onDismiss={() => setSuccessMessage(null)}
+        />
+      )}
+
+      {/* Confirm Clear All Modal */}
+      <ConfirmClearModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        onConfirm={confirmClearAll}
+        fileCount={uploadedFiles.length}
       />
     </div>
   );
