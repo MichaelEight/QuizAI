@@ -7,6 +7,7 @@ import {
   extractTextFromFile,
   isSupportedFile,
   formatFileSize,
+  getFileTypeFromName,
   UploadedFile,
 } from "./services/fileExtractService";
 import { FilePreviewModal } from "./components/FilePreviewModal";
@@ -204,7 +205,7 @@ export default function SourceTextPage({
   const processFiles = async (files: File[]) => {
     const validFiles = files.filter(isSupportedFile);
     if (validFiles.length === 0) {
-      setError("No supported files found. Please upload .txt or .pdf files.");
+      setError("No supported files found. Supported formats: .txt, .pdf, .md, .csv, .json");
       return;
     }
 
@@ -220,7 +221,7 @@ export default function SourceTextPage({
           setUploadedFiles(prev => [...prev, {
             id: crypto.randomUUID(),
             name: file.name,
-            type: file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'txt',
+            type: getFileTypeFromName(file.name) ?? 'txt',
             content,
             size: file.size,
           }]);
@@ -382,7 +383,7 @@ export default function SourceTextPage({
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".txt,.pdf"
+              accept=".txt,.pdf,.md,.csv,.json"
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -403,7 +404,7 @@ export default function SourceTextPage({
                   <p className="text-slate-300">
                     Drop files here or <span className="text-indigo-400">click to browse</span>
                   </p>
-                  <p className="text-xs text-slate-500">Supports: .txt, .pdf</p>
+                  <p className="text-xs text-slate-500">Supports: .txt, .pdf, .md, .csv, .json</p>
                 </>
               )}
             </div>
@@ -438,7 +439,13 @@ export default function SourceTextPage({
                   className="group flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 border border-slate-600 rounded-lg text-sm hover:border-slate-500 transition-colors duration-200"
                 >
                   <svg
-                    className={`w-4 h-4 ${file.type === 'pdf' ? 'text-rose-400' : 'text-blue-400'}`}
+                    className={`w-4 h-4 ${
+                      file.type === 'pdf' ? 'text-rose-400' :
+                      file.type === 'md' ? 'text-purple-400' :
+                      file.type === 'csv' ? 'text-emerald-400' :
+                      file.type === 'json' ? 'text-amber-400' :
+                      'text-blue-400'
+                    }`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
