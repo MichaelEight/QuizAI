@@ -173,7 +173,7 @@ export function ImportExportModal({
             type: 'loading',
             message: `Generating answer ${openAnswers.size + 1}/${openQuestions.length}...`,
           });
-          const answer = await generateOpenQuestionAnswer(sourceText, task.question.value);
+          const answer = await generateOpenQuestionAnswer(sourceText, task.question.value, undefined, undefined, undefined);
           openAnswers.set(task.id, answer);
         } else {
           // No source text available, use empty answer

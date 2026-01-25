@@ -29,12 +29,25 @@ export default function UsagePage() {
     setDateRange,
     deleteAllLogs,
     getTopQuizzes,
+    refreshUsage,
   } = useUsage();
 
   const [selectedQuiz, setSelectedQuiz] = useState<QuizUsageStats | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const topQuizzes = getTopQuizzes(10);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshUsage();
+    } catch (error) {
+      console.error("Failed to refresh usage data:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleDeleteAll = async () => {
     if (
@@ -80,6 +93,26 @@ export default function UsagePage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-200 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <svg
+              className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </button>
           <ExportButton logs={logs} />
           <button
             onClick={handleDeleteAll}

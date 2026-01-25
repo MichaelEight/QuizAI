@@ -209,6 +209,7 @@ export default function QuizPage({
     const stored = sessionStorage.getItem('quizai_loaded_quiz_version');
     return stored ? parseInt(stored, 10) : null;
   });
+  const [loadedQuizTitle, setLoadedQuizTitle] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
 
   // Quiz library for update functionality (needed early for useEffect below)
@@ -239,6 +240,19 @@ export default function QuizPage({
       sessionStorage.removeItem('quizai_loaded_quiz_version');
     };
   }, []);
+
+  // Fetch and set quiz title when loadedQuizId changes
+  useEffect(() => {
+    const fetchQuizTitle = async () => {
+      if (loadedQuizId) {
+        const quiz = await getQuizById(loadedQuizId);
+        setLoadedQuizTitle(quiz?.title || null);
+      } else {
+        setLoadedQuizTitle(null);
+      }
+    };
+    fetchQuizTitle();
+  }, [loadedQuizId, getQuizById]);
 
   // Check for changes whenever tasks or loadedQuizId changes
   useEffect(() => {
@@ -550,6 +564,8 @@ export default function QuizPage({
         openAnswer,
         template,
         acceptedAnswer,
+        loadedQuizId,
+        loadedQuizTitle,
       );
       if (result.score === -1) {
         console.error("Error during checking open answer");
@@ -594,6 +610,8 @@ export default function QuizPage({
           combinedText,
           currentTask.question.value,
           template,
+          loadedQuizId,
+          loadedQuizTitle,
         );
         if (expectedAnswer) {
           const updateAnswerOverride = (t: Task): Task =>
@@ -940,6 +958,9 @@ export default function QuizPage({
         generatedAnswer = await generateOpenQuestionAnswer(
           combinedText,
           currentTask.question.value,
+          undefined,
+          loadedQuizId,
+          loadedQuizTitle,
         );
         setIsChecking(false);
 
@@ -1001,6 +1022,8 @@ export default function QuizPage({
       combinedText,
       currentTask.question.value,
       settings.questionStyle,
+      loadedQuizId,
+      loadedQuizTitle,
     );
     setIsLoadingHint(false);
 
@@ -1052,6 +1075,9 @@ export default function QuizPage({
         const generatedAnswer = await generateOpenQuestionAnswer(
           combinedText,
           currentTask.question.value,
+          undefined,
+          loadedQuizId,
+          loadedQuizTitle,
         );
 
         if (generatedAnswer) {
@@ -1096,6 +1122,8 @@ export default function QuizPage({
       combinedText,
       currentTask.question.value,
       correctAnswers,
+      loadedQuizId,
+      loadedQuizTitle,
     );
     setIsLoadingExplanation(false);
 
@@ -1135,6 +1163,8 @@ export default function QuizPage({
       combinedText,
       currentTask.question.value,
       template,
+      loadedQuizId,
+      loadedQuizTitle,
     );
 
     setIsChecking(false);
@@ -1229,6 +1259,8 @@ export default function QuizPage({
       currentTask.question.value,
       template,
       3,
+      loadedQuizId,
+      loadedQuizTitle,
     );
 
     setIsGeneratingOptions(false);
@@ -1277,6 +1309,8 @@ export default function QuizPage({
       currentTask.question.value,
       correctAnswers,
       3,
+      loadedQuizId,
+      loadedQuizTitle,
     );
 
     setIsGeneratingOptions(false);
@@ -1303,6 +1337,8 @@ export default function QuizPage({
       combinedText,
       currentTask.question.value,
       3,
+      loadedQuizId,
+      loadedQuizTitle,
     );
 
     setIsGeneratingOptions(false);

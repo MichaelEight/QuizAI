@@ -18,6 +18,8 @@ export async function checkOpenAnswer(
   answer: string,
   template: ScoreBreakdownTemplate,
   acceptedAnswer?: string,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<CheckAnswerResult> {
   if (!text || !question) {
     throw new Error(
@@ -32,6 +34,8 @@ export async function checkOpenAnswer(
       answer,
       template,
       acceptedAnswer,
+      quizId,
+      quizTitle,
     );
 
     if (result.score < 0 || result.score > 100) {
@@ -58,7 +62,7 @@ export async function generateQuestions(
   }
 
   try {
-    return await generateQuestionsService(text, settings, onProgress);
+    return await generateQuestionsService(text, settings, undefined, undefined, onProgress);
   } catch (error) {
     console.error("Error in generateQuestions:", error);
     return [];
@@ -68,6 +72,8 @@ export async function generateQuestions(
 export async function generateScoreTemplate(
   text: string,
   question: string,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<ScoreBreakdownTemplate> {
   if (!text || !question) {
     throw new Error(
@@ -76,7 +82,7 @@ export async function generateScoreTemplate(
   }
 
   try {
-    return await generateScoreTemplateService(text, question);
+    return await generateScoreTemplateService(text, question, quizId, quizTitle);
   } catch (error) {
     console.error("Error in generateScoreTemplate:", error);
     return [];
@@ -87,6 +93,8 @@ export async function generateOpenQuestionAnswer(
   text: string,
   question: string,
   template?: ScoreBreakdownTemplate,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string> {
   if (!text || !question) {
     throw new Error(
@@ -95,7 +103,7 @@ export async function generateOpenQuestionAnswer(
   }
 
   try {
-    return await generateOpenQuestionAnswerService(text, question, template);
+    return await generateOpenQuestionAnswerService(text, question, template, quizId, quizTitle);
   } catch (error) {
     console.error("Error in generateOpenQuestionAnswer:", error);
     return "";
@@ -106,6 +114,8 @@ export async function generateHint(
   text: string,
   question: string,
   questionStyle: QuestionStyle = "conceptual",
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string> {
   if (!text || !question) {
     throw new Error(
@@ -114,7 +124,7 @@ export async function generateHint(
   }
 
   try {
-    return await generateHintService(text, question, questionStyle);
+    return await generateHintService(text, question, questionStyle, quizId, quizTitle);
   } catch (error) {
     console.error("Error in generateHint:", error);
     return "";
@@ -125,6 +135,8 @@ export async function generateExplanation(
   text: string,
   question: string,
   correctAnswers: string[],
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string> {
   if (!text || !question || !correctAnswers || correctAnswers.length === 0) {
     throw new Error(
@@ -133,7 +145,7 @@ export async function generateExplanation(
   }
 
   try {
-    return await generateExplanationService(text, question, correctAnswers);
+    return await generateExplanationService(text, question, correctAnswers, quizId, quizTitle);
   } catch (error) {
     console.error("Error in generateExplanation:", error);
     return "";
@@ -145,6 +157,8 @@ export async function generateMultipleExpectedAnswers(
   question: string,
   template?: ScoreBreakdownTemplate,
   count: number = 3,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string[]> {
   if (!text || !question) {
     throw new Error(
@@ -155,7 +169,7 @@ export async function generateMultipleExpectedAnswers(
   try {
     const promises = Array(count)
       .fill(null)
-      .map(() => generateOpenQuestionAnswer(text, question, template));
+      .map(() => generateOpenQuestionAnswer(text, question, template, quizId, quizTitle));
     const results = await Promise.all(promises);
     // Filter out empty results
     return results.filter((result) => result !== "");
@@ -170,6 +184,8 @@ export async function generateMultipleExplanations(
   question: string,
   correctAnswers: string[],
   count: number = 3,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string[]> {
   if (!text || !question || !correctAnswers || correctAnswers.length === 0) {
     throw new Error(
@@ -180,7 +196,7 @@ export async function generateMultipleExplanations(
   try {
     const promises = Array(count)
       .fill(null)
-      .map(() => generateExplanation(text, question, correctAnswers));
+      .map(() => generateExplanation(text, question, correctAnswers, quizId, quizTitle));
     const results = await Promise.all(promises);
     // Filter out empty results
     return results.filter((result) => result !== "");
@@ -194,6 +210,8 @@ export async function generateMultipleScoreTemplates(
   text: string,
   question: string,
   count: number = 3,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<ScoreBreakdownTemplate[]> {
   if (!text || !question) {
     throw new Error(
@@ -204,7 +222,7 @@ export async function generateMultipleScoreTemplates(
   try {
     const promises = Array(count)
       .fill(null)
-      .map(() => generateScoreTemplate(text, question));
+      .map(() => generateScoreTemplate(text, question, quizId, quizTitle));
     const results = await Promise.all(promises);
     // Filter out empty templates
     return results.filter((result) => result.length > 0);

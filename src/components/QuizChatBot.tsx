@@ -98,6 +98,8 @@ export function QuizChatBot({
         trimmedInput,
         context,
         updatedMessages,
+        undefined,
+        undefined,
       );
 
       // Add assistant response

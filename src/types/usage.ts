@@ -1,5 +1,3 @@
-import { Task } from "../QuestionsTypes";
-
 /**
  * Type of operation that triggered OpenAI API usage
  */

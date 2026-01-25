@@ -218,6 +218,8 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
         original.tasks,
         targetLanguage,
         original.sourceText,
+        original.id,
+        original.title,
       );
 
       // Translate metadata
@@ -225,6 +227,8 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
         original.title,
         original.description,
         targetLanguage,
+        original.id,
+        original.title,
       );
 
       // Determine the original quiz ID for linking translations
