@@ -27,6 +27,7 @@ import { AchievementModal } from "./components/AchievementModal";
 import { Achievement } from "./types/gamification";
 import { useSaveQuizModal } from "./context/SaveQuizModalContext";
 import { SuccessToast } from "./components/SuccessToast";
+import { BaseModal } from "./components/BaseModal";
 import { QuizChatBot } from "./components/QuizChatBot";
 import { ChatContext } from "./services/chatService";
 import { OptionsSelectionModal } from "./components/OptionsSelectionModal";
@@ -187,6 +188,15 @@ export default function QuizPage({
   );
   const [showEndQuizModal, setShowEndQuizModal] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Confirmation modals for destructive actions
+  const [showAcceptModal, setShowAcceptModal] = useState<boolean>(false);
+  const [showRemoveModal, setShowRemoveModal] = useState<boolean>(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
+
+  // Progress save status indicator
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | null>(null);
+
   const { openSaveQuizModal } = useSaveQuizModal();
 
   // Track loaded quiz from library (for update functionality)
@@ -305,24 +315,33 @@ export default function QuizPage({
   const saveProgress = useCallback(() => {
     if (tasks.length === 0) return;
 
-    const state: QuizProgressState = {
-      taskPool,
-      currentTask,
-      areAnswersChecked,
-      isRoundWon,
-      isQuizStarted,
-      isQuizEnded,
-      openAnswer,
-      openAnswerScore,
-      learntQuestions: Array.from(learntQuestions),
-      correctAnswers,
-      incorrectAnswers,
-      tasksHash: getTasksHash(tasks),
-      hint,
-      explanation,
-      revealedOpenAnswer,
-    };
-    saveQuizProgress(state);
+    setSaveStatus('saving');
+
+    try {
+      const state: QuizProgressState = {
+        taskPool,
+        currentTask,
+        areAnswersChecked,
+        isRoundWon,
+        isQuizStarted,
+        isQuizEnded,
+        openAnswer,
+        openAnswerScore,
+        learntQuestions: Array.from(learntQuestions),
+        correctAnswers,
+        incorrectAnswers,
+        tasksHash: getTasksHash(tasks),
+        hint,
+        explanation,
+        revealedOpenAnswer,
+      };
+      saveQuizProgress(state);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(null), 2000); // Hide after 2s
+    } catch (error) {
+      console.error("Error saving quiz progress:", error);
+      setSaveStatus('error');
+    }
   }, [
     taskPool,
     currentTask,
@@ -670,6 +689,16 @@ export default function QuizPage({
     gamification.startTimer();
   };
 
+  const initiateAcceptAnswer = () => {
+    setShowAcceptModal(true);
+  };
+
+  const confirmAcceptAnswer = () => {
+    setShowAcceptModal(false);
+    handleAcceptMyAnswer();
+    setSuccessMessage("Answer marked as correct");
+  };
+
   const handleAcceptMyAnswer = () => {
     if (!currentTask) return;
 
@@ -746,6 +775,16 @@ export default function QuizPage({
         return filteredPool;
       });
     }
+  };
+
+  const initiateRemoveQuestion = () => {
+    setShowRemoveModal(true);
+  };
+
+  const confirmRemoveQuestion = () => {
+    setShowRemoveModal(false);
+    handleRemoveQuestion();
+    setSuccessMessage("Question removed from quiz");
   };
 
   const handleRemoveQuestion = () => {
@@ -1414,6 +1453,13 @@ export default function QuizPage({
         return;
       }
 
+      // ? - Open keyboard shortcuts modal (available anytime)
+      if (e.key === "?") {
+        e.preventDefault();
+        setShowShortcutsModal(true);
+        return;
+      }
+
       // Skip other shortcuts if typing in input field or chat is open
       if (isInputFocused || isChatOpen) return;
 
@@ -1822,7 +1868,51 @@ export default function QuizPage({
       )}
 
       {/* Action buttons - top right of active quiz */}
-      <div className="flex items-center gap-2 justify-end mb-2">
+      <div className="flex items-center gap-2 justify-between mb-2">
+        {/* Progress save indicator */}
+        {saveStatus && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            {saveStatus === 'saving' && (
+              <>
+                <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Saving...</span>
+              </>
+            )}
+            {saveStatus === 'saved' && (
+              <>
+                <svg className="h-3 w-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-emerald-400">Saved</span>
+              </>
+            )}
+            {saveStatus === 'error' && (
+              <>
+                <svg className="h-3 w-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-rose-400">Save failed</span>
+              </>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
         {loadedQuizId && (
           <button
             onClick={handleShowDiffModal}
@@ -1844,6 +1934,27 @@ export default function QuizPage({
           </button>
         )}
         <button
+          onClick={() => setShowShortcutsModal(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all duration-200"
+          title="Keyboard shortcuts">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+            />
+          </svg>
+          <span className="hidden sm:inline">Shortcuts</span>
+          <kbd className="px-1 py-0.5 text-xs bg-slate-700 rounded border border-slate-600">
+            ?
+          </kbd>
+        </button>
+        <button
           onClick={() => setShowEndQuizModal(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all duration-200"
           title="End quiz">
@@ -1861,6 +1972,7 @@ export default function QuizPage({
           </svg>
           End Quiz
         </button>
+        </div>
       </div>
 
       {/* Progress bars */}
@@ -1874,6 +1986,28 @@ export default function QuizPage({
         timerStart={gamification.timerStart}
         isTimerRunning={gamification.isTimerRunning}
       />
+
+      {/* Screen reader announcements for state changes */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only">
+        {areAnswersChecked && isRoundWon && "Correct! You scored full points."}
+        {areAnswersChecked &&
+          !isRoundWon &&
+          !isAnswerRevealed &&
+          currentTask?.question.isOpen &&
+          `Incorrect. You scored ${openAnswerScore} out of 100 points.`}
+        {areAnswersChecked &&
+          !isRoundWon &&
+          !isAnswerRevealed &&
+          !currentTask?.question.isOpen &&
+          "Incorrect answer. Please review the correct answers."}
+        {isAnswerRevealed && "Answer revealed. This counts as incorrect."}
+        {showLearntEffect &&
+          "Congratulations! You've mastered this question."}
+      </div>
 
       {/* Question Card */}
       {currentTask && (
@@ -2083,8 +2217,9 @@ export default function QuizPage({
             {!isAnswerRevealed && (
               <div className="flex items-center gap-2 ml-0 sm:ml-auto sm:shrink-0">
                 <button
-                  onClick={handleAcceptMyAnswer}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-200"
+                  onClick={initiateAcceptAnswer}
+                  aria-label="Override AI scoring and mark your answer as correct for all future attempts"
+                  className="flex items-center gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 min-h-[44px] sm:min-h-0 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-200"
                   title="Mark my answer as correct">
                   <svg
                     className="w-3.5 h-3.5 shrink-0"
@@ -2102,8 +2237,9 @@ export default function QuizPage({
                   <span className="sm:hidden">Accept</span>
                 </button>
                 <button
-                  onClick={handleRemoveQuestion}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-rose-500/20 border border-slate-600 hover:border-rose-500/30 rounded-lg transition-all duration-200"
+                  onClick={initiateRemoveQuestion}
+                  aria-label="Permanently remove this question from the quiz and library"
+                  className="flex items-center gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 min-h-[44px] sm:min-h-0 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-rose-500/20 border border-slate-600 hover:border-rose-500/30 rounded-lg transition-all duration-200"
                   title="Remove this question from the quiz">
                   <svg
                     className="w-3.5 h-3.5 shrink-0"
@@ -2553,12 +2689,13 @@ export default function QuizPage({
       )}
 
       {/* Action buttons - Order: Show, Hint, Check (primary), Next */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* Show Answer */}
         <button
           onClick={handleShowAnswer}
           disabled={areAnswersChecked || isChecking || isLoadingHint}
-          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
+          aria-label="Reveal the correct answer. This will count as incorrect and add the question back to your learning pool. Keyboard shortcut: S"
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3.5 sm:py-3 px-4 sm:px-3 min-h-[48px] sm:min-h-0 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
               : "bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 border border-orange-500/30 active:scale-[0.98]"
@@ -2605,7 +2742,10 @@ export default function QuizPage({
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                 />
               </svg>
-              Show
+              <span>Show</span>
+              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-slate-700/50 rounded border border-slate-600 hidden lg:inline-block">
+                S
+              </kbd>
             </>
           )}
         </button>
@@ -2616,7 +2756,9 @@ export default function QuizPage({
           disabled={
             areAnswersChecked || isChecking || isLoadingHint || !combinedText
           }
-          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
+          aria-label="Request a hint for this question without revealing the full answer. Keyboard shortcut: H"
+          aria-busy={isLoadingHint}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3.5 sm:py-3 px-4 sm:px-3 min-h-[48px] sm:min-h-0 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint || !combinedText
               ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
               : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 active:scale-[0.98]"
@@ -2657,7 +2799,10 @@ export default function QuizPage({
                   d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                 />
               </svg>
-              Hint
+              <span>Hint</span>
+              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-slate-700/50 rounded border border-slate-600 hidden lg:inline-block">
+                H
+              </kbd>
             </>
           )}
         </button>
@@ -2671,7 +2816,9 @@ export default function QuizPage({
             isLoadingHint ||
             (currentTask?.question.isOpen && !openAnswer.trim())
           }
-          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 ${
+          aria-label={`Check your answer${currentTask?.question.isOpen ? '' : 's'}. Keyboard shortcut: Space bar`}
+          aria-busy={isChecking && !isAnswerRevealed}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3.5 sm:py-3 px-4 sm:px-3 min-h-[48px] sm:min-h-0 rounded-xl text-sm sm:text-base font-semibold transition-all duration-200 ${
             areAnswersChecked ||
             isChecking ||
             isLoadingHint ||
@@ -2715,7 +2862,10 @@ export default function QuizPage({
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              Check
+              <span>Check</span>
+              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-emerald-700/50 rounded border border-emerald-600 hidden lg:inline-block">
+                Space
+              </kbd>
             </>
           )}
         </button>
@@ -2724,7 +2874,8 @@ export default function QuizPage({
         <button
           onClick={handleNextQuestionClick}
           disabled={!areAnswersChecked}
-          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
+          aria-label="Continue to the next question. Keyboard shortcut: Space bar"
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3.5 sm:py-3 px-4 sm:px-3 min-h-[48px] sm:min-h-0 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked
               ? "bg-indigo-500 hover:bg-indigo-400 text-white active:scale-[0.98]"
               : "bg-slate-700/50 text-slate-500 cursor-not-allowed"
@@ -2741,7 +2892,10 @@ export default function QuizPage({
               d="M13 7l5 5m0 0l-5 5m5-5H6"
             />
           </svg>
-          Next
+          <span>Next</span>
+          <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-indigo-700/50 rounded border border-indigo-600 hidden lg:inline-block">
+            Space
+          </kbd>
         </button>
       </div>
 
@@ -2818,6 +2972,184 @@ export default function QuizPage({
           onConfirmUpdate={handleConfirmUpdate}
         />
       )}
+
+      {/* Accept Answer Confirmation Modal */}
+      <BaseModal
+        isOpen={showAcceptModal}
+        onClose={() => setShowAcceptModal(false)}
+        maxWidth="max-w-lg"
+      >
+        <div className="p-6">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
+                Mark Answer as Correct?
+              </h2>
+              <p className="text-sm text-slate-400">
+                This will override the AI scoring
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-slate-300 mb-3">
+              This action will:
+            </p>
+            <ul className="space-y-2 text-sm text-slate-400">
+              <li className="flex items-start gap-2">
+                <svg className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Mark this question as <strong className="text-slate-300">correct</strong> for this attempt</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Save your answer as the <strong className="text-slate-300">accepted answer</strong> for future quizzes</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Update your quiz library if this quiz is saved</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowAcceptModal(false)}
+              className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmAcceptAnswer}
+              className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg transition-colors"
+            >
+              Mark as Correct
+            </button>
+          </div>
+        </div>
+      </BaseModal>
+
+      {/* Remove Question Confirmation Modal */}
+      <BaseModal
+        isOpen={showRemoveModal}
+        onClose={() => setShowRemoveModal(false)}
+        maxWidth="max-w-lg"
+      >
+        <div className="p-6">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
+                Remove Question?
+              </h2>
+              <p className="text-sm text-slate-400">
+                This action cannot be undone
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/50 rounded-lg p-4 mb-4">
+            <p className="text-sm text-slate-400 mb-2">Question to remove:</p>
+            <p className="text-sm text-slate-100 italic">
+              "{currentTask?.question.value.substring(0, 100)}{currentTask?.question.value.length && currentTask.question.value.length > 100 ? '...' : ''}"
+            </p>
+          </div>
+
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-6">
+            <p className="text-sm text-amber-400">
+              This will remove the question from your current quiz and any saved library version.
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowRemoveModal(false)}
+              className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmRemoveQuestion}
+              className="flex-1 px-4 py-2 bg-rose-500 hover:bg-rose-400 text-white rounded-lg transition-colors"
+            >
+              Remove Question
+            </button>
+          </div>
+        </div>
+      </BaseModal>
+
+      {/* Keyboard Shortcuts Modal */}
+      <BaseModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+        maxWidth="max-w-2xl"
+      >
+        <div className="p-6">
+          <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+            <svg className="w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              />
+            </svg>
+            Keyboard Shortcuts
+          </h2>
+
+          <div className="space-y-3">
+            {[
+              { key: 'Space', action: 'Check answer / Next question', context: 'During quiz' },
+              { key: '1-9', action: 'Select answer option', context: 'Multiple choice questions' },
+              { key: 'H', action: 'Get hint', context: 'Before checking answer' },
+              { key: 'S', action: 'Show answer', context: 'Before checking answer' },
+              { key: 'E', action: 'Show explanation', context: 'After checking answer' },
+              { key: 'Tab', action: 'Toggle AI chat assistant', context: 'Anytime' },
+              { key: 'Esc', action: 'Close chat / Unfocus input', context: 'Anytime' },
+            ].map((shortcut, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between py-2 border-b border-slate-700/50 last:border-0"
+              >
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-200">{shortcut.action}</p>
+                  <p className="text-xs text-slate-500">{shortcut.context}</p>
+                </div>
+                <kbd className="px-3 py-1.5 bg-slate-700 text-slate-200 rounded-lg border border-slate-600 font-mono text-sm">
+                  {shortcut.key}
+                </kbd>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <p className="text-sm text-blue-400">
+              💡 Tip: Most actions can be performed with just the Space bar and number keys
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowShortcutsModal(false)}
+            className="w-full mt-6 px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg transition-colors"
+          >
+            Got it!
+          </button>
+        </div>
+      </BaseModal>
     </div>
   );
 }
