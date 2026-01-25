@@ -30,11 +30,31 @@ export function QuizChatBot({
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [shouldRender, setShouldRender] = useState(isOpen);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Get messages for current question
   const currentMessages = messages.get(questionId) || [];
+
+  // Handle open/close animations
+  useEffect(() => {
+    if (isOpen) {
+      // Opening - render immediately
+      setShouldRender(true);
+      setIsAnimatingOut(false);
+    } else if (shouldRender) {
+      // Closing - start exit animation
+      setIsAnimatingOut(true);
+      // Unmount after animation completes
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsAnimatingOut(false);
+      }, 200); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, shouldRender]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -163,14 +183,10 @@ export function QuizChatBot({
             />
           </svg>
         )}
-        {/* Notification dot for new feature */}
-        {!isOpen && currentMessages.length === 0 && (
-          <span className="absolute top-0 right-0 w-3 h-3 bg-amber-400 rounded-full animate-pulse" />
-        )}
       </button>
 
       {/* Chat Window */}
-      {isOpen && (
+      {shouldRender && (
         <div
           style={{
             position: "fixed",
@@ -178,7 +194,9 @@ export function QuizChatBot({
             right: "1rem",
             zIndex: 9999,
           }}
-          className="w-96 max-w-[calc(100vw-2rem)] h-[500px] max-h-[calc(100vh-12rem)] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          className={`w-96 max-w-[calc(100vw-2rem)] h-[500px] max-h-[calc(100vh-12rem)] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden ${
+            isAnimatingOut ? 'animate-chat-out' : 'animate-chat-in'
+          }`}>
           {/* Header */}
           <div className="px-4 py-3 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
             <div className="flex items-center gap-2">
