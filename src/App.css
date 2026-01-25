@@ -405,127 +405,13 @@ body {
 
 /*
   Custom tooltip implementation using data-tooltip attribute
-  This allows for faster tooltip display (500ms instead of browser default 2-3s)
+  Tooltips are now rendered via JavaScript (useFastTooltips hook) with smart positioning
+  that prevents cutoff at viewport edges and escapes constrained containers
+  This CSS is kept for cursor styling only
 */
 
 /* Position container for tooltips */
 [data-tooltip] {
   position: relative;
   cursor: pointer;
-}
-
-/* Tooltip bubble */
-[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-8px);
-  padding: 6px 10px;
-  background-color: #1e293b; /* slate-800 */
-  color: #f1f5f9; /* slate-100 */
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  white-space: nowrap;
-  border-radius: 6px;
-  border: 1px solid #475569; /* slate-600 */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  pointer-events: none;
-  z-index: 1000;
-  opacity: 0;
-  animation: tooltip-fade-in 0.15s ease-out 0.5s forwards; /* 500ms delay, 150ms fade */
-}
-
-/* Tooltip arrow */
-[data-tooltip]:hover::before {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-2px);
-  border: 5px solid transparent;
-  border-top-color: #1e293b; /* slate-800 */
-  pointer-events: none;
-  z-index: 1001;
-  opacity: 0;
-  animation: tooltip-arrow-fade-in 0.15s ease-out 0.5s forwards; /* 500ms delay */
-}
-
-/* Tooltip fade-in animation */
-@keyframes tooltip-fade-in {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(-8px);
-  }
-}
-
-/* Arrow fade-in animation */
-@keyframes tooltip-arrow-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Bottom tooltip variant */
-[data-tooltip-bottom]:hover::after {
-  content: attr(data-tooltip-bottom);
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(8px);
-  padding: 6px 10px;
-  background-color: #1e293b;
-  color: #f1f5f9;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  white-space: nowrap;
-  border-radius: 6px;
-  border: 1px solid #475569;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  pointer-events: none;
-  z-index: 1000;
-  opacity: 0;
-  animation: tooltip-bottom-fade-in 0.15s ease-out 0.5s forwards;
-}
-
-[data-tooltip-bottom]:hover::before {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(2px);
-  border: 5px solid transparent;
-  border-bottom-color: #1e293b;
-  pointer-events: none;
-  z-index: 1001;
-  opacity: 0;
-  animation: tooltip-arrow-fade-in 0.15s ease-out 0.5s forwards;
-}
-
-@keyframes tooltip-bottom-fade-in {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(8px);
-  }
-}
-
-/* Prevent tooltips from going off-screen */
-@media (max-width: 640px) {
-  [data-tooltip]:hover::after,
-  [data-tooltip-bottom]:hover::after {
-    max-width: calc(100vw - 32px);
-    white-space: normal;
-    text-align: center;
-  }
 }
