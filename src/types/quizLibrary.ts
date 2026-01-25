@@ -82,9 +82,40 @@ export interface SortConfig {
  * Filter options for library view
  */
 export interface FilterConfig {
+  // Existing filters
   searchQuery?: string;
   subjectName?: string;
   subjectCode?: string;
+
+  // Question count range
+  questionCountMin?: number;
+  questionCountMax?: number;
+
+  // Date range filters
+  createdAfter?: number;   // timestamp
+  createdBefore?: number;  // timestamp
+  updatedAfter?: number;
+  updatedBefore?: number;
+
+  // Language filter
+  language?: QuizLanguage;
+
+  // Question type filter
+  questionType?: 'open' | 'closed' | 'all';
+
+  // Teacher filter
+  teacher?: string;
+}
+
+/**
+ * Date filter presets for quick selection
+ */
+export enum DatePreset {
+  TODAY = 'today',
+  LAST_7_DAYS = 'last_7_days',
+  LAST_30_DAYS = 'last_30_days',
+  THIS_YEAR = 'this_year',
+  CUSTOM = 'custom'
 }
 
 /**

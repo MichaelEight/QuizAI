@@ -326,6 +326,53 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
               filter.subjectCode?.toLowerCase(),
           );
         }
+
+        // Filter by question count range
+        if (filter.questionCountMin !== undefined) {
+          result = result.filter(q => q.totalQuestionCount >= filter.questionCountMin!);
+        }
+        if (filter.questionCountMax !== undefined) {
+          result = result.filter(q => q.totalQuestionCount <= filter.questionCountMax!);
+        }
+
+        // Filter by created date range
+        if (filter.createdAfter !== undefined) {
+          result = result.filter(q => q.createdAt >= filter.createdAfter!);
+        }
+        if (filter.createdBefore !== undefined) {
+          result = result.filter(q => q.createdAt <= filter.createdBefore!);
+        }
+
+        // Filter by updated date range
+        if (filter.updatedAfter !== undefined) {
+          result = result.filter(q => q.updatedAt >= filter.updatedAfter!);
+        }
+        if (filter.updatedBefore !== undefined) {
+          result = result.filter(q => q.updatedAt <= filter.updatedBefore!);
+        }
+
+        // Filter by language
+        if (filter.language) {
+          result = result.filter(q => q.language === filter.language);
+        }
+
+        // Filter by question type
+        if (filter.questionType && filter.questionType !== 'all') {
+          result = result.filter(q => {
+            if (filter.questionType === 'open') {
+              return q.openQuestionCount > 0;
+            } else {
+              return q.closedQuestionCount > 0;
+            }
+          });
+        }
+
+        // Filter by teacher
+        if (filter.teacher) {
+          result = result.filter(q =>
+            q.teacher?.toLowerCase() === filter.teacher!.toLowerCase()
+          );
+        }
       }
 
       // Apply sort

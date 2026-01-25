@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useQuizLibrary } from "./context/QuizLibraryContext";
-import { SavedQuiz, SortConfig, SortField } from "./types/quizLibrary";
+import { SavedQuiz, SortConfig, SortField, DatePreset, FilterConfig } from "./types/quizLibrary";
 import { Task } from "./QuestionsTypes";
 import { QuizLanguage } from "./SettingsType";
 import { SourceTextModal } from "./components/SourceTextModal";
@@ -31,11 +31,37 @@ export default function LibraryPage({
     updateQuiz,
     refreshQuizzes,
     restoreBackup,
+    getFilteredQuizzes,
   } = useQuizLibrary();
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
+
+  // Advanced filters state
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Question count range
+  const [questionCountMin, setQuestionCountMin] = useState<number | undefined>();
+  const [questionCountMax, setQuestionCountMax] = useState<number | undefined>();
+
+  // Date filters
+  const [createdDatePreset, setCreatedDatePreset] = useState<DatePreset | null>(null);
+  const [createdAfter, setCreatedAfter] = useState<number | undefined>();
+  const [createdBefore, setCreatedBefore] = useState<number | undefined>();
+
+  const [updatedDatePreset, setUpdatedDatePreset] = useState<DatePreset | null>(null);
+  const [updatedAfter, setUpdatedAfter] = useState<number | undefined>();
+  const [updatedBefore, setUpdatedBefore] = useState<number | undefined>();
+
+  // Language filter
+  const [languageFilter, setLanguageFilter] = useState<QuizLanguage | undefined>();
+
+  // Question type filter
+  const [questionTypeFilter, setQuestionTypeFilter] = useState<'open' | 'closed' | 'all'>('all');
+
+  // Teacher filter
+  const [teacherFilter, setTeacherFilter] = useState<string | undefined>();
 
   // Sort state
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -88,6 +114,9 @@ export default function LibraryPage({
   // Loading states for operations
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null); // Store quiz ID being duplicated
 
+  // Dropdown menu state
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
   // Get unique subjects for filter dropdown
   const uniqueSubjects = useMemo(() => {
     const subjects = new Set<string>();
@@ -97,53 +126,145 @@ export default function LibraryPage({
     return Array.from(subjects).sort();
   }, [quizzes]);
 
-  // Filter and sort quizzes
-  const filteredQuizzes = useMemo(() => {
-    // Filter out backup versions
-    let result = quizzes.filter((q) => !q.isBackup);
-
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (q) =>
-          q.title.toLowerCase().includes(query) ||
-          q.description?.toLowerCase().includes(query) ||
-          q.subjectName?.toLowerCase().includes(query) ||
-          q.subjectCode?.toLowerCase().includes(query) ||
-          q.teacher?.toLowerCase().includes(query),
-      );
-    }
-
-    // Apply subject filter
-    if (subjectFilter) {
-      result = result.filter((q) => q.subjectName === subjectFilter);
-    }
-
-    // Apply sort
-    result.sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortConfig.field) {
-        case "title":
-          comparison = a.title.localeCompare(b.title);
-          break;
-        case "createdAt":
-          comparison = a.createdAt - b.createdAt;
-          break;
-        case "updatedAt":
-          comparison = a.updatedAt - b.updatedAt;
-          break;
-        case "totalQuestionCount":
-          comparison = a.totalQuestionCount - b.totalQuestionCount;
-          break;
-      }
-
-      return sortConfig.direction === "desc" ? -comparison : comparison;
+  // Get unique teachers for filter dropdown
+  const uniqueTeachers = useMemo(() => {
+    const teachers = new Set<string>();
+    quizzes.forEach((q) => {
+      if (q.teacher) teachers.add(q.teacher);
     });
+    return Array.from(teachers).sort();
+  }, [quizzes]);
 
-    return result;
-  }, [quizzes, searchQuery, subjectFilter, sortConfig]);
+  // Count active filters
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (searchQuery) count++;
+    if (subjectFilter) count++;
+    if (questionCountMin !== undefined || questionCountMax !== undefined) count++;
+    if (createdAfter || createdBefore) count++;
+    if (updatedAfter || updatedBefore) count++;
+    if (languageFilter) count++;
+    if (questionTypeFilter !== 'all') count++;
+    if (teacherFilter) count++;
+    return count;
+  }, [
+    searchQuery, subjectFilter, questionCountMin, questionCountMax,
+    createdAfter, createdBefore, updatedAfter, updatedBefore,
+    languageFilter, questionTypeFilter, teacherFilter
+  ]);
+
+  // Handle created date preset selection
+  const handleCreatedDatePreset = (preset: DatePreset) => {
+    const now = Date.now();
+    setCreatedDatePreset(preset);
+
+    switch (preset) {
+      case DatePreset.TODAY:
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        setCreatedAfter(todayStart.getTime());
+        setCreatedBefore(undefined);
+        break;
+      case DatePreset.LAST_7_DAYS:
+        setCreatedAfter(now - 7 * 24 * 60 * 60 * 1000);
+        setCreatedBefore(undefined);
+        break;
+      case DatePreset.LAST_30_DAYS:
+        setCreatedAfter(now - 30 * 24 * 60 * 60 * 1000);
+        setCreatedBefore(undefined);
+        break;
+      case DatePreset.THIS_YEAR:
+        const yearStart = new Date(new Date().getFullYear(), 0, 1);
+        setCreatedAfter(yearStart.getTime());
+        setCreatedBefore(undefined);
+        break;
+      case DatePreset.CUSTOM:
+        break;
+    }
+  };
+
+  // Handle updated date preset selection
+  const handleUpdatedDatePreset = (preset: DatePreset) => {
+    const now = Date.now();
+    setUpdatedDatePreset(preset);
+
+    switch (preset) {
+      case DatePreset.TODAY:
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        setUpdatedAfter(todayStart.getTime());
+        setUpdatedBefore(undefined);
+        break;
+      case DatePreset.LAST_7_DAYS:
+        setUpdatedAfter(now - 7 * 24 * 60 * 60 * 1000);
+        setUpdatedBefore(undefined);
+        break;
+      case DatePreset.LAST_30_DAYS:
+        setUpdatedAfter(now - 30 * 24 * 60 * 60 * 1000);
+        setUpdatedBefore(undefined);
+        break;
+      case DatePreset.THIS_YEAR:
+        const yearStart = new Date(new Date().getFullYear(), 0, 1);
+        setUpdatedAfter(yearStart.getTime());
+        setUpdatedBefore(undefined);
+        break;
+      case DatePreset.CUSTOM:
+        break;
+    }
+  };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSubjectFilter("");
+    setQuestionCountMin(undefined);
+    setQuestionCountMax(undefined);
+    setCreatedDatePreset(null);
+    setCreatedAfter(undefined);
+    setCreatedBefore(undefined);
+    setUpdatedDatePreset(null);
+    setUpdatedAfter(undefined);
+    setUpdatedBefore(undefined);
+    setLanguageFilter(undefined);
+    setQuestionTypeFilter('all');
+    setTeacherFilter(undefined);
+  };
+
+  // Filter and sort quizzes using context's getFilteredQuizzes
+  const filteredQuizzes = useMemo(() => {
+    const filterConfig: FilterConfig = {
+      searchQuery,
+      subjectName: subjectFilter || undefined,
+      questionCountMin,
+      questionCountMax,
+      createdAfter,
+      createdBefore,
+      updatedAfter,
+      updatedBefore,
+      language: languageFilter,
+      questionType: questionTypeFilter,
+      teacher: teacherFilter,
+    };
+
+    return getFilteredQuizzes(filterConfig, sortConfig);
+  }, [
+    searchQuery, subjectFilter, questionCountMin, questionCountMax,
+    createdAfter, createdBefore, updatedAfter, updatedBefore,
+    languageFilter, questionTypeFilter, teacherFilter,
+    sortConfig, getFilteredQuizzes
+  ]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (openMenuId) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [openMenuId]);
 
   const handleSort = (field: SortField) => {
     setSortConfig((prev) => ({
@@ -472,50 +593,337 @@ export default function LibraryPage({
         </div>
       ) : (
         <>
-          {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          {/* Search and Filters */}
+          <div className="space-y-3">
+            {/* Always visible: Search + Toggle */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 relative">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search quizzes..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                 />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search quizzes..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
-              />
+              </div>
+
+              {/* Advanced Filters Toggle */}
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="px-2 py-0.5 bg-indigo-500 text-white rounded-full text-xs font-medium">
+                    {activeFilterCount}
+                  </span>
+                )}
+                <svg className={`w-4 h-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`}
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
-            {uniqueSubjects.length > 0 && (
-              <select
-                value={subjectFilter}
-                onChange={(e) => setSubjectFilter(e.target.value)}
-                className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
-                <option value="">All Subjects</option>
-                {uniqueSubjects.map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject}
-                  </option>
-                ))}
-              </select>
+
+            {/* Collapsible Advanced Filters Panel */}
+            {showAdvancedFilters && (
+              <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                {/* Filters Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Subject Filter */}
+                  {uniqueSubjects.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-2">
+                        Subject
+                      </label>
+                      <select
+                        value={subjectFilter}
+                        onChange={(e) => setSubjectFilter(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
+                        <option value="">All Subjects</option>
+                        {uniqueSubjects.map((subject) => (
+                          <option key={subject} value={subject}>
+                            {subject}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Teacher Filter */}
+                  {uniqueTeachers.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-2">
+                        Teacher
+                      </label>
+                      <select
+                        value={teacherFilter || ""}
+                        onChange={(e) => setTeacherFilter(e.target.value || undefined)}
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
+                        <option value="">All Teachers</option>
+                        {uniqueTeachers.map((teacher) => (
+                          <option key={teacher} value={teacher}>
+                            {teacher}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Language Filter */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-2">
+                      Language
+                    </label>
+                    <select
+                      value={languageFilter || ""}
+                      onChange={(e) => setLanguageFilter(e.target.value as QuizLanguage || undefined)}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
+                      <option value="">All Languages</option>
+                      <option value="english">🇬🇧 English</option>
+                      <option value="polish">🇵🇱 Polski</option>
+                      <option value="spanish">🇪🇸 Español</option>
+                      <option value="german">🇩🇪 Deutsch</option>
+                    </select>
+                  </div>
+
+                  {/* Question Type Filter */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-2">
+                      Question Type
+                    </label>
+                    <select
+                      value={questionTypeFilter}
+                      onChange={(e) => setQuestionTypeFilter(e.target.value as 'open' | 'closed' | 'all')}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
+                      <option value="all">All Types</option>
+                      <option value="open">Open Questions</option>
+                      <option value="closed">Closed Questions</option>
+                    </select>
+                  </div>
+
+                  {/* Question Count Range */}
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-slate-400 mb-2">
+                      Question Count
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={questionCountMin ?? ""}
+                        onChange={(e) => setQuestionCountMin(e.target.value ? Number(e.target.value) : undefined)}
+                        placeholder="Min"
+                        min="0"
+                        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                      />
+                      <span className="text-slate-500">—</span>
+                      <input
+                        type="number"
+                        value={questionCountMax ?? ""}
+                        onChange={(e) => setQuestionCountMax(e.target.value ? Number(e.target.value) : undefined)}
+                        placeholder="Max"
+                        min="0"
+                        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date Filters Section */}
+                <div className="pt-4 border-t border-slate-700">
+                  <h4 className="text-sm font-medium text-slate-300 mb-3">Date Filters</h4>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Created Date */}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-2">
+                        Created Date
+                      </label>
+
+                      {/* Quick Presets */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <button
+                          onClick={() => handleCreatedDatePreset(DatePreset.TODAY)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            createdDatePreset === DatePreset.TODAY
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          Today
+                        </button>
+                        <button
+                          onClick={() => handleCreatedDatePreset(DatePreset.LAST_7_DAYS)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            createdDatePreset === DatePreset.LAST_7_DAYS
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          Last 7 Days
+                        </button>
+                        <button
+                          onClick={() => handleCreatedDatePreset(DatePreset.LAST_30_DAYS)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            createdDatePreset === DatePreset.LAST_30_DAYS
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          Last 30 Days
+                        </button>
+                        <button
+                          onClick={() => handleCreatedDatePreset(DatePreset.THIS_YEAR)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            createdDatePreset === DatePreset.THIS_YEAR
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          This Year
+                        </button>
+                        <button
+                          onClick={() => handleCreatedDatePreset(DatePreset.CUSTOM)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            createdDatePreset === DatePreset.CUSTOM
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          Custom
+                        </button>
+                      </div>
+
+                      {/* Custom Date Pickers */}
+                      {createdDatePreset === DatePreset.CUSTOM && (
+                        <div className="space-y-2">
+                          <input
+                            type="date"
+                            value={createdAfter ? new Date(createdAfter).toISOString().split('T')[0] : ''}
+                            onChange={(e) => setCreatedAfter(e.target.value ? new Date(e.target.value).getTime() : undefined)}
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            placeholder="From"
+                          />
+                          <input
+                            type="date"
+                            value={createdBefore ? new Date(createdBefore).toISOString().split('T')[0] : ''}
+                            onChange={(e) => setCreatedBefore(e.target.value ? new Date(e.target.value).getTime() : undefined)}
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            placeholder="To"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Updated Date */}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-2">
+                        Updated Date
+                      </label>
+
+                      {/* Quick Presets */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <button
+                          onClick={() => handleUpdatedDatePreset(DatePreset.TODAY)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            updatedDatePreset === DatePreset.TODAY
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          Today
+                        </button>
+                        <button
+                          onClick={() => handleUpdatedDatePreset(DatePreset.LAST_7_DAYS)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            updatedDatePreset === DatePreset.LAST_7_DAYS
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          Last 7 Days
+                        </button>
+                        <button
+                          onClick={() => handleUpdatedDatePreset(DatePreset.LAST_30_DAYS)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            updatedDatePreset === DatePreset.LAST_30_DAYS
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          Last 30 Days
+                        </button>
+                        <button
+                          onClick={() => handleUpdatedDatePreset(DatePreset.THIS_YEAR)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            updatedDatePreset === DatePreset.THIS_YEAR
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          This Year
+                        </button>
+                        <button
+                          onClick={() => handleUpdatedDatePreset(DatePreset.CUSTOM)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            updatedDatePreset === DatePreset.CUSTOM
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}>
+                          Custom
+                        </button>
+                      </div>
+
+                      {/* Custom Date Pickers */}
+                      {updatedDatePreset === DatePreset.CUSTOM && (
+                        <div className="space-y-2">
+                          <input
+                            type="date"
+                            value={updatedAfter ? new Date(updatedAfter).toISOString().split('T')[0] : ''}
+                            onChange={(e) => setUpdatedAfter(e.target.value ? new Date(e.target.value).getTime() : undefined)}
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            placeholder="From"
+                          />
+                          <input
+                            type="date"
+                            value={updatedBefore ? new Date(updatedBefore).toISOString().split('T')[0] : ''}
+                            onChange={(e) => setUpdatedBefore(e.target.value ? new Date(e.target.value).getTime() : undefined)}
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            placeholder="To"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                <div className="pt-4 border-t border-slate-700 flex justify-end">
+                  <button
+                    onClick={handleClearFilters}
+                    disabled={activeFilterCount === 0}
+                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 text-slate-200 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 disabled:cursor-not-allowed">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Clear All Filters
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
           {/* Results count */}
-          {(searchQuery || subjectFilter) && (
+          {activeFilterCount > 0 && (
             <p className="text-sm text-slate-500">
               Showing {filteredQuizzes.length} of {quizzes.length} quizzes
               {searchQuery && ` matching "${searchQuery}"`}
-              {subjectFilter && ` in ${subjectFilter}`}
             </p>
           )}
 
@@ -559,7 +967,7 @@ export default function LibraryPage({
                       {quiz.totalQuestionCount} questions
                     </span>
                     <span className="text-slate-500">
-                      {formatDate(quiz.createdAt)}
+                      Updated {formatDate(quiz.updatedAt)}
                     </span>
                     {getTranslations(quiz.id).length > 1 && (
                       <button
@@ -775,6 +1183,14 @@ export default function LibraryPage({
                         {getSortIcon("createdAt")}
                       </button>
                     </th>
+                    <th className="px-4 py-3 text-left">
+                      <button
+                        onClick={() => handleSort("updatedAt")}
+                        className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-slate-100 transition-colors">
+                        Updated
+                        {getSortIcon("updatedAt")}
+                      </button>
+                    </th>
                     <th className="px-4 py-3 text-right">
                       <span className="text-sm font-medium text-slate-300">
                         Actions
@@ -786,7 +1202,7 @@ export default function LibraryPage({
                   {filteredQuizzes.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="px-4 py-8 text-center text-slate-500">
                         No quizzes match your search
                       </td>
@@ -849,14 +1265,13 @@ export default function LibraryPage({
                           )}
                         </td>
                         <td className="px-4 py-4">
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-slate-100 font-medium">
+                          <div className="text-sm">
+                            <div className="text-slate-100 font-medium">
                               {quiz.totalQuestionCount}
-                            </span>
-                            <span className="text-slate-500">
-                              ({quiz.closedQuestionCount}c /{" "}
-                              {quiz.openQuestionCount}o)
-                            </span>
+                            </div>
+                            <div className="text-slate-500 text-xs">
+                              {quiz.closedQuestionCount}c / {quiz.openQuestionCount}o
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-4">
@@ -865,11 +1280,17 @@ export default function LibraryPage({
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <div className="flex items-center justify-end gap-1">
+                          <span className="text-sm text-slate-400">
+                            {formatDate(quiz.updatedAt)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            {/* Primary Actions - Always Visible */}
                             <button
                               onClick={() => handleLoadQuiz(quiz)}
                               className="p-2 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
-                              title="Load Quiz">
+                              title="Start Quiz">
                               <svg
                                 className="w-5 h-5"
                                 fill="none"
@@ -891,15 +1312,13 @@ export default function LibraryPage({
                             </button>
                             <button
                               onClick={() => handleEditClick(quiz)}
-                              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
-                              title="Edit"
-                              aria-label={`Edit ${quiz.title}`}>
+                              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
+                              title="Edit">
                               <svg
                                 className="w-5 h-5"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                aria-hidden="true">
+                                stroke="currentColor">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -909,117 +1328,14 @@ export default function LibraryPage({
                               </svg>
                             </button>
                             <button
-                              onClick={() => handleDuplicate(quiz)}
-                              disabled={isDuplicating === quiz.id}
-                              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-wait min-h-[44px] min-w-[44px]"
-                              title="Duplicate"
-                              aria-label={`Duplicate ${quiz.title}`}>
-                              {isDuplicating === quiz.id ? (
-                                <svg
-                                  className="w-5 h-5 animate-spin"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  aria-hidden="true">
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  />
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  />
-                                </svg>
-                              ) : (
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  aria-hidden="true">
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                  />
-                                </svg>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleTranslateClick(quiz)}
-                              className="p-2 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
-                              title="Translate"
-                              aria-label={`Translate ${quiz.title} to another language`}>
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                aria-hidden="true">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-                                />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => setViewingSourceQuiz(quiz)}
-                              className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
-                              title="View Source Text"
-                              aria-label={`View source text for ${quiz.title}`}>
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                aria-hidden="true">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                              </svg>
-                            </button>
-                            {quiz.previousVersionId && (
-                              <button
-                                onClick={() => handleRestoreBackup(quiz)}
-                                className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
-                                title="Restore Backup"
-                                aria-label={`Restore previous version of ${quiz.title}`}>
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  aria-hidden="true">
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                  />
-                                </svg>
-                              </button>
-                            )}
-                            <button
                               onClick={() => setDeletingQuiz(quiz)}
-                              className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
-                              title="Delete"
-                              aria-label={`Delete ${quiz.title}`}>
+                              className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
+                              title="Delete">
                               <svg
                                 className="w-5 h-5"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                aria-hidden="true">
+                                stroke="currentColor">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -1028,6 +1344,94 @@ export default function LibraryPage({
                                 />
                               </svg>
                             </button>
+
+                            {/* More Actions Menu */}
+                            <div className="relative">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(openMenuId === quiz.id ? null : quiz.id);
+                                }}
+                                className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
+                                title="More actions">
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                  />
+                                </svg>
+                              </button>
+
+                              {/* Dropdown Menu */}
+                              {openMenuId === quiz.id && (
+                                <div
+                                  className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50"
+                                  onClick={(e) => e.stopPropagation()}>
+                                  <div className="py-1">
+                                    <button
+                                      onClick={() => {
+                                        handleDuplicate(quiz);
+                                        setOpenMenuId(null);
+                                      }}
+                                      disabled={isDuplicating === quiz.id}
+                                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3 disabled:opacity-50 disabled:cursor-wait">
+                                      {isDuplicating === quiz.id ? (
+                                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                      ) : (
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                      )}
+                                      Duplicate
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        handleTranslateClick(quiz);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                                      </svg>
+                                      Translate
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setViewingSourceQuiz(quiz);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                      View Source
+                                    </button>
+                                    {quiz.previousVersionId && (
+                                      <button
+                                        onClick={() => {
+                                          handleRestoreBackup(quiz);
+                                          setOpenMenuId(null);
+                                        }}
+                                        className="w-full px-4 py-2 text-left text-sm text-amber-400 hover:bg-slate-700 hover:text-amber-300 transition-colors flex items-center gap-3">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Restore Backup
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                       </tr>
