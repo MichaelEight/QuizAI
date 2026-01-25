@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { flushSync } from "react-dom";
 import { Link, useLocation } from "react-router";
 import { Task, AnswerOverride } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
@@ -458,6 +459,7 @@ export default function QuizPage({
     // Reset gamification effects
     setShowCorrectEffect(false);
     setShowLearntEffect(false);
+    gamification.clearCelebration();
   }
 
   function resetQuiz() {
@@ -708,7 +710,10 @@ export default function QuizPage({
   };
 
   const handleNextQuestionClick = () => {
-    resetRound();
+    // Force synchronous state update to immediately remove feedback UI
+    flushSync(() => {
+      resetRound();
+    });
 
     if (taskPool.length === 0) {
       setIsQuizEnded(true);
@@ -2090,6 +2095,7 @@ export default function QuizPage({
       {/* Feedback */}
       {areAnswersChecked && (
         <div
+          key={currentTask?.id}
           className={`mb-6 p-4 rounded-xl border ${
             isRoundWon
               ? "bg-emerald-500/10 border-emerald-500/20"
