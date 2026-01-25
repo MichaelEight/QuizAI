@@ -30,7 +30,7 @@ export function SuccessToast({ message, onDismiss }: SuccessToastProps) {
       <div
         className={`
           flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl
-          border-emerald-500/40 bg-emerald-500/15
+          border-emerald-500/50 bg-slate-800
           ${isExiting ? 'animate-toast-out' : 'animate-toast-in'}
           max-w-xs
         `}

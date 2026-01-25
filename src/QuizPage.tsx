@@ -201,10 +201,17 @@ export default function QuizPage({
 
   // Track loaded quiz from library (for update functionality)
   const location = useLocation();
-  const [loadedQuizId, setLoadedQuizId] = useState<string | null>(null);
-  const [loadedQuizVersion, setLoadedQuizVersion] = useState<number | null>(
-    null,
-  );
+  const [loadedQuizId, setLoadedQuizId] = useState<string | null>(() => {
+    return sessionStorage.getItem('quizai_loaded_quiz_id') || null;
+  });
+  const [loadedQuizVersion, setLoadedQuizVersion] = useState<number | null>(() => {
+    const stored = sessionStorage.getItem('quizai_loaded_quiz_version');
+    return stored ? parseInt(stored, 10) : null;
+  });
+  const [hasChanges, setHasChanges] = useState<boolean>(false);
+
+  // Quiz library for update functionality (needed early for useEffect below)
+  const { getQuizById, updateQuizContent } = useQuizLibrary();
 
   // Extract quiz ID from navigation state on mount
   useEffect(() => {
@@ -215,8 +222,48 @@ export default function QuizPage({
     if (state?.loadedQuizId) {
       setLoadedQuizId(state.loadedQuizId);
       setLoadedQuizVersion(state.loadedQuizVersion || null);
+
+      // Persist to sessionStorage so it survives location.state clearing
+      sessionStorage.setItem('quizai_loaded_quiz_id', state.loadedQuizId);
+      if (state.loadedQuizVersion !== undefined) {
+        sessionStorage.setItem('quizai_loaded_quiz_version', state.loadedQuizVersion.toString());
+      }
     }
   }, [location.state]);
+
+  // Cleanup sessionStorage on unmount
+  useEffect(() => {
+    return () => {
+      sessionStorage.removeItem('quizai_loaded_quiz_id');
+      sessionStorage.removeItem('quizai_loaded_quiz_version');
+    };
+  }, []);
+
+  // Check for changes whenever tasks or loadedQuizId changes
+  useEffect(() => {
+    const checkForChanges = async () => {
+      if (!loadedQuizId) {
+        setHasChanges(false);
+        return;
+      }
+
+      try {
+        const libraryQuiz = await getQuizById(loadedQuizId);
+        if (!libraryQuiz) {
+          setHasChanges(false);
+          return;
+        }
+
+        const summary = compareQuizzes(libraryQuiz.tasks, [...tasks]);
+        setHasChanges(summary.totalChanges > 0);
+      } catch (err) {
+        console.error("Failed to check for changes:", err);
+        setHasChanges(false);
+      }
+    };
+
+    checkForChanges();
+  }, [tasks, loadedQuizId, getQuizById]);
 
   // State for "Show Answer" feature
   const [revealedOpenAnswer, setRevealedOpenAnswer] = useState<string | null>(
@@ -240,8 +287,7 @@ export default function QuizPage({
   const [showCorrectEffect, setShowCorrectEffect] = useState(false);
   const [showLearntEffect, setShowLearntEffect] = useState(false);
 
-  // Quiz library for update functionality
-  const { getQuizById, updateQuizContent } = useQuizLibrary();
+  // Achievement state
   const [toastAchievement, setToastAchievement] = useState<Achievement | null>(
     null,
   );
@@ -1351,7 +1397,11 @@ export default function QuizPage({
 
   // Handler to show diff modal
   const handleShowDiffModal = async () => {
-    if (!loadedQuizId) return;
+    if (!loadedQuizId) {
+      console.error("Update button clicked but loadedQuizId is null");
+      setSuccessMessage("Cannot update: Quiz ID not found. Please reload from library.");
+      return;
+    }
 
     try {
       // Fetch library version
@@ -1453,15 +1503,25 @@ export default function QuizPage({
         return;
       }
 
-      // ? - Open keyboard shortcuts modal (available anytime)
+      // Skip shortcuts if typing in input field or chat is open
+      // (except TAB and ESC which are handled above)
+      const target = e.target as HTMLElement;
+      const isTypingInInput =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable;
+
+      if (isTypingInInput || isChatOpen) return;
+
+      // ? - Open keyboard shortcuts modal
       if (e.key === "?") {
         e.preventDefault();
         setShowShortcutsModal(true);
         return;
       }
 
-      // Skip other shortcuts if typing in input field or chat is open
-      if (isInputFocused || isChatOpen) return;
+      // Skip other shortcuts if input focused
+      if (isInputFocused) return;
 
       // Number keys 1-9 and 0 for answer selection (closed questions only)
       // 0 selects the 10th answer (or last answer if less than 10)
@@ -1817,56 +1877,17 @@ export default function QuizPage({
       {/* Main Content */}
       <div className="animate-fade-in max-w-3xl mx-auto">
       {/* Action buttons - top right of active quiz */}
-      <div className="flex items-center gap-2 justify-between mb-2">
-        {/* Progress save indicator */}
-        {saveStatus && (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            {saveStatus === 'saving' && (
-              <>
-                <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <span>Saving...</span>
-              </>
-            )}
-            {saveStatus === 'saved' && (
-              <>
-                <svg className="h-3 w-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-emerald-400">Saved</span>
-              </>
-            )}
-            {saveStatus === 'error' && (
-              <>
-                <svg className="h-3 w-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-rose-400">Save failed</span>
-              </>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 justify-end mb-2">
         {loadedQuizId && (
           <button
             onClick={handleShowDiffModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:text-emerald-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-emerald-500/50 rounded-lg transition-all duration-200"
-            title="Update quiz in library">
+            disabled={!hasChanges}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+              hasChanges
+                ? "text-emerald-400 hover:text-emerald-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-emerald-500/50"
+                : "text-slate-500 bg-slate-800/50 border border-slate-700/50 cursor-not-allowed"
+            }`}
+            title={hasChanges ? "Update quiz in library" : "No changes to update"}>
             <svg
               className="w-4 h-4"
               fill="none"
@@ -1921,7 +1942,6 @@ export default function QuizPage({
           </svg>
           End Quiz
         </button>
-        </div>
       </div>
 
       {/* Progress bars */}
@@ -3152,6 +3172,43 @@ export default function QuizPage({
           </div>
         </div>
       </BaseModal>
+
+      {/* Save Status - Fixed position, no layout shift */}
+      {saveStatus && (
+        <div className="fixed bottom-24 right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg shadow-lg animate-fade-in">
+          {saveStatus === 'saving' && (
+            <>
+              <svg className="animate-spin h-3 w-3 text-slate-400" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <span className="text-xs text-slate-400">Saving progress...</span>
+            </>
+          )}
+          {saveStatus === 'saved' && (
+            <>
+              <svg className="h-3 w-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-xs text-emerald-400">Progress saved</span>
+            </>
+          )}
+          {saveStatus === 'error' && (
+            <>
+              <svg className="h-3 w-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span className="text-xs text-rose-400">Save failed</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Success Toast */}
+      <SuccessToast
+        message={successMessage}
+        onDismiss={() => setSuccessMessage(null)}
+      />
     </>
   );
 }

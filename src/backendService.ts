@@ -49,7 +49,6 @@ export async function checkOpenAnswer(
 export async function generateQuestions(
   text: string,
   settings: Settings,
-  useBatchMode: boolean = false,
 ): Promise<Task[]> {
   if (!text || !settings) {
     throw new Error(
@@ -58,7 +57,7 @@ export async function generateQuestions(
   }
 
   try {
-    return await generateQuestionsService(text, settings, useBatchMode);
+    return await generateQuestionsService(text, settings);
   } catch (error) {
     console.error("Error in generateQuestions:", error);
     return [];
