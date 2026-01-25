@@ -1467,7 +1467,7 @@ export default function LibraryPage({
       {/* Success Toast */}
       <SuccessToast
         message={successMessage}
-        onClose={() => setSuccessMessage(null)}
+        onDismiss={() => setSuccessMessage(null)}
       />
 
       {/* Error Toast */}
