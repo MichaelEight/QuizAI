@@ -10,7 +10,7 @@ import {
   CheckAnswerResult,
 } from "./services/questionService";
 
-export type { CheckAnswerResult } from "./services/questionService";
+export type { CheckAnswerResult, ProgressEvent, ProgressCallback } from "./services/questionService";
 
 export async function checkOpenAnswer(
   text: string,
@@ -49,6 +49,7 @@ export async function checkOpenAnswer(
 export async function generateQuestions(
   text: string,
   settings: Settings,
+  onProgress?: import("./services/questionService").ProgressCallback,
 ): Promise<Task[]> {
   if (!text || !settings) {
     throw new Error(
@@ -57,7 +58,7 @@ export async function generateQuestions(
   }
 
   try {
-    return await generateQuestionsService(text, settings);
+    return await generateQuestionsService(text, settings, onProgress);
   } catch (error) {
     console.error("Error in generateQuestions:", error);
     return [];

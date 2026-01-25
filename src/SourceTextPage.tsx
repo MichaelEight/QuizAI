@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
-import { generateQuestions } from "./backendService";
+import { generateQuestions, ProgressEvent, ProgressCallback } from "./backendService";
 import { Task } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
 import {
@@ -14,6 +14,7 @@ import { FilePreviewModal } from "./components/FilePreviewModal";
 import { countTokens, formatNumber, estimateCost, getAvailableTokens } from "./services/tokenCounterService";
 import { SuccessToast } from "./components/SuccessToast";
 import { BaseModal } from "./components/BaseModal";
+import { GenerationProgress } from "./components/GenerationProgress";
 
 interface SourceTextPageProps {
   sourceText: string;
@@ -135,6 +136,36 @@ export default function SourceTextPage({
 
   const totalQuestions = settings.amountOfClosedQuestions + settings.amountOfOpenQuestions;
 
+  // Progress tracking state
+  interface GenerationProgress {
+    currentType: string | null;
+    currentAttempt: number;
+    maxAttempts: number;
+    questionsReceived: number;
+    questionsTarget: number;
+    typeBreakdown: {
+      [key: string]: {
+        received: number;
+        target: number;
+        complete: boolean;
+      };
+    };
+    stage: string;
+  }
+
+  const [generationProgress, setGenerationProgress] = useState<GenerationProgress>({
+    currentType: null,
+    currentAttempt: 0,
+    maxAttempts: 3,
+    questionsReceived: 0,
+    questionsTarget: totalQuestions,
+    typeBreakdown: {},
+    stage: 'idle',
+  });
+
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+
   // Draft auto-save functionality
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -169,6 +200,20 @@ export default function SourceTextPage({
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Timer to update elapsed time during generation
+  useEffect(() => {
+    if (!isLoading || !startTime) {
+      setElapsedTime(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+    }, 100); // Update every 100ms for smooth display
+
+    return () => clearInterval(interval);
+  }, [isLoading, startTime]);
 
   // Combine file content with manual text
   const combinedText = useMemo(() => {
@@ -309,9 +354,69 @@ export default function SourceTextPage({
 
     setIsLoading(true);
     setError(null);
+    setStartTime(Date.now());
+
+    // Initialize progress
+    setGenerationProgress({
+      currentType: null,
+      currentAttempt: 0,
+      maxAttempts: 3,
+      questionsReceived: 0,
+      questionsTarget: totalQuestions,
+      typeBreakdown: {},
+      stage: 'init',
+    });
+
+    // Progress callback
+    const handleProgress: ProgressCallback = (event: ProgressEvent) => {
+      setGenerationProgress(prev => {
+        const next = { ...prev };
+
+        switch (event.stage) {
+          case 'init':
+            next.stage = 'init';
+            break;
+
+          case 'attempt_start':
+            next.currentType = event.typeName ?? null;
+            next.currentAttempt = event.attempt ?? 0;
+            next.stage = 'generating';
+            break;
+
+          case 'questions_received':
+            next.questionsReceived = event.total ?? prev.questionsReceived;
+
+            // Update type breakdown
+            if (event.typeName) {
+              next.typeBreakdown[event.typeName] = {
+                received: event.total ?? 0,
+                target: event.target ?? 0,
+                complete: (event.total ?? 0) >= (event.target ?? 0),
+              };
+            }
+            break;
+
+          case 'type_complete':
+            if (event.typeName) {
+              next.typeBreakdown[event.typeName] = {
+                received: event.total ?? 0,
+                target: event.target ?? 0,
+                complete: true,
+              };
+            }
+            break;
+
+          case 'all_complete':
+            next.stage = 'complete';
+            break;
+        }
+
+        return next;
+      });
+    };
 
     try {
-      const result = await generateQuestions(combinedText, settings);
+      const result = await generateQuestions(combinedText, settings, handleProgress);
 
       if (!result || result.length === 0) {
         setError("No questions were generated. Please try with different text.");
@@ -325,6 +430,7 @@ export default function SourceTextPage({
       console.error("Error generating questions:", err);
     } finally {
       setIsLoading(false);
+      setStartTime(null);
     }
   };
 
@@ -627,25 +733,17 @@ export default function SourceTextPage({
           }`}
         >
           {isLoading ? (
-            <>
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Generating Questions...
-            </>
+            <div className="w-full px-4">
+              <GenerationProgress
+                currentType={generationProgress.currentType}
+                currentAttempt={generationProgress.currentAttempt}
+                maxAttempts={generationProgress.maxAttempts}
+                questionsReceived={generationProgress.questionsReceived}
+                questionsTarget={generationProgress.questionsTarget}
+                typeBreakdown={generationProgress.typeBreakdown}
+                elapsedTime={elapsedTime}
+              />
+            </div>
           ) : (
             <>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

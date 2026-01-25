@@ -29,6 +29,20 @@ export interface CheckAnswerResult {
   breakdown: ScoreBreakdownItem[];
 }
 
+export interface ProgressEvent {
+  stage: 'init' | 'attempt_start' | 'questions_received' | 'questions_validated' | 'type_complete' | 'all_complete';
+  questionType?: QuestionType;  // 'open' | 'closed' | 'closed-multi'
+  attempt?: number;             // 1, 2, or 3
+  maxAttempts?: number;         // Always 3
+  received?: number;            // Questions received this attempt
+  total?: number;               // Total accumulated questions
+  target?: number;              // Target question count
+  filtered?: number;            // Questions filtered out (wrong type)
+  typeName?: string;            // Human-readable: "Open", "Multiple Choice", "Select All"
+}
+
+export type ProgressCallback = (event: ProgressEvent) => void;
+
 interface ErrorResponse {
   status: "error";
   content: string;
@@ -51,6 +65,7 @@ async function generateQuestionsPerType(
   amount: number,
   type: QuestionType,
   options: GenerationOptions,
+  onProgress?: ProgressCallback,
 ): Promise<QuestionResponse> {
   if (amount <= 0) {
     return [];
@@ -78,7 +93,7 @@ async function generateQuestionsPerType(
 
     // Validate and filter questions
     if (Array.isArray(parsed)) {
-      return validateAndFilterQuestions(parsed, type);
+      return validateAndFilterQuestions(parsed, type, onProgress);
     }
 
     return parsed;
@@ -96,18 +111,38 @@ async function generateQuestionsWithRetry(
   targetAmount: number,
   type: QuestionType,
   options: GenerationOptions,
+  onProgress?: ProgressCallback,
 ): Promise<GeneratedQuestion[]> {
   const MAX_ATTEMPTS = 3;
   const accumulatedQuestions: GeneratedQuestion[] = [];
   let attempt = 0;
 
+  // Human-readable type name
+  const getTypeName = (questionType: QuestionType): string => {
+    if (questionType === QuestionTypes.OPEN) return 'Open Questions';
+    if (questionType === QuestionTypes.CLOSED_MULTI) return 'Multiple Choice Questions';
+    return 'Single Choice Questions';
+  };
+  const typeName = getTypeName(type);
+
   while (attempt < MAX_ATTEMPTS && accumulatedQuestions.length < targetAmount) {
     attempt++;
     const remaining = targetAmount - accumulatedQuestions.length;
 
+    // EMIT: Attempt started
+    onProgress?.({
+      stage: 'attempt_start',
+      questionType: type,
+      attempt,
+      maxAttempts: MAX_ATTEMPTS,
+      total: accumulatedQuestions.length,
+      target: targetAmount,
+      typeName,
+    });
+
     console.log(`[Attempt ${attempt}/${MAX_ATTEMPTS}] Requesting ${remaining} ${type} questions...`);
 
-    const result = await generateQuestionsPerType(text, remaining, type, options);
+    const result = await generateQuestionsPerType(text, remaining, type, options, onProgress);
 
     // Handle error responses
     if (!Array.isArray(result)) {
@@ -118,6 +153,19 @@ async function generateQuestionsWithRetry(
     // Accumulate valid questions
     if (result.length > 0) {
       accumulatedQuestions.push(...result);
+
+      // EMIT: Questions received
+      onProgress?.({
+        stage: 'questions_received',
+        questionType: type,
+        attempt,
+        maxAttempts: MAX_ATTEMPTS,
+        received: result.length,
+        total: accumulatedQuestions.length,
+        target: targetAmount,
+        typeName,
+      });
+
       console.log(`  ✓ Got ${result.length} questions (total: ${accumulatedQuestions.length}/${targetAmount})`);
     } else {
       console.warn(`  ⚠ Attempt ${attempt} returned 0 questions`);
@@ -140,12 +188,21 @@ async function generateQuestionsWithRetry(
     console.log(`✓ Successfully generated ${finalQuestions.length} ${type} questions`);
   }
 
+  // EMIT: Type complete
+  onProgress?.({
+    stage: 'type_complete',
+    questionType: type,
+    total: finalQuestions.length,
+    target: targetAmount,
+    typeName,
+  });
+
   return finalQuestions;
 }
 
 function validateQuestionType(
   question: GeneratedQuestion,
-  expectedType: string
+  expectedType: QuestionType
 ): boolean {
   if (!question.answers || question.answers.length === 0) {
     return true; // Open question, no validation needed
@@ -166,13 +223,22 @@ function validateQuestionType(
 
 function validateAndFilterQuestions(
   questions: GeneratedQuestion[],
-  expectedType: string
+  expectedType: QuestionType,
+  onProgress?: ProgressCallback,
 ): GeneratedQuestion[] {
   const validated = questions.filter(q => validateQuestionType(q, expectedType));
 
   if (validated.length < questions.length) {
+    const filtered = questions.length - validated.length;
+
+    // EMIT: Validation filtered some questions
+    onProgress?.({
+      stage: 'questions_validated',
+      filtered,
+    });
+
     console.warn(
-      `AI generated ${questions.length - validated.length} questions that don't match expected type ${expectedType}. ` +
+      `AI generated ${filtered} questions that don't match expected type ${expectedType}. ` +
       `Filtered them out.`
     );
   }
@@ -183,6 +249,7 @@ function validateAndFilterQuestions(
 export async function generateQuestions(
   text: string,
   settings: Settings,
+  onProgress?: ProgressCallback,
 ): Promise<Task[]> {
   const allQuestions: GeneratedQuestion[] = [];
 
@@ -210,6 +277,11 @@ export async function generateQuestions(
     quizLanguage,
   };
 
+  // EMIT: Initialization
+  onProgress?.({
+    stage: 'init',
+  });
+
   try {
     // Generate open questions
     if (openAmount > 0) {
@@ -218,6 +290,7 @@ export async function generateQuestions(
         openAmount,
         QuestionTypes.OPEN,
         generationOptions,
+        onProgress,
       );
       allQuestions.push(...result);
     }
@@ -230,6 +303,7 @@ export async function generateQuestions(
           closedAmount,
           QuestionTypes.CLOSED_MULTI,
           generationOptions,
+          onProgress,
         );
         allQuestions.push(...result);
       } else if (allowMultipleCorrectAnswers) {
@@ -243,6 +317,7 @@ export async function generateQuestions(
             singleAmount,
             QuestionTypes.CLOSED,
             generationOptions,
+            onProgress,
           );
           allQuestions.push(...singleResult);
         }
@@ -254,6 +329,7 @@ export async function generateQuestions(
             multipleAmount,
             QuestionTypes.CLOSED_MULTI,
             generationOptions,
+            onProgress,
           );
           allQuestions.push(...multiResult);
         }
@@ -263,10 +339,16 @@ export async function generateQuestions(
           closedAmount,
           QuestionTypes.CLOSED,
           generationOptions,
+          onProgress,
         );
         allQuestions.push(...result);
       }
     }
+
+    // EMIT: All complete
+    onProgress?.({
+      stage: 'all_complete',
+    });
 
     // Convert to Task[] format with unique IDs
     return allQuestions.map(
