@@ -1813,60 +1813,9 @@ export default function QuizPage({
 
   // Quiz in progress
   return (
-    <div className="animate-fade-in max-w-3xl mx-auto">
-      {/* End Quiz Confirmation Modal */}
-      {showEndQuizModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setShowEndQuizModal(false)}
-          />
-          <div className="relative bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl shadow-black/50 animate-fade-in">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-rose-500/20 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-rose-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-100">End Quiz?</h2>
-                <p className="text-sm text-slate-400">
-                  Your progress will be lost
-                </p>
-              </div>
-            </div>
-            <p className="text-slate-300 mb-6">
-              Are you sure you want to end this quiz? All current progress will
-              be reset.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowEndQuizModal(false);
-                  resetQuiz();
-                }}
-                className="flex-1 bg-rose-500 hover:bg-rose-400 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200">
-                Yes, End Quiz
-              </button>
-              <button
-                onClick={() => setShowEndQuizModal(false)}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-4 py-3 transition-all duration-200">
-                No, Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <>
+      {/* Main Content */}
+      <div className="animate-fade-in max-w-3xl mx-auto">
       {/* Action buttons - top right of active quiz */}
       <div className="flex items-center gap-2 justify-between mb-2">
         {/* Progress save indicator */}
@@ -2941,7 +2890,10 @@ export default function QuizPage({
           onToggle={setIsChatOpen}
         />
       )}
+      </div>
+      {/* End Main Content */}
 
+      {/* Modals - Rendered outside main content for proper backdrop */}
       {/* Options Selection Modal */}
       <OptionsSelectionModal
         isOpen={showOptionsModal}
@@ -3150,6 +3102,56 @@ export default function QuizPage({
           </button>
         </div>
       </BaseModal>
-    </div>
+
+      {/* End Quiz Confirmation Modal */}
+      <BaseModal
+        isOpen={showEndQuizModal}
+        onClose={() => setShowEndQuizModal(false)}
+        maxWidth="max-w-sm"
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-rose-500/20 rounded-lg flex items-center justify-center">
+              <svg
+                className="w-5 h-5 text-rose-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-100">End Quiz?</h2>
+              <p className="text-sm text-slate-400">
+                Your progress will be lost
+              </p>
+            </div>
+          </div>
+          <p className="text-slate-300 mb-6">
+            Are you sure you want to end this quiz? All current progress will be reset.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowEndQuizModal(false);
+                resetQuiz();
+              }}
+              className="flex-1 bg-rose-500 hover:bg-rose-400 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200">
+              Yes, End Quiz
+            </button>
+            <button
+              onClick={() => setShowEndQuizModal(false)}
+              className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-4 py-3 transition-all duration-200">
+              No, Continue
+            </button>
+          </div>
+        </div>
+      </BaseModal>
+    </>
   );
 }
