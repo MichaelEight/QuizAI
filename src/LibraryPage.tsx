@@ -5,6 +5,8 @@ import { SavedQuiz, SortConfig, SortField } from "./types/quizLibrary";
 import { Task } from "./QuestionsTypes";
 import { QuizLanguage } from "./SettingsType";
 import { SourceTextModal } from "./components/SourceTextModal";
+import { BaseModal } from "./components/BaseModal";
+import { SuccessToast } from "./components/SuccessToast";
 
 interface LibraryPageProps {
   setTasks: (tasks: Task[]) => void;
@@ -67,6 +69,17 @@ export default function LibraryPage({
   // Source text modal state
   const [viewingSourceQuiz, setViewingSourceQuiz] =
     useState<SavedQuiz | null>(null);
+
+  // Restore backup confirmation state
+  const [restoringQuiz, setRestoringQuiz] = useState<SavedQuiz | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  // Success/Error notification state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Loading states for operations
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null); // Store quiz ID being duplicated
 
   // Get unique subjects for filter dropdown
   const uniqueSubjects = useMemo(() => {
@@ -210,9 +223,11 @@ export default function LibraryPage({
         subjectName: editSubjectName.trim() || undefined,
         subjectCode: editSubjectCode.trim() || undefined,
       });
+      setSuccessMessage(`Updated "${editTitle.trim()}"`);
       setEditingQuiz(null);
     } catch (err) {
       console.error("Failed to update quiz:", err);
+      setErrorMessage("Failed to update quiz. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -224,19 +239,26 @@ export default function LibraryPage({
     setIsDeleting(true);
     try {
       await deleteQuiz(deletingQuiz.id);
+      setSuccessMessage(`Deleted "${deletingQuiz.title}"`);
       setDeletingQuiz(null);
     } catch (err) {
       console.error("Failed to delete quiz:", err);
+      setErrorMessage("Failed to delete quiz. Please try again.");
     } finally {
       setIsDeleting(false);
     }
   };
 
   const handleDuplicate = async (quiz: SavedQuiz) => {
+    setIsDuplicating(quiz.id);
     try {
       await duplicateQuiz(quiz.id);
+      setSuccessMessage(`Created duplicate of "${quiz.title}"`);
     } catch (err) {
       console.error("Failed to duplicate quiz:", err);
+      setErrorMessage("Failed to duplicate quiz. Please try again.");
+    } finally {
+      setIsDuplicating(null);
     }
   };
 
@@ -263,6 +285,9 @@ export default function LibraryPage({
     setTranslationError(null);
     try {
       await translateQuiz(translatingQuiz.id, targetLanguage);
+      setSuccessMessage(
+        `Created ${targetLanguage} translation of "${translatingQuiz.title}"`,
+      );
       setTranslatingQuiz(null);
     } catch (err) {
       console.error("Failed to translate quiz:", err);
@@ -274,19 +299,24 @@ export default function LibraryPage({
     }
   };
 
-  const handleRestoreBackup = async (quiz: SavedQuiz) => {
+  const handleRestoreBackup = (quiz: SavedQuiz) => {
     if (!quiz.previousVersionId) return;
+    setRestoringQuiz(quiz);
+  };
 
-    const confirmed = window.confirm(
-      `Restore previous version? Current version (v${quiz.version || 1}) will become the backup.`,
-    );
+  const confirmRestoreBackup = async () => {
+    if (!restoringQuiz) return;
 
-    if (!confirmed) return;
-
+    setIsRestoring(true);
     try {
-      await restoreBackup(quiz.id);
+      await restoreBackup(restoringQuiz.id);
+      setSuccessMessage(`Restored previous version of "${restoringQuiz.title}"`);
+      setRestoringQuiz(null);
     } catch (err) {
       console.error("Failed to restore backup:", err);
+      setErrorMessage("Failed to restore previous version. Please try again.");
+    } finally {
+      setIsRestoring(false);
     }
   };
 
@@ -556,12 +586,14 @@ export default function LibraryPage({
                     <button
                       onClick={() => handleEditClick(quiz)}
                       className="p-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
-                      title="Edit">
+                      title="Edit"
+                      aria-label={`Edit ${quiz.title}`}>
                       <svg
                         className="w-5 h-5"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke="currentColor">
+                        stroke="currentColor"
+                        aria-hidden="true">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -572,30 +604,57 @@ export default function LibraryPage({
                     </button>
                     <button
                       onClick={() => handleDuplicate(quiz)}
-                      className="p-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
-                      title="Duplicate">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                        />
-                      </svg>
+                      disabled={isDuplicating === quiz.id}
+                      className="p-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-wait"
+                      title="Duplicate"
+                      aria-label={`Duplicate ${quiz.title}`}>
+                      {isDuplicating === quiz.id ? (
+                        <svg
+                          className="w-5 h-5 animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          aria-hidden="true">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                      )}
                     </button>
                     <button
                       onClick={() => handleTranslateClick(quiz)}
                       className="p-2.5 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors"
-                      title="Translate">
+                      title="Translate"
+                      aria-label={`Translate ${quiz.title} to another language`}>
                       <svg
                         className="w-5 h-5"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke="currentColor">
+                        stroke="currentColor"
+                        aria-hidden="true">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -607,12 +666,14 @@ export default function LibraryPage({
                     <button
                       onClick={() => setViewingSourceQuiz(quiz)}
                       className="p-2.5 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
-                      title="View Source Text">
+                      title="View Source Text"
+                      aria-label={`View source text for ${quiz.title}`}>
                       <svg
                         className="w-5 h-5"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke="currentColor">
+                        stroke="currentColor"
+                        aria-hidden="true">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -625,12 +686,14 @@ export default function LibraryPage({
                       <button
                         onClick={() => handleRestoreBackup(quiz)}
                         className="p-2.5 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
-                        title="Restore Backup">
+                        title="Restore Backup"
+                        aria-label={`Restore previous version of ${quiz.title}`}>
                         <svg
                           className="w-5 h-5"
                           fill="none"
                           viewBox="0 0 24 24"
-                          stroke="currentColor">
+                          stroke="currentColor"
+                          aria-hidden="true">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -643,12 +706,14 @@ export default function LibraryPage({
                     <button
                       onClick={() => setDeletingQuiz(quiz)}
                       className="p-2.5 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
-                      title="Delete">
+                      title="Delete"
+                      aria-label={`Delete ${quiz.title}`}>
                       <svg
                         className="w-5 h-5"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke="currentColor">
+                        stroke="currentColor"
+                        aria-hidden="true">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -822,13 +887,15 @@ export default function LibraryPage({
                             </button>
                             <button
                               onClick={() => handleEditClick(quiz)}
-                              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
-                              title="Edit">
+                              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
+                              title="Edit"
+                              aria-label={`Edit ${quiz.title}`}>
                               <svg
                                 className="w-5 h-5"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor">
+                                stroke="currentColor"
+                                aria-hidden="true">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -839,30 +906,57 @@ export default function LibraryPage({
                             </button>
                             <button
                               onClick={() => handleDuplicate(quiz)}
-                              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
-                              title="Duplicate">
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                />
-                              </svg>
+                              disabled={isDuplicating === quiz.id}
+                              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-wait min-h-[44px] min-w-[44px]"
+                              title="Duplicate"
+                              aria-label={`Duplicate ${quiz.title}`}>
+                              {isDuplicating === quiz.id ? (
+                                <svg
+                                  className="w-5 h-5 animate-spin"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  aria-hidden="true">
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  />
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  aria-hidden="true">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                  />
+                                </svg>
+                              )}
                             </button>
                             <button
                               onClick={() => handleTranslateClick(quiz)}
-                              className="p-2 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors"
-                              title="Translate">
+                              className="p-2 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
+                              title="Translate"
+                              aria-label={`Translate ${quiz.title} to another language`}>
                               <svg
                                 className="w-5 h-5"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor">
+                                stroke="currentColor"
+                                aria-hidden="true">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -873,13 +967,15 @@ export default function LibraryPage({
                             </button>
                             <button
                               onClick={() => setViewingSourceQuiz(quiz)}
-                              className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
-                              title="View Source Text">
+                              className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
+                              title="View Source Text"
+                              aria-label={`View source text for ${quiz.title}`}>
                               <svg
                                 className="w-5 h-5"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor">
+                                stroke="currentColor"
+                                aria-hidden="true">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -891,13 +987,15 @@ export default function LibraryPage({
                             {quiz.previousVersionId && (
                               <button
                                 onClick={() => handleRestoreBackup(quiz)}
-                                className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
-                                title="Restore Backup">
+                                className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
+                                title="Restore Backup"
+                                aria-label={`Restore previous version of ${quiz.title}`}>
                                 <svg
                                   className="w-5 h-5"
                                   fill="none"
                                   viewBox="0 0 24 24"
-                                  stroke="currentColor">
+                                  stroke="currentColor"
+                                  aria-hidden="true">
                                   <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
@@ -909,13 +1007,15 @@ export default function LibraryPage({
                             )}
                             <button
                               onClick={() => setDeletingQuiz(quiz)}
-                              className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
-                              title="Delete">
+                              className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors min-h-[44px] min-w-[44px]"
+                              title="Delete"
+                              aria-label={`Delete ${quiz.title}`}>
                               <svg
                                 className="w-5 h-5"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor">
+                                stroke="currentColor"
+                                aria-hidden="true">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -937,319 +1037,292 @@ export default function LibraryPage({
       )}
 
       {/* Edit Modal */}
-      {editingQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setEditingQuiz(null)}
-          />
-          <div className="relative bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl">
-            <button
-              onClick={() => setEditingQuiz(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+      <BaseModal
+        isOpen={!!editingQuiz}
+        onClose={() => setEditingQuiz(null)}
+        maxWidth="max-w-lg">
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-slate-100 mb-6">
+            Edit Quiz Metadata
+          </h2>
 
-            <h2 className="text-xl font-bold text-slate-100 mb-6">
-              Edit Quiz Metadata
-            </h2>
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="edit-title"
+                className="block text-sm font-medium text-slate-300 mb-1.5">
+                Title <span className="text-rose-400">*</span>
+              </label>
+              <input
+                id="edit-title"
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+              />
+            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                  Title <span className="text-rose-400">*</span>
+            <div>
+              <label
+                htmlFor="edit-description"
+                className="block text-sm font-medium text-slate-300 mb-1.5">
+                Description
+              </label>
+              <textarea
+                id="edit-description"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="edit-subject"
+                  className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Subject
                 </label>
                 <input
+                  id="edit-subject"
                   type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
+                  value={editSubjectName}
+                  onChange={(e) => setEditSubjectName(e.target.value)}
+                  placeholder="e.g., Biology"
                   className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                  Description
-                </label>
-                <textarea
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    value={editSubjectName}
-                    onChange={(e) => setEditSubjectName(e.target.value)}
-                    placeholder="e.g., Biology"
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                    Code
-                  </label>
-                  <input
-                    type="text"
-                    value={editSubjectCode}
-                    onChange={(e) => setEditSubjectCode(e.target.value)}
-                    placeholder="CS101"
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                  Teacher
+                <label
+                  htmlFor="edit-code"
+                  className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Code
                 </label>
                 <input
+                  id="edit-code"
                   type="text"
-                  value={editTeacher}
-                  onChange={(e) => setEditTeacher(e.target.value)}
-                  placeholder="Teacher or professor name"
+                  value={editSubjectCode}
+                  onChange={(e) => setEditSubjectCode(e.target.value)}
+                  placeholder="CS101"
                   className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                 />
               </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => setEditingQuiz(null)}
-                  className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors">
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveEdit}
-                  disabled={isSaving || !editTitle.trim()}
-                  className="flex-1 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors">
-                  {isSaving ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deletingQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setDeletingQuiz(null)}
-          />
-          <div className="relative bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
-            <div className="w-12 h-12 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-6 h-6 text-rose-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
             </div>
 
-            <h2 className="text-xl font-bold text-slate-100 text-center mb-2">
-              Delete Quiz?
-            </h2>
-            <p className="text-slate-400 text-center mb-6">
-              Are you sure you want to delete "{deletingQuiz.title}"? This
-              action cannot be undone.
-            </p>
+            <div>
+              <label
+                htmlFor="edit-teacher"
+                className="block text-sm font-medium text-slate-300 mb-1.5">
+                Teacher
+              </label>
+              <input
+                id="edit-teacher"
+                type="text"
+                value={editTeacher}
+                onChange={(e) => setEditTeacher(e.target.value)}
+                placeholder="Teacher or professor name"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+              />
+            </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-2">
               <button
-                onClick={() => setDeletingQuiz(null)}
+                onClick={() => setEditingQuiz(null)}
                 className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors">
                 Cancel
               </button>
               <button
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 bg-rose-500 hover:bg-rose-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors">
-                {isDeleting ? "Deleting..." : "Delete"}
+                onClick={handleSaveEdit}
+                disabled={isSaving || !editTitle.trim()}
+                className="flex-1 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors">
+                {isSaving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
         </div>
-      )}
+      </BaseModal>
+
+      {/* Delete Confirmation Modal */}
+      <BaseModal
+        isOpen={!!deletingQuiz}
+        onClose={() => setDeletingQuiz(null)}
+        maxWidth="max-w-md">
+        <div className="p-6">
+          <div className="w-12 h-12 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-6 h-6 text-rose-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+
+          <h2 className="text-xl font-bold text-slate-100 text-center mb-2">
+            Delete Quiz?
+          </h2>
+          <p className="text-slate-400 text-center mb-6">
+            Are you sure you want to delete "{deletingQuiz?.title}"? This action
+            cannot be undone.
+          </p>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setDeletingQuiz(null)}
+              className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="flex-1 px-4 py-2.5 bg-rose-500 hover:bg-rose-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors">
+              {isDeleting ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        </div>
+      </BaseModal>
 
       {/* Translation Modal */}
-      {translatingQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => !isTranslating && setTranslatingQuiz(null)}
-          />
-          <div className="relative bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-6 h-6 text-indigo-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-                />
-              </svg>
+      <BaseModal
+        isOpen={!!translatingQuiz}
+        onClose={() => !isTranslating && setTranslatingQuiz(null)}
+        maxWidth="max-w-md">
+        <div className="p-6">
+          <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-6 h-6 text-indigo-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+              />
+            </svg>
+          </div>
+
+          <h2 className="text-xl font-bold text-slate-100 text-center mb-2">
+            Translate Quiz
+          </h2>
+          <p className="text-slate-400 text-center mb-4">
+            Create a translated version of "{translatingQuiz?.title}"
+          </p>
+
+          {translationError && (
+            <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-400 text-sm text-center">
+              {translationError}
             </div>
+          )}
 
-            <h2 className="text-xl font-bold text-slate-100 text-center mb-2">
-              Translate Quiz
-            </h2>
-            <p className="text-slate-400 text-center mb-4">
-              Create a translated version of "{translatingQuiz.title}"
-            </p>
+          <fieldset className="mb-6">
+            <legend className="block text-sm font-medium text-slate-300 mb-2">
+              Target Language
+            </legend>
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                ["english", "polish", "spanish", "german"] as QuizLanguage[]
+              ).map((lang) => {
+                const existingTranslations = translatingQuiz
+                  ? getTranslations(translatingQuiz.id)
+                  : [];
+                const alreadyExists = existingTranslations.some(
+                  (q) => q.language === lang,
+                );
+                const isCurrentLang = translatingQuiz?.language === lang;
+                const isSelected = targetLanguage === lang;
+                const isDisabled = alreadyExists || isCurrentLang;
 
-            {translationError && (
-              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-400 text-sm text-center">
-                {translationError}
-              </div>
-            )}
+                const buttonClass = isSelected
+                  ? "bg-indigo-500/30 border-2 border-indigo-500 text-indigo-100"
+                  : isDisabled
+                    ? "bg-slate-700/30 border-2 border-transparent text-slate-500 cursor-not-allowed"
+                    : "bg-slate-700/50 border-2 border-transparent text-slate-300 hover:bg-slate-700";
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Target Language
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {(
-                  ["english", "polish", "spanish", "german"] as QuizLanguage[]
-                ).map((lang) => {
-                  const existingTranslations = getTranslations(
-                    translatingQuiz.id,
-                  );
-                  const alreadyExists = existingTranslations.some(
-                    (q) => q.language === lang,
-                  );
-                  const isCurrentLang = translatingQuiz.language === lang;
-
-                  return (
-                    <button
-                      key={lang}
-                      onClick={() => setTargetLanguage(lang)}
-                      disabled={alreadyExists || isCurrentLang}
-                      className={`p-3 rounded-lg text-left transition-colors ${
-                        targetLanguage === lang
-                          ? "bg-indigo-500/30 border-2 border-indigo-500 text-indigo-100"
-                          : alreadyExists || isCurrentLang
-                            ? "bg-slate-700/30 border-2 border-transparent text-slate-500 cursor-not-allowed"
-                            : "bg-slate-700/50 border-2 border-transparent text-slate-300 hover:bg-slate-700"
-                      }`}>
-                      <span className="font-medium">
-                        {getLanguageFullName(lang)}
+                return (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => setTargetLanguage(lang)}
+                    disabled={isDisabled}
+                    className={`p-3 rounded-lg text-left transition-colors ${buttonClass}`}>
+                    <span className="font-medium">
+                      {getLanguageFullName(lang)}
+                    </span>
+                    {(alreadyExists || isCurrentLang) && (
+                      <span className="block text-xs mt-0.5 text-slate-500">
+                        {isCurrentLang ? "Current" : "Exists"}
                       </span>
-                      {(alreadyExists || isCurrentLang) && (
-                        <span className="block text-xs mt-0.5 text-slate-500">
-                          {isCurrentLang ? "Current" : "Exists"}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
+          </fieldset>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setTranslatingQuiz(null)}
-                disabled={isTranslating}
-                className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 font-medium rounded-lg transition-colors">
-                Cancel
-              </button>
-              <button
-                onClick={handleTranslateConfirm}
-                disabled={isTranslating}
-                className="flex-1 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
-                {isTranslating ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Translating...
-                  </>
-                ) : (
-                  "Translate"
-                )}
-              </button>
-            </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setTranslatingQuiz(null)}
+              disabled={isTranslating}
+              className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 font-medium rounded-lg transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={handleTranslateConfirm}
+              disabled={isTranslating}
+              className="flex-1 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+              {isTranslating ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Translating...
+                </>
+              ) : (
+                "Translate"
+              )}
+            </button>
           </div>
         </div>
-      )}
+      </BaseModal>
 
       {/* Language Versions Modal */}
-      {showingVersionsFor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setShowingVersionsFor(null)}
-          />
-          <div className="relative bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-slate-100">
-                Language Versions
-              </h2>
-              <button
-                onClick={() => setShowingVersionsFor(null)}
-                className="p-1 text-slate-400 hover:text-slate-100 transition-colors">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
+      <BaseModal
+        isOpen={!!showingVersionsFor}
+        onClose={() => setShowingVersionsFor(null)}
+        maxWidth="max-w-lg">
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-slate-100 mb-4">
+            Language Versions
+          </h2>
 
-            <p className="text-slate-400 text-sm mb-4">
-              Select a language version to load:
-            </p>
+          <p className="text-slate-400 text-sm mb-4">
+            Select a language version to load:
+          </p>
 
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {getTranslations(showingVersionsFor.id).map((version) => (
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {showingVersionsFor &&
+              getTranslations(showingVersionsFor.id).map((version) => (
                 <button
                   key={version.id}
                   onClick={() => {
@@ -1295,8 +1368,9 @@ export default function LibraryPage({
                   </div>
                 </button>
               ))}
-            </div>
+          </div>
 
+          {showingVersionsFor && (
             <div className="mt-4 pt-4 border-t border-slate-700">
               <button
                 onClick={() => {
@@ -1319,9 +1393,9 @@ export default function LibraryPage({
                 Add Translation
               </button>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </BaseModal>
 
       {/* Source Text Modal */}
       {viewingSourceQuiz && (
@@ -1331,6 +1405,106 @@ export default function LibraryPage({
           sourceText={viewingSourceQuiz.sourceText}
           quizTitle={viewingSourceQuiz.title}
         />
+      )}
+
+      {/* Restore Backup Confirmation Modal */}
+      <BaseModal
+        isOpen={!!restoringQuiz}
+        onClose={() => setRestoringQuiz(null)}
+        maxWidth="max-w-lg">
+        <div className="p-6">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+              <svg
+                className="w-6 h-6 text-amber-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
+                Restore Previous Version?
+              </h2>
+              <p className="text-sm text-slate-400">
+                This will swap versions
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-slate-300 mb-3">
+              Current version (v{restoringQuiz?.version || 1}) will become the
+              backup, and the previous version will be restored.
+            </p>
+            <p className="text-xs text-slate-500">
+              You can always swap back if needed.
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setRestoringQuiz(null)}
+              className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={confirmRestoreBackup}
+              disabled={isRestoring}
+              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors">
+              {isRestoring ? "Restoring..." : "Restore"}
+            </button>
+          </div>
+        </div>
+      </BaseModal>
+
+      {/* Success Toast */}
+      <SuccessToast
+        message={successMessage}
+        onClose={() => setSuccessMessage(null)}
+      />
+
+      {/* Error Toast */}
+      {errorMessage && (
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+          <div className="bg-rose-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-md">
+            <svg
+              className="w-5 h-5 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span className="text-sm font-medium">{errorMessage}</span>
+            <button
+              onClick={() => setErrorMessage(null)}
+              className="ml-2 text-white/80 hover:text-white transition-colors">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
