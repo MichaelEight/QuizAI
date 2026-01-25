@@ -7,6 +7,7 @@ import { QuizLanguage } from "./SettingsType";
 import { SourceTextModal } from "./components/SourceTextModal";
 import { BaseModal } from "./components/BaseModal";
 import { SuccessToast } from "./components/SuccessToast";
+import { VersionPickerModal } from "./components/VersionPickerModal";
 
 interface LibraryPageProps {
   setTasks: (tasks: Task[]) => void;
@@ -26,6 +27,7 @@ export default function LibraryPage({
     duplicateQuiz,
     translateQuiz,
     getTranslations,
+    getGroupMembers,
     updateQuiz,
     refreshQuizzes,
     restoreBackup,
@@ -66,6 +68,11 @@ export default function LibraryPage({
   const [showingVersionsFor, setShowingVersionsFor] =
     useState<SavedQuiz | null>(null);
 
+  // Version picker state (for grouping)
+  const [versionPickerGroup, setVersionPickerGroup] = useState<
+    SavedQuiz[] | null
+  >(null);
+
   // Source text modal state
   const [viewingSourceQuiz, setViewingSourceQuiz] =
     useState<SavedQuiz | null>(null);
@@ -92,7 +99,8 @@ export default function LibraryPage({
 
   // Filter and sort quizzes
   const filteredQuizzes = useMemo(() => {
-    let result = [...quizzes];
+    // Filter out backup versions
+    let result = quizzes.filter((q) => !q.isBackup);
 
     // Apply search filter
     if (searchQuery) {
@@ -192,6 +200,18 @@ export default function LibraryPage({
   };
 
   const handleLoadQuiz = (quiz: SavedQuiz) => {
+    const groupMembers = getGroupMembers(quiz.id);
+
+    // If multiple versions exist, show version picker
+    if (groupMembers.length > 1) {
+      setVersionPickerGroup(groupMembers);
+    } else {
+      // Load directly
+      loadQuizDirectly(quiz);
+    }
+  };
+
+  const loadQuizDirectly = (quiz: SavedQuiz) => {
     setTasks(quiz.tasks);
     setSourceText(quiz.sourceText);
     navigate("/quizPage", {
@@ -530,14 +550,6 @@ export default function LibraryPage({
                     <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-xs font-medium">
                       v{quiz.version || 1}
                     </span>
-                    {quiz.previousVersionId && (
-                      <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-xs font-medium flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                        </svg>
-                        Backup
-                      </span>
-                    )}
                     {(quiz.subjectName || quiz.subjectCode) && (
                       <span className="px-2 py-0.5 bg-slate-700 rounded text-slate-300 text-xs">
                         {quiz.subjectName || quiz.subjectCode}
@@ -798,14 +810,6 @@ export default function LibraryPage({
                               <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-xs font-medium">
                                 v{quiz.version || 1}
                               </span>
-                              {quiz.previousVersionId && (
-                                <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 rounded text-xs font-medium flex items-center gap-1">
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                  </svg>
-                                  Backup
-                                </span>
-                              )}
                               {getTranslations(quiz.id).length > 1 && (
                                 <button
                                   onClick={() => setShowingVersionsFor(quiz)}
@@ -1463,6 +1467,18 @@ export default function LibraryPage({
           </div>
         </div>
       </BaseModal>
+
+      {/* Version Picker Modal */}
+      {versionPickerGroup && (
+        <VersionPickerModal
+          quizzes={versionPickerGroup}
+          onSelect={(quiz) => {
+            setVersionPickerGroup(null);
+            loadQuizDirectly(quiz);
+          }}
+          onClose={() => setVersionPickerGroup(null)}
+        />
+      )}
 
       {/* Success Toast */}
       <SuccessToast

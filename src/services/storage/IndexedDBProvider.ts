@@ -1,7 +1,7 @@
 import { SavedQuiz, UpdateQuizData, IStorageProvider } from '../../types/quizLibrary';
 
 const DB_NAME = 'quizai_library';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'quizzes';
 
 /**
@@ -28,10 +28,13 @@ export class IndexedDBProvider implements IStorageProvider {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        const transaction = (event.target as IDBOpenDBRequest).transaction!;
+        const oldVersion = event.oldVersion;
 
-        // Create object store if it doesn't exist
+        // Create object store if it doesn't exist (v1)
+        let store: IDBObjectStore;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
 
           // Create indexes for searching and sorting
           store.createIndex('title', 'title', { unique: false });
@@ -39,6 +42,19 @@ export class IndexedDBProvider implements IStorageProvider {
           store.createIndex('subjectCode', 'subjectCode', { unique: false });
           store.createIndex('createdAt', 'createdAt', { unique: false });
           store.createIndex('updatedAt', 'updatedAt', { unique: false });
+        } else {
+          store = transaction.objectStore(STORE_NAME);
+        }
+
+        // Migration from v1 to v2: Add groupId index and migrate data
+        if (oldVersion < 2) {
+          // Add groupId index
+          if (!store.indexNames.contains('groupId')) {
+            store.createIndex('groupId', 'groupId', { unique: false });
+          }
+
+          // Migrate existing quizzes to assign groupIds
+          this.migrateGroupIds(store);
         }
       };
     });
@@ -50,6 +66,94 @@ export class IndexedDBProvider implements IStorageProvider {
     }
     const transaction = this.db.transaction(STORE_NAME, mode);
     return transaction.objectStore(STORE_NAME);
+  }
+
+  /**
+   * Migrate existing quizzes to assign groupIds
+   * Groups quizzes by their root (originalQuizId chains and backup chains)
+   */
+  private migrateGroupIds(store: IDBObjectStore): void {
+    const getAllRequest = store.getAll();
+
+    getAllRequest.onsuccess = () => {
+      const quizzes = getAllRequest.result as SavedQuiz[];
+      if (quizzes.length === 0) return;
+
+      const quizzesById = new Map<string, SavedQuiz>();
+      const quizzesNeedingGroupId: SavedQuiz[] = [];
+
+      // Index all quizzes and find those needing groupId
+      for (const quiz of quizzes) {
+        quizzesById.set(quiz.id, quiz);
+        if (!quiz.groupId) {
+          quizzesNeedingGroupId.push(quiz);
+        }
+      }
+
+      if (quizzesNeedingGroupId.length === 0) return;
+
+      // Helper to find root quiz ID (walks up originalQuizId chain)
+      const findRootId = (quiz: SavedQuiz): string => {
+        if (!quiz.originalQuizId) return quiz.id;
+        const parent = quizzesById.get(quiz.originalQuizId);
+        return parent ? findRootId(parent) : quiz.originalQuizId;
+      };
+
+      // Helper to find all related quiz IDs (translations and backup chains)
+      const findRelatedIds = (rootId: string): Set<string> => {
+        const related = new Set<string>();
+        related.add(rootId);
+
+        // Find all translations (quizzes with this rootId as original)
+        for (const quiz of quizzes) {
+          const quizRoot = findRootId(quiz);
+          if (quizRoot === rootId) {
+            related.add(quiz.id);
+
+            // Also include backup chains
+            if (quiz.previousVersionId) {
+              const backup = quizzesById.get(quiz.previousVersionId);
+              if (backup) {
+                related.add(backup.id);
+              }
+            }
+          }
+        }
+
+        return related;
+      };
+
+      // Assign groupIds
+      const processedIds = new Set<string>();
+
+      for (const quiz of quizzesNeedingGroupId) {
+        if (processedIds.has(quiz.id)) continue;
+
+        // Determine root ID for this quiz
+        const rootId = findRootId(quiz);
+
+        // Find all related quizzes
+        const relatedIds = findRelatedIds(rootId);
+
+        // Assign same groupId to all related quizzes
+        for (const relatedId of relatedIds) {
+          const relatedQuiz = quizzesById.get(relatedId);
+          if (relatedQuiz && !relatedQuiz.groupId) {
+            const updated: SavedQuiz = {
+              ...relatedQuiz,
+              groupId: rootId, // Use root ID as group ID
+            };
+
+            store.put(updated);
+            processedIds.add(relatedId);
+          }
+        }
+      }
+    };
+
+    getAllRequest.onerror = () => {
+      console.error('Failed to migrate groupIds:', getAllRequest.error);
+    };
   }
 
   async getAll(): Promise<SavedQuiz[]> {
@@ -84,6 +188,25 @@ export class IndexedDBProvider implements IStorageProvider {
       request.onerror = () => {
         console.error('Failed to get quiz:', request.error);
         reject(new Error('Failed to retrieve quiz'));
+      };
+    });
+  }
+
+  async getByGroupId(groupId: string): Promise<SavedQuiz[]> {
+    await this.initialize();
+
+    return new Promise((resolve, reject) => {
+      const store = this.getStore('readonly');
+      const index = store.index('groupId');
+      const request = index.getAll(groupId);
+
+      request.onsuccess = () => {
+        resolve(request.result as SavedQuiz[]);
+      };
+
+      request.onerror = () => {
+        console.error('Failed to get quizzes by groupId:', request.error);
+        reject(new Error('Failed to retrieve quizzes'));
       };
     });
   }
@@ -213,6 +336,7 @@ export class IndexedDBProvider implements IStorageProvider {
       ...current,
       id: backupId,
       isBackup: true,
+      groupId: current.groupId || quizId, // Preserve groupId
     };
 
     return new Promise((resolve, reject) => {
@@ -228,6 +352,7 @@ export class IndexedDBProvider implements IStorageProvider {
           id: quizId,
           version: (current.version || 1) + 1,
           previousVersionId: backupId,
+          groupId: current.groupId || quizId, // Preserve groupId
           updatedAt: Date.now(),
           createdAt: current.createdAt, // Preserve original creation time
         };
@@ -286,10 +411,13 @@ export class IndexedDBProvider implements IStorageProvider {
 
       // Swap: current becomes backup, backup becomes current
       const newBackupId = `${quizId}-v${current.version || 1}-backup`;
+      const groupId = current.groupId || quizId; // Preserve groupId
+
       const newBackup: SavedQuiz = {
         ...current,
         id: newBackupId,
         isBackup: true,
+        groupId, // Preserve groupId
       };
 
       const newCurrent: SavedQuiz = {
@@ -297,6 +425,7 @@ export class IndexedDBProvider implements IStorageProvider {
         id: quizId,
         version: (current.version || 1) + 1, // Increment version on restore
         previousVersionId: newBackupId,
+        groupId, // Preserve groupId
         isBackup: false,
         updatedAt: Date.now(),
       };

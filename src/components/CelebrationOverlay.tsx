@@ -12,15 +12,21 @@ export function CelebrationOverlay({ celebration, onComplete }: CelebrationOverl
   useEffect(() => {
     if (!celebration) return;
 
-    // Trigger confetti for achievements and learnt questions
-    if (celebration.type === 'achievement' || celebration.type === 'learnt') {
+    // SKIP achievement celebrations - they use toast instead
+    if (celebration.type === 'achievement') {
+      onComplete?.();
+      return;
+    }
+
+    // Trigger confetti only for learnt questions
+    if (celebration.type === 'learnt') {
       createConfetti();
     }
 
     // Auto-dismiss after animation
     const timer = setTimeout(() => {
       onComplete?.();
-    }, celebration.type === 'achievement' ? 3000 : 1500);
+    }, celebration.type === 'learnt' ? 1500 : 3000);
 
     return () => clearTimeout(timer);
   }, [celebration, onComplete]);
@@ -46,7 +52,8 @@ export function CelebrationOverlay({ celebration, onComplete }: CelebrationOverl
     setTimeout(() => setConfetti([]), 3000);
   };
 
-  if (!celebration) return null;
+  // Skip rendering for achievement celebrations
+  if (!celebration || celebration.type === 'achievement') return null;
 
   return (
     <>
@@ -74,13 +81,6 @@ export function CelebrationOverlay({ celebration, onComplete }: CelebrationOverl
               />
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Learnt question flash effect */}
-      {celebration.type === 'learnt' && (
-        <div className="fixed inset-0 pointer-events-none z-40">
-          <div className="absolute inset-0 bg-emerald-500/10 animate-fade-in" />
         </div>
       )}
     </>

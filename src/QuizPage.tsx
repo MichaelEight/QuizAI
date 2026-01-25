@@ -296,6 +296,22 @@ export default function QuizPage({
     null,
   );
 
+  // Watch for achievement unlocks and show toast
+  useEffect(() => {
+    if (gamification.showAchievementModal && gamification.pendingAchievements.length > 0) {
+      // Get the first pending achievement
+      const achievement = gamification.pendingAchievements[0];
+
+      // Show as toast notification
+      setToastAchievement(achievement);
+
+      // Remove the achievement from pending queue after toast displays
+      setTimeout(() => {
+        gamification.dismissCelebration();
+      }, 4000); // Match toast auto-dismiss duration
+    }
+  }, [gamification.showAchievementModal, gamification.pendingAchievements, gamification]);
+
   // Keyboard shortcuts state
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);

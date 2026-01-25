@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useMemo,
 } from "react";
 import {
   SavedQuiz,
@@ -41,6 +42,9 @@ interface QuizLibraryContextType {
 
   // Translation helpers
   getTranslations: (quizId: string) => SavedQuiz[];
+
+  // Grouping helpers
+  getGroupMembers: (quizId: string) => SavedQuiz[];
 
   // Refresh
   refreshQuizzes: () => Promise<void>;
@@ -181,10 +185,16 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
       }
 
       const now = Date.now();
+      const newId = generateQuizId();
       const duplicate: SavedQuiz = {
         ...original,
-        id: generateQuizId(),
+        id: newId,
         title: `${original.title} (Copy)`,
+        groupId: newId, // New group for duplicate
+        version: 1, // Reset version
+        originalQuizId: undefined, // Not a translation
+        previousVersionId: undefined, // No backup
+        isBackup: false,
         createdAt: now,
         updatedAt: now,
       };
@@ -220,6 +230,9 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
       // Determine the original quiz ID for linking translations
       const rootQuizId = original.originalQuizId || original.id;
 
+      // Preserve groupId
+      const groupId = original.groupId || rootQuizId;
+
       const now = Date.now();
       const translatedQuiz: SavedQuiz = {
         ...original,
@@ -228,7 +241,9 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
         description: translatedMeta.description,
         language: targetLanguage,
         originalQuizId: rootQuizId,
+        groupId, // Preserve group
         tasks: translatedTasks,
+        version: 1, // Reset version for translation
         createdAt: now,
         updatedAt: now,
       };
@@ -257,9 +272,30 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
     [quizzes],
   );
 
+  const getGroupMembers = useCallback(
+    (quizId: string): SavedQuiz[] => {
+      const quiz = quizzes.find((q) => q.id === quizId);
+      if (!quiz) return [];
+
+      // Determine the group ID
+      const groupId = quiz.groupId || quiz.originalQuizId || quiz.id;
+
+      // Return all non-backup quizzes in the same group
+      return quizzes.filter(
+        (q) =>
+          !q.isBackup &&
+          (q.groupId === groupId ||
+            q.id === groupId ||
+            q.originalQuizId === groupId),
+      );
+    },
+    [quizzes],
+  );
+
   const getFilteredQuizzes = useCallback(
     (filter?: FilterConfig, sort?: SortConfig): SavedQuiz[] => {
-      let result = [...quizzes];
+      // Filter out backup versions
+      let result = quizzes.filter((q) => !q.isBackup);
 
       // Apply filters
       if (filter) {
@@ -434,25 +470,48 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
     [storage, refreshQuizzes],
   );
 
-  const value: QuizLibraryContextType = {
-    quizzes,
-    isLoading,
-    error,
-    saveQuiz,
-    updateQuiz,
-    deleteQuiz,
-    getQuizById,
-    duplicateQuiz,
-    translateQuiz,
-    getTranslations,
-    refreshQuizzes,
-    getFilteredQuizzes,
-    updateQuizContent,
-    restoreBackup,
-    deleteBackup,
-    exportLibrary,
-    importLibrary,
-  };
+  const value: QuizLibraryContextType = useMemo(
+    () => ({
+      quizzes,
+      isLoading,
+      error,
+      saveQuiz,
+      updateQuiz,
+      deleteQuiz,
+      getQuizById,
+      duplicateQuiz,
+      translateQuiz,
+      getTranslations,
+      getGroupMembers,
+      refreshQuizzes,
+      getFilteredQuizzes,
+      updateQuizContent,
+      restoreBackup,
+      deleteBackup,
+      exportLibrary,
+      importLibrary,
+    }),
+    [
+      quizzes,
+      isLoading,
+      error,
+      saveQuiz,
+      updateQuiz,
+      deleteQuiz,
+      getQuizById,
+      duplicateQuiz,
+      translateQuiz,
+      getTranslations,
+      getGroupMembers,
+      refreshQuizzes,
+      getFilteredQuizzes,
+      updateQuizContent,
+      restoreBackup,
+      deleteBackup,
+      exportLibrary,
+      importLibrary,
+    ],
+  );
 
   return (
     <QuizLibraryContext.Provider value={value}>

@@ -32,6 +32,7 @@ export interface SavedQuiz {
   version: number; // Version number (1, 2, 3, ...)
   previousVersionId?: string; // ID of backup (previous version)
   isBackup?: boolean; // True if this is a backup version
+  groupId?: string; // Groups all versions and translations together
 }
 
 /**
@@ -45,6 +46,7 @@ export interface CreateQuizData {
   subjectCode?: string;
   language?: QuizLanguage;
   originalQuizId?: string;
+  groupId?: string;
   tasks: Task[];
   sourceText: string;
   uploadedFileNames?: string[];
@@ -124,9 +126,10 @@ export function createSavedQuiz(data: CreateQuizData): SavedQuiz {
   const now = Date.now();
   const closedCount = data.tasks.filter((t) => !t.question.isOpen).length;
   const openCount = data.tasks.filter((t) => t.question.isOpen).length;
+  const newId = generateQuizId();
 
   return {
-    id: generateQuizId(),
+    id: newId,
     title: data.title,
     description: data.description,
     teacher: data.teacher,
@@ -134,6 +137,7 @@ export function createSavedQuiz(data: CreateQuizData): SavedQuiz {
     subjectCode: data.subjectCode,
     language: data.language,
     originalQuizId: data.originalQuizId,
+    groupId: data.groupId || newId, // Auto-assign groupId if not provided
     tasks: data.tasks,
     sourceText: data.sourceText,
     uploadedFileNames: data.uploadedFileNames,
