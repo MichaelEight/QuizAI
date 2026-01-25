@@ -2,6 +2,7 @@ import { makeApiRequest } from "./openaiClient";
 import { Task } from "../QuestionsTypes";
 import { QuizLanguage } from "../SettingsType";
 import { TRAILING_COMMA_REGEX } from "./constants";
+import { UsageContext } from "./usageLogger";
 
 const LANGUAGE_NAMES: Record<QuizLanguage, string> = {
   english: "English",
@@ -25,11 +26,15 @@ function correctTrailingComma(str: string): string {
  * @param tasks - The quiz tasks to translate
  * @param targetLanguage - The target language
  * @param sourceText - Optional source text that provides context for accurate translations
+ * @param quizId - Optional quiz ID for usage tracking
+ * @param quizTitle - Optional quiz title for usage tracking
  */
 export async function translateQuizTasks(
   tasks: Task[],
   targetLanguage: QuizLanguage,
   sourceText?: string,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<Task[]> {
   const targetLangName = LANGUAGE_NAMES[targetLanguage];
 
@@ -72,8 +77,14 @@ Return a JSON array with the same structure as input, with translated text.`;
 
 ${JSON.stringify(tasksToTranslate, null, 2)}`;
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "task_translation",
+  };
+
   try {
-    const response = await makeApiRequest(systemPrompt, "", userPrompt);
+    const response = await makeApiRequest(systemPrompt, "", userPrompt, usageContext);
     const corrected = correctTrailingComma(response.trim());
     const translatedTasks: TranslatedTask[] = JSON.parse(corrected);
 
@@ -118,6 +129,8 @@ export async function translateQuizMetadata(
   title: string,
   description: string | undefined,
   targetLanguage: QuizLanguage,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<{ title: string; description?: string }> {
   const targetLangName = LANGUAGE_NAMES[targetLanguage];
 
@@ -128,8 +141,14 @@ Return ONLY valid JSON with "title" and optionally "description" fields. No extr
   const userPrompt = `Translate to ${targetLangName}:
 ${JSON.stringify(metadata, null, 2)}`;
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "metadata_translation",
+  };
+
   try {
-    const response = await makeApiRequest(systemPrompt, "", userPrompt);
+    const response = await makeApiRequest(systemPrompt, "", userPrompt, usageContext);
     const corrected = correctTrailingComma(response.trim());
     return JSON.parse(corrected);
   } catch (error) {

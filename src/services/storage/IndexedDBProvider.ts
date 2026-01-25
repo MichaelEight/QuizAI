@@ -1,8 +1,9 @@
 import { SavedQuiz, UpdateQuizData, IStorageProvider } from '../../types/quizLibrary';
 
 const DB_NAME = 'quizai_library';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'quizzes';
+const USAGE_STORE_NAME = 'usage_logs';
 
 /**
  * IndexedDB implementation of storage provider for local quiz library
@@ -55,6 +56,19 @@ export class IndexedDBProvider implements IStorageProvider {
 
           // Migrate existing quizzes to assign groupIds
           this.migrateGroupIds(store);
+        }
+
+        // Migration from v2 to v3: Add usage_logs object store
+        if (oldVersion < 3) {
+          if (!db.objectStoreNames.contains(USAGE_STORE_NAME)) {
+            const usageStore = db.createObjectStore(USAGE_STORE_NAME, { keyPath: 'id' });
+
+            // Create indexes for querying usage logs
+            usageStore.createIndex('timestamp', 'timestamp', { unique: false });
+            usageStore.createIndex('quizId', 'quizId', { unique: false });
+            usageStore.createIndex('operationType', 'operationType', { unique: false });
+            usageStore.createIndex('quizId_timestamp', ['quizId', 'timestamp'], { unique: false });
+          }
         }
       };
     });

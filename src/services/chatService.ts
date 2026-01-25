@@ -1,4 +1,5 @@
 import { makeApiRequest } from "./openaiClient";
+import { UsageContext } from "./usageLogger";
 
 export interface ChatMessage {
   id: string;
@@ -88,6 +89,8 @@ export async function sendChatMessage(
   userMessage: string,
   context: ChatContext,
   history: ChatMessage[],
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string> {
   const systemPrompt = buildSystemPrompt(context);
 
@@ -103,8 +106,14 @@ export async function sendChatMessage(
         .join("\n\n");
   }
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "chat_message",
+  };
+
   try {
-    const response = await makeApiRequest(systemPrompt, devPrompt, userMessage);
+    const response = await makeApiRequest(systemPrompt, devPrompt, userMessage, usageContext);
     return response.trim();
   } catch (error) {
     console.error("Chat error:", error);

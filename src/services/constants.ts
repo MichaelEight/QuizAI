@@ -106,6 +106,14 @@ export class Instructions {
 export const OPENAI_API_KEY_STORAGE_KEY = "openai_api_key";
 export const DEFAULT_MODEL = "gpt-4o-mini";
 
+// OpenAI Pricing (per 1M tokens)
+export const PRICING = {
+  "gpt-4o-mini": {
+    inputCostPer1M: 0.15,
+    outputCostPer1M: 0.6,
+  },
+} as const;
+
 // Utility constants
 export const TRAILING_COMMA_REGEX = /,\s*([\]\}])/g;
 

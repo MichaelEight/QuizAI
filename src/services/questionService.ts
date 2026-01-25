@@ -1,5 +1,6 @@
 import { makeApiRequest } from "./openaiClient";
 import { QuestionTypes, QuestionType, PromptTypes } from "./constants";
+import { UsageContext } from "./usageLogger";
 import { getSysPrompt, getDevPrompt, getUserPrompt } from "./promptService";
 import {
   generateSingleMultipleDistribution,
@@ -65,6 +66,8 @@ async function generateQuestionsPerType(
   amount: number,
   type: QuestionType,
   options: GenerationOptions,
+  quizId?: string | null,
+  quizTitle?: string | null,
   onProgress?: ProgressCallback,
 ): Promise<QuestionResponse> {
   if (amount <= 0) {
@@ -86,8 +89,14 @@ async function generateQuestionsPerType(
     userText: text,
   });
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "quiz_generation",
+  };
+
   try {
-    const ans = await makeApiRequest(sysPrompt, "", userPrompt);
+    const ans = await makeApiRequest(sysPrompt, "", userPrompt, usageContext);
     const corrected = correctTrailingComma(ans);
     const parsed = JSON.parse(corrected) as QuestionResponse;
 
@@ -111,6 +120,8 @@ async function generateQuestionsWithRetry(
   targetAmount: number,
   type: QuestionType,
   options: GenerationOptions,
+  quizId?: string | null,
+  quizTitle?: string | null,
   onProgress?: ProgressCallback,
 ): Promise<GeneratedQuestion[]> {
   const MAX_ATTEMPTS = 3;
@@ -142,7 +153,7 @@ async function generateQuestionsWithRetry(
 
     console.log(`[Attempt ${attempt}/${MAX_ATTEMPTS}] Requesting ${remaining} ${type} questions...`);
 
-    const result = await generateQuestionsPerType(text, remaining, type, options, onProgress);
+    const result = await generateQuestionsPerType(text, remaining, type, options, quizId, quizTitle, onProgress);
 
     // Handle error responses
     if (!Array.isArray(result)) {
@@ -249,6 +260,8 @@ function validateAndFilterQuestions(
 export async function generateQuestions(
   text: string,
   settings: Settings,
+  quizId?: string | null,
+  quizTitle?: string | null,
   onProgress?: ProgressCallback,
 ): Promise<Task[]> {
   const allQuestions: GeneratedQuestion[] = [];
@@ -290,6 +303,8 @@ export async function generateQuestions(
         openAmount,
         QuestionTypes.OPEN,
         generationOptions,
+        quizId,
+        quizTitle,
         onProgress,
       );
       allQuestions.push(...result);
@@ -303,6 +318,8 @@ export async function generateQuestions(
           closedAmount,
           QuestionTypes.CLOSED_MULTI,
           generationOptions,
+          quizId,
+          quizTitle,
           onProgress,
         );
         allQuestions.push(...result);
@@ -317,6 +334,8 @@ export async function generateQuestions(
             singleAmount,
             QuestionTypes.CLOSED,
             generationOptions,
+            quizId,
+            quizTitle,
             onProgress,
           );
           allQuestions.push(...singleResult);
@@ -329,6 +348,8 @@ export async function generateQuestions(
             multipleAmount,
             QuestionTypes.CLOSED_MULTI,
             generationOptions,
+            quizId,
+            quizTitle,
             onProgress,
           );
           allQuestions.push(...multiResult);
@@ -339,6 +360,8 @@ export async function generateQuestions(
           closedAmount,
           QuestionTypes.CLOSED,
           generationOptions,
+          quizId,
+          quizTitle,
           onProgress,
         );
         allQuestions.push(...result);
@@ -379,6 +402,8 @@ export async function checkOpenAnswer(
   answer: string,
   template: ScoreBreakdownTemplate,
   acceptedAnswer?: string,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<CheckAnswerResult> {
   const sysPrompt = getSysPrompt(PromptTypes.CHECK_OPEN_QUESTION);
   const devPrompt = getDevPrompt(PromptTypes.CHECK_OPEN_QUESTION, {
@@ -391,8 +416,14 @@ export async function checkOpenAnswer(
     answer,
   });
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "open_answer_grading",
+  };
+
   try {
-    const ans = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    const ans = await makeApiRequest(sysPrompt, devPrompt, userPrompt, usageContext);
 
     // Parse JSON response
     const parsed = JSON.parse(ans);
@@ -457,6 +488,8 @@ export async function checkOpenAnswer(
 export async function generateScoreTemplate(
   text: string,
   question: string,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<ScoreBreakdownTemplate> {
   const sysPrompt = getSysPrompt(PromptTypes.GENERATE_SCORE_TEMPLATE);
   const devPrompt = getDevPrompt(PromptTypes.GENERATE_SCORE_TEMPLATE, {
@@ -465,8 +498,14 @@ export async function generateScoreTemplate(
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_SCORE_TEMPLATE);
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "score_rubric_generation",
+  };
+
   try {
-    const ans = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    const ans = await makeApiRequest(sysPrompt, devPrompt, userPrompt, usageContext);
     const parsed = JSON.parse(ans);
 
     // Validate template structure
@@ -499,6 +538,8 @@ export async function generateOpenQuestionAnswer(
   text: string,
   question: string,
   template?: ScoreBreakdownTemplate,
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string> {
   const sysPrompt = getSysPrompt(PromptTypes.GENERATE_OPEN_ANSWER);
   const devPrompt = getDevPrompt(PromptTypes.GENERATE_OPEN_ANSWER, {
@@ -508,8 +549,14 @@ export async function generateOpenQuestionAnswer(
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_OPEN_ANSWER);
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "answer_generation",
+  };
+
   try {
-    const answer = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    const answer = await makeApiRequest(sysPrompt, devPrompt, userPrompt, usageContext);
     return answer.trim();
   } catch (error) {
     console.error("Error in generateOpenQuestionAnswer:", error);
@@ -521,6 +568,8 @@ export async function generateHint(
   text: string,
   question: string,
   questionStyle: QuestionStyle = "conceptual",
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string> {
   const sysPrompt = getSysPrompt(PromptTypes.GENERATE_HINT, {
     questionStyle,
@@ -531,8 +580,14 @@ export async function generateHint(
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_HINT);
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "hint_generation",
+  };
+
   try {
-    const hint = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    const hint = await makeApiRequest(sysPrompt, devPrompt, userPrompt, usageContext);
     return hint.trim();
   } catch (error) {
     console.error("Error in generateHint:", error);
@@ -544,6 +599,8 @@ export async function generateExplanation(
   text: string,
   question: string,
   correctAnswers: string[],
+  quizId?: string | null,
+  quizTitle?: string | null,
 ): Promise<string> {
   const sysPrompt = getSysPrompt(PromptTypes.GENERATE_EXPLANATION);
   const devPrompt = getDevPrompt(PromptTypes.GENERATE_EXPLANATION, {
@@ -553,8 +610,14 @@ export async function generateExplanation(
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_EXPLANATION);
 
+  const usageContext: UsageContext = {
+    quizId: quizId ?? null,
+    quizTitle: quizTitle ?? null,
+    operationType: "explanation_generation",
+  };
+
   try {
-    const explanation = await makeApiRequest(sysPrompt, devPrompt, userPrompt);
+    const explanation = await makeApiRequest(sysPrompt, devPrompt, userPrompt, usageContext);
     return explanation.trim();
   } catch (error) {
     console.error("Error in generateExplanation:", error);

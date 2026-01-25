@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { OPENAI_API_KEY_STORAGE_KEY, DEFAULT_MODEL, PromptRank } from './constants';
+import { logUsage, UsageContext } from './usageLogger';
 
 let clientInstance: OpenAI | null = null;
 
@@ -53,6 +54,7 @@ export async function makeApiRequest(
   systemPrompt: string,
   developerPrompt: string,
   userPrompt: string,
+  usageContext?: UsageContext
 ): Promise<string> {
   const client = OpenAIClientManager.getClient();
   const model = OpenAIClientManager.getDefaultModel();
@@ -71,6 +73,19 @@ export async function makeApiRequest(
     model,
     messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
   });
+
+  // Log usage if context provided
+  if (usageContext && completion.usage) {
+    await logUsage(
+      {
+        promptTokens: completion.usage.prompt_tokens,
+        completionTokens: completion.usage.completion_tokens,
+        totalTokens: completion.usage.total_tokens,
+      },
+      usageContext,
+      model
+    );
+  }
 
   return completion.choices[0]?.message?.content ?? '';
 }
