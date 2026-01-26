@@ -7,6 +7,18 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: "/quizai/",
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split large dependencies into separate chunks
+          'vendor-react': ['react', 'react-dom', 'react-router'],
+          'vendor-openai': ['openai'],
+          'vendor-pdf': ['pdfjs-dist'],
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: "jsdom",

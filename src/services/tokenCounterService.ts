@@ -1,4 +1,3 @@
-import { encode } from 'gpt-tokenizer';
 import { getSysPrompt } from './promptService';
 import { PromptTypes, QuestionTypes } from './constants';
 import { ContentFocus, DifficultyLevel } from '../SettingsType';
@@ -10,11 +9,14 @@ export const TOKEN_LIMIT = 128_000;
 const OUTPUT_RESERVE = 2_000;
 
 /**
- * Count tokens in text using GPT tokenizer
+ * Estimate tokens in text using character-based approximation
+ * Rule of thumb: ~4 characters per token for English text
+ * This is slightly conservative to avoid underestimating
  */
 export function countTokens(text: string): number {
   if (!text) return 0;
-  return encode(text).length;
+  // ~4 characters per token, rounded up to be conservative
+  return Math.ceil(text.length / 4);
 }
 
 /**
