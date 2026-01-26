@@ -8,6 +8,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: "/quizai/",
   build: {
+    // 627KB main chunk gzips to 166KB - acceptable for modern apps
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         manualChunks: {
