@@ -34,11 +34,11 @@ export function AchievementToast({ achievement, onDismiss, onClick }: Achievemen
   const getStyleClasses = () => {
     switch (achievement.style) {
       case 'legendary':
-        return 'border-purple-500/50 bg-gradient-to-r from-purple-500/20 to-indigo-500/20';
+        return 'border-purple-500/50 bg-gradient-to-r from-purple-900 to-indigo-900';
       case 'epic':
-        return 'border-indigo-500/50 bg-indigo-500/20';
+        return 'border-indigo-500/50 bg-indigo-900';
       case 'rare':
-        return 'border-cyan-500/40 bg-cyan-500/15';
+        return 'border-cyan-500/40 bg-slate-800';
       default:
         return 'border-slate-600 bg-slate-800';
     }

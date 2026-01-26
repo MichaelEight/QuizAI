@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Achievement } from '../types/gamification';
 import { AchievementIcon } from './AchievementIcon';
 
@@ -8,6 +9,17 @@ interface AchievementModalProps {
 }
 
 export function AchievementModal({ achievement, onClose }: AchievementModalProps) {
+  // Auto-dismiss after 5 seconds
+  useEffect(() => {
+    if (!achievement) return;
+
+    const timer = setTimeout(() => {
+      onClose();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [achievement, onClose]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -61,7 +73,7 @@ export function AchievementModal({ achievement, onClose }: AchievementModalProps
 
   const tierLabel = getTierLabel();
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
@@ -150,4 +162,7 @@ export function AchievementModal({ achievement, onClose }: AchievementModalProps
       </div>
     </div>
   );
+
+  // Use portal to render at document.body level
+  return createPortal(modalContent, document.body);
 }

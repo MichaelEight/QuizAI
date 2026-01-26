@@ -316,15 +316,12 @@ export default function QuizPage({
       // Get the first pending achievement
       const achievement = gamification.pendingAchievements[0];
 
-      // Show as toast notification
-      setToastAchievement(achievement);
-
-      // Remove the achievement from pending queue after toast displays
-      setTimeout(() => {
-        gamification.dismissCelebration();
-      }, 4000); // Match toast auto-dismiss duration
+      // Show as toast notification (only if not already showing this achievement)
+      if (!toastAchievement || toastAchievement.id !== achievement.id) {
+        setToastAchievement(achievement);
+      }
     }
-  }, [gamification.showAchievementModal, gamification.pendingAchievements, gamification]);
+  }, [gamification.showAchievementModal, gamification.pendingAchievements, toastAchievement]);
 
   // Keyboard shortcuts state
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -2946,10 +2943,14 @@ export default function QuizPage({
       {/* Achievement toast notification */}
       <AchievementToast
         achievement={toastAchievement}
-        onDismiss={() => setToastAchievement(null)}
+        onDismiss={() => {
+          setToastAchievement(null);
+          gamification.dismissAchievementModal(); // Clear from pending to prevent reappearing
+        }}
         onClick={() => {
           setModalAchievement(toastAchievement);
           setToastAchievement(null);
+          gamification.dismissAchievementModal(); // Clear from pending to prevent reappearing
         }}
       />
 
