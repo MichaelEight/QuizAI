@@ -159,12 +159,13 @@ export default function LibraryPage({
     setCreatedDatePreset(preset);
 
     switch (preset) {
-      case DatePreset.TODAY:
+      case DatePreset.TODAY: {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
         setCreatedAfter(todayStart.getTime());
         setCreatedBefore(undefined);
         break;
+      }
       case DatePreset.LAST_7_DAYS:
         setCreatedAfter(now - 7 * 24 * 60 * 60 * 1000);
         setCreatedBefore(undefined);
@@ -173,11 +174,12 @@ export default function LibraryPage({
         setCreatedAfter(now - 30 * 24 * 60 * 60 * 1000);
         setCreatedBefore(undefined);
         break;
-      case DatePreset.THIS_YEAR:
+      case DatePreset.THIS_YEAR: {
         const yearStart = new Date(new Date().getFullYear(), 0, 1);
         setCreatedAfter(yearStart.getTime());
         setCreatedBefore(undefined);
         break;
+      }
       case DatePreset.CUSTOM:
         break;
     }
@@ -189,12 +191,13 @@ export default function LibraryPage({
     setUpdatedDatePreset(preset);
 
     switch (preset) {
-      case DatePreset.TODAY:
+      case DatePreset.TODAY: {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
         setUpdatedAfter(todayStart.getTime());
         setUpdatedBefore(undefined);
         break;
+      }
       case DatePreset.LAST_7_DAYS:
         setUpdatedAfter(now - 7 * 24 * 60 * 60 * 1000);
         setUpdatedBefore(undefined);
@@ -203,11 +206,12 @@ export default function LibraryPage({
         setUpdatedAfter(now - 30 * 24 * 60 * 60 * 1000);
         setUpdatedBefore(undefined);
         break;
-      case DatePreset.THIS_YEAR:
+      case DatePreset.THIS_YEAR: {
         const yearStart = new Date(new Date().getFullYear(), 0, 1);
         setUpdatedAfter(yearStart.getTime());
         setUpdatedBefore(undefined);
         break;
+      }
       case DatePreset.CUSTOM:
         break;
     }

@@ -86,7 +86,7 @@ export function UsageDetailsModal({ quiz, onClose }: UsageDetailsModalProps) {
   // Get operations with non-zero counts
   const activeOperations = (
     Object.entries(quiz.byOperationType) as [OperationType, number][]
-  ).filter(([_, count]) => count > 0);
+  ).filter(([, count]) => count > 0);
 
   return (
     <BaseModal isOpen={true} onClose={onClose} maxWidth="max-w-4xl">

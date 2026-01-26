@@ -270,7 +270,7 @@ function ModifiedTaskDetails({ changes }: { changes: ChangeDetail[] }) {
 
 interface ValueComparisonProps {
   label: string;
-  value: any;
+  value: unknown;
   type: 'old' | 'new';
 }
 
@@ -289,7 +289,7 @@ function ValueComparison({ label, value, type }: ValueComparisonProps) {
   );
 }
 
-function ValueDisplay({ value }: { value: any }) {
+function ValueDisplay({ value }: { value: unknown }) {
   if (value === undefined || value === null) {
     return <span className="text-slate-500 italic">(none)</span>;
   }

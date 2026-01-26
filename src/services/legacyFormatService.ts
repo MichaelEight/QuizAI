@@ -19,7 +19,7 @@ function generateId(): string {
  *   answer2
  *   ...
  */
-export function parseLegacyFile(content: string, _filename: string): Task | null {
+export function parseLegacyFile(content: string): Task | null {
   const lines = content.trim().split(/\r?\n/);
   if (lines.length < 2) return null;
 
@@ -68,7 +68,7 @@ export function parseLegacyFiles(files: { name: string; content: string }[]): Im
 
   for (const file of files) {
     try {
-      const task = parseLegacyFile(file.content, file.name);
+      const task = parseLegacyFile(file.content);
       if (task) {
         tasks.push(task);
       } else {

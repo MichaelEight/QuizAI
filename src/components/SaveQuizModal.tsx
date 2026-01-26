@@ -76,7 +76,7 @@ export function SaveQuizModal() {
 
       handleClose();
       onSaved?.(savedQuiz);
-    } catch (err) {
+    } catch {
       setError(mode === 'update' ? 'Failed to update quiz. Please try again.' : 'Failed to save quiz. Please try again.');
     } finally {
       setIsSaving(false);

@@ -11,8 +11,8 @@ export interface TaskDiff {
 export interface ChangeDetail {
   field: string;
   fieldLabel: string; // Human-readable label
-  oldValue: any;
-  newValue: any;
+  oldValue: unknown;
+  newValue: unknown;
   category: 'content' | 'answers' | 'ai-generated';
 }
 

@@ -169,7 +169,8 @@ export function GamificationProvider({ children }: GamificationProviderProps) {
   }, []);
 
   // Points
-  const addPoints = useCallback((points: number, _breakdown?: PointsBreakdown) => {
+  const addPoints = useCallback((points: number, _breakdown?: PointsBreakdown): void => {
+    void _breakdown; // Reserved for future use
     if (points <= 0) return;
 
     setSessionStats(prev => ({

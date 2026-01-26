@@ -255,7 +255,7 @@ export default function UsagePage() {
                 { count: number; totalCost: number }
               ][]
             )
-              .filter(([_, stats]) => stats.count > 0)
+              .filter(([, stats]) => stats.count > 0)
               .sort((a, b) => b[1].totalCost - a[1].totalCost)
               .map(([operationType, stats]) => (
                 <div

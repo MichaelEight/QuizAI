@@ -115,7 +115,7 @@ export const PRICING = {
 } as const;
 
 // Utility constants
-export const TRAILING_COMMA_REGEX = /,\s*([\]\}])/g;
+export const TRAILING_COMMA_REGEX = /,\s*([\]}])/g;
 
 // Content focus instructions with examples
 export const CONTENT_FOCUS_INSTRUCTIONS = {
