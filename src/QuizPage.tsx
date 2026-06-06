@@ -305,6 +305,13 @@ export default function QuizPage({
   const [showCorrectEffect, setShowCorrectEffect] = useState(false);
   const [showLearntEffect, setShowLearntEffect] = useState(false);
 
+  // Auto-hide the learnt star burst shortly after it plays.
+  useEffect(() => {
+    if (!showLearntEffect) return;
+    const t = setTimeout(() => setShowLearntEffect(false), 1200);
+    return () => clearTimeout(t);
+  }, [showLearntEffect]);
+
   // Achievement state
   const [toastAchievement, setToastAchievement] = useState<Achievement | null>(
     null,
@@ -2046,7 +2053,9 @@ export default function QuizPage({
 
       {/* Question Card */}
       {currentTask && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg shadow-black/20 mb-6">
+        <div className="relative bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg shadow-black/20 mb-6">
+          {/* Learnt star burst — anchored to the card corner */}
+          <LearntEffect show={showLearntEffect} />
           {/* Question header */}
           <div className="flex items-start gap-3 mb-6">
             <span className="inline-flex items-center justify-center w-8 h-8 bg-indigo-500/20 text-indigo-400 rounded-lg text-sm font-semibold shrink-0">
@@ -2949,9 +2958,6 @@ export default function QuizPage({
           onComplete={() => setShowCorrectEffect(false)}
         />
       )}
-
-      {/* Learnt question effect */}
-      <LearntEffect show={showLearntEffect} />
 
       {/* Achievement toast notification */}
       <AchievementToast
