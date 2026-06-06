@@ -74,7 +74,7 @@ export default function UsagePage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-500">Loading usage data...</p>
+          <p className="text-slate-400">Loading usage data...</p>
         </div>
       </div>
     );
@@ -85,10 +85,10 @@ export default function UsagePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">
+          <h1 className="text-2xl font-bold text-slate-100 mb-1">
             OpenAI Usage
           </h1>
-          <p className="text-slate-500">
+          <p className="text-slate-400">
             Track and analyze your API usage and costs
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function UsagePage() {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-slate-800 rounded-lg transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-200 rounded-lg transition-colors flex items-center gap-2"
           >
             <svg
               className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -117,7 +117,7 @@ export default function UsagePage() {
           <button
             onClick={handleDeleteAll}
             disabled={logs.length === 0 || isDeleting}
-            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-rose-600 rounded-lg transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-rose-300 rounded-lg transition-colors flex items-center gap-2"
           >
             <svg
               className={`w-4 h-4 ${isDeleting ? "animate-spin" : ""}`}
@@ -245,7 +245,7 @@ export default function UsagePage() {
       {/* Operation Type Breakdown */}
       {globalStats.totalRequests > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">
+          <h2 className="text-lg font-semibold text-slate-100 mb-4">
             Usage by Operation Type
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -260,17 +260,17 @@ export default function UsagePage() {
               .map(([operationType, stats]) => (
                 <div
                   key={operationType}
-                  className="bg-slate-50 border border-slate-200 rounded-lg p-4"
+                  className="bg-slate-800/50 border border-slate-700 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-slate-600">
+                    <span className="text-sm font-medium text-slate-300">
                       {OPERATION_LABELS[operationType]}
                     </span>
-                    <span className="text-sm font-bold text-emerald-600">
+                    <span className="text-sm font-bold text-emerald-400">
                       {formatCurrency(stats.totalCost)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
                     <span>{formatNumber(stats.count)} requests</span>
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export default function UsagePage() {
 
       {/* Top Quizzes Table */}
       <div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">
+        <h2 className="text-lg font-semibold text-slate-100 mb-4">
           Top Quizzes by Cost
         </h2>
         <QuizUsageTable

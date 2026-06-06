@@ -21,12 +21,12 @@ export function AchievementIcon({ icon, colorScheme, style, size = 'md' }: Achie
   };
 
   const colorClasses: Record<AchievementColor, { bg: string; text: string; glow: string }> = {
-    emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', glow: 'shadow-emerald-600/20' },
-    amber: { bg: 'bg-amber-50', text: 'text-amber-600', glow: 'shadow-amber-500/20' },
-    indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', glow: 'shadow-indigo-600/20' },
-    rose: { bg: 'bg-rose-50', text: 'text-rose-600', glow: 'shadow-rose-600/20' },
-    purple: { bg: 'bg-purple-50', text: 'text-purple-600', glow: 'shadow-purple-600/20' },
-    cyan: { bg: 'bg-cyan-50', text: 'text-cyan-600', glow: 'shadow-cyan-600/20' },
+    emerald: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', glow: 'shadow-emerald-500/30' },
+    amber: { bg: 'bg-amber-500/20', text: 'text-amber-400', glow: 'shadow-amber-500/30' },
+    indigo: { bg: 'bg-indigo-500/20', text: 'text-indigo-400', glow: 'shadow-indigo-500/30' },
+    rose: { bg: 'bg-rose-500/20', text: 'text-rose-400', glow: 'shadow-rose-500/30' },
+    purple: { bg: 'bg-purple-500/20', text: 'text-purple-400', glow: 'shadow-purple-500/30' },
+    cyan: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', glow: 'shadow-cyan-500/30' },
   };
 
   const colors = colorClasses[colorScheme];

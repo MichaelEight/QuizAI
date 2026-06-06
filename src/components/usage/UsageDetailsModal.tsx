@@ -93,29 +93,29 @@ export function UsageDetailsModal({ quiz, onClose }: UsageDetailsModalProps) {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h2 className="text-xl font-bold text-slate-900 mb-1">
+          <h2 className="text-xl font-bold text-slate-100 mb-1">
             Usage Details
           </h2>
-          <p className="text-slate-500">{quiz.quizTitle}</p>
+          <p className="text-slate-400">{quiz.quizTitle}</p>
         </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-slate-100 rounded-lg p-4">
-            <p className="text-xs text-slate-400 mb-1">Total Requests</p>
-            <p className="text-lg font-bold text-slate-900">
+          <div className="bg-slate-900/50 rounded-lg p-4">
+            <p className="text-xs text-slate-500 mb-1">Total Requests</p>
+            <p className="text-lg font-bold text-slate-100">
               {formatNumber(quiz.totalRequests)}
             </p>
           </div>
-          <div className="bg-slate-100 rounded-lg p-4">
-            <p className="text-xs text-slate-400 mb-1">Total Tokens</p>
-            <p className="text-lg font-bold text-slate-900">
+          <div className="bg-slate-900/50 rounded-lg p-4">
+            <p className="text-xs text-slate-500 mb-1">Total Tokens</p>
+            <p className="text-lg font-bold text-slate-100">
               {formatNumber(quiz.totalTokens)}
             </p>
           </div>
-          <div className="bg-slate-100 rounded-lg p-4">
-            <p className="text-xs text-slate-400 mb-1">Total Cost</p>
-            <p className="text-lg font-bold text-emerald-600">
+          <div className="bg-slate-900/50 rounded-lg p-4">
+            <p className="text-xs text-slate-500 mb-1">Total Cost</p>
+            <p className="text-lg font-bold text-emerald-400">
               {formatCurrency(quiz.totalCostUSD)}
             </p>
           </div>
@@ -123,28 +123,28 @@ export function UsageDetailsModal({ quiz, onClose }: UsageDetailsModalProps) {
 
         {/* Breakdown by Operation Type */}
         <div>
-          <h3 className="text-sm font-semibold text-slate-600 mb-3">
+          <h3 className="text-sm font-semibold text-slate-300 mb-3">
             Breakdown by Operation Type
           </h3>
           <div className="space-y-2">
             {activeOperations.map(([operationType, count]) => (
               <div
                 key={operationType}
-                className="flex items-center justify-between bg-slate-50 rounded-lg p-3"
+                className="flex items-center justify-between bg-slate-900/30 rounded-lg p-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="text-indigo-600">
+                  <div className="text-indigo-400">
                     {OPERATION_ICONS[operationType]}
                   </div>
-                  <span className="text-sm text-slate-600">
+                  <span className="text-sm text-slate-300">
                     {OPERATION_LABELS[operationType]}
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-slate-400">
                     {formatNumber(count)} requests
                   </span>
-                  <span className="text-sm font-medium text-emerald-600 min-w-[80px] text-right">
+                  <span className="text-sm font-medium text-emerald-400 min-w-[80px] text-right">
                     {formatCurrency(operationCosts[operationType] || 0)}
                   </span>
                 </div>
@@ -155,30 +155,30 @@ export function UsageDetailsModal({ quiz, onClose }: UsageDetailsModalProps) {
 
         {/* Individual API Calls */}
         <div>
-          <h3 className="text-sm font-semibold text-slate-600 mb-3">
+          <h3 className="text-sm font-semibold text-slate-300 mb-3">
             Recent API Calls ({sortedLogs.length})
           </h3>
-          <div className="bg-slate-50 rounded-lg max-h-64 overflow-y-auto">
-            <div className="divide-y divide-slate-200">
+          <div className="bg-slate-900/30 rounded-lg max-h-64 overflow-y-auto">
+            <div className="divide-y divide-slate-700">
               {sortedLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="px-4 py-3 hover:bg-slate-50 transition-colors"
+                  className="px-4 py-3 hover:bg-slate-800/30 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <div className="text-indigo-600 text-xs">
+                      <div className="text-indigo-400 text-xs">
                         {OPERATION_ICONS[log.operationType]}
                       </div>
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-slate-300">
                         {OPERATION_LABELS[log.operationType]}
                       </span>
                     </div>
-                    <span className="text-sm font-medium text-emerald-600">
+                    <span className="text-sm font-medium text-emerald-400">
                       {formatCurrency(log.costUSD)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-slate-400">
+                  <div className="flex items-center gap-4 text-xs text-slate-500">
                     <span>{formatDateTime(log.timestamp)}</span>
                     <span>•</span>
                     <span>{formatNumber(log.totalTokens)} tokens</span>
@@ -193,7 +193,7 @@ export function UsageDetailsModal({ quiz, onClose }: UsageDetailsModalProps) {
         <div className="flex justify-end pt-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg transition-colors"
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors"
           >
             Close
           </button>

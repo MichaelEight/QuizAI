@@ -63,24 +63,24 @@ export function QuizGroup({
   const renderQuizRow = (quiz: SavedQuiz, isPrimary: boolean = false) => (
     <tr
       key={quiz.id}
-      className={`hover:bg-slate-100 transition-colors ${!isPrimary ? "bg-slate-50" : ""}`}
+      className={`hover:bg-slate-700/30 transition-colors ${!isPrimary ? "bg-slate-800/30" : ""}`}
     >
       <td className="px-4 py-4">
         <div>
           <div className="flex items-center gap-2">
-            <p className={`font-medium ${isPrimary ? "text-slate-900" : "text-slate-600"}`}>
+            <p className={`font-medium ${isPrimary ? "text-slate-100" : "text-slate-300"}`}>
               {quiz.title}
             </p>
             {quiz.language && (
-              <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-500 rounded text-xs font-medium">
+              <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-xs font-medium">
                 {getLanguageLabel(quiz.language)}
               </span>
             )}
-            <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">
+            <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-xs font-medium">
               v{quiz.version || 1}
             </span>
             {quiz.previousVersionId && (
-              <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded text-xs font-medium flex items-center gap-1">
+              <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 rounded text-xs font-medium flex items-center gap-1">
                 <svg
                   className="w-3 h-3"
                   fill="none"
@@ -103,7 +103,7 @@ export function QuizGroup({
                   e.stopPropagation();
                   setIsExpanded(!isExpanded);
                 }}
-                className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded text-xs font-medium hover:bg-purple-100 transition-colors flex items-center gap-1"
+                className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded text-xs font-medium hover:bg-purple-500/30 transition-colors flex items-center gap-1"
               >
                 <span>{quizzes.length} versions</span>
                 <svg
@@ -123,29 +123,29 @@ export function QuizGroup({
             )}
           </div>
           {quiz.description && (
-            <p className="text-sm text-slate-400 mt-1 line-clamp-1">
+            <p className="text-sm text-slate-500 mt-1 line-clamp-1">
               {quiz.description}
             </p>
           )}
         </div>
       </td>
       <td className="px-4 py-4">
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-slate-400">
           {quiz.subjectName || quiz.subjectCode || "—"}
         </span>
       </td>
       <td className="px-4 py-4">
         <div className="text-sm">
-          <div className="text-slate-900 font-medium">
+          <div className="text-slate-100 font-medium">
             {quiz.totalQuestionCount}
           </div>
-          <div className="text-slate-400 text-xs">
+          <div className="text-slate-500 text-xs">
             {quiz.closedQuestionCount}c / {quiz.openQuestionCount}o
           </div>
         </div>
       </td>
       <td className="px-4 py-4">
-        <span className="text-sm text-slate-500">{formatDate(quiz.createdAt)}</span>
+        <span className="text-sm text-slate-400">{formatDate(quiz.createdAt)}</span>
       </td>
       <td className="px-4 py-4">
         <div className="flex items-center justify-end gap-2">
@@ -154,7 +154,7 @@ export function QuizGroup({
               {/* Primary Actions - Always Visible */}
               <button
                 onClick={() => onLoadQuiz(quiz)}
-                className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
+                className="p-2 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
                 title="Start Quiz"
               >
                 <svg
@@ -179,7 +179,7 @@ export function QuizGroup({
               </button>
               <button
                 onClick={() => onEdit(quiz)}
-                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors"
+                className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
                 title="Edit"
               >
                 <svg
@@ -200,7 +200,7 @@ export function QuizGroup({
           )}
           <button
             onClick={() => onDelete(quiz)}
-            className="p-2 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors"
+            className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
             title="Delete"
           >
             <svg
@@ -226,7 +226,7 @@ export function QuizGroup({
                   e.stopPropagation();
                   setOpenMenuId(openMenuId === quiz.id ? null : quiz.id);
                 }}
-                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors"
+                className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
                 title="More actions"
               >
                 <svg
@@ -247,7 +247,7 @@ export function QuizGroup({
               {/* Dropdown Menu */}
               {openMenuId === quiz.id && (
                 <div
-                  className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-50"
+                  className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="py-1">
@@ -257,7 +257,7 @@ export function QuizGroup({
                         setOpenMenuId(null);
                       }}
                       disabled={isDuplicating === quiz.id}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-3 disabled:opacity-50 disabled:cursor-wait"
+                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3 disabled:opacity-50 disabled:cursor-wait"
                     >
                       {isDuplicating === quiz.id ? (
                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -276,7 +276,7 @@ export function QuizGroup({
                         onTranslate(quiz);
                         setOpenMenuId(null);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-3"
+                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
@@ -288,7 +288,7 @@ export function QuizGroup({
                         onViewSource(quiz);
                         setOpenMenuId(null);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-3"
+                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -301,7 +301,7 @@ export function QuizGroup({
                           onRestoreBackup(quiz);
                           setOpenMenuId(null);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-amber-600 hover:bg-slate-100 hover:text-amber-700 transition-colors flex items-center gap-3"
+                        className="w-full px-4 py-2 text-left text-sm text-amber-400 hover:bg-slate-700 hover:text-amber-300 transition-colors flex items-center gap-3"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

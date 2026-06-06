@@ -160,12 +160,14 @@ const TAB_NAV: NavItem[] = STUDY_NAV;
 function BrandMark() {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-sm shadow-indigo-600/30">
-        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-5 w-5 brightness-0 invert" />
-      </div>
+      <img
+        src={`${import.meta.env.BASE_URL}favicon.svg`}
+        alt="QuizAI"
+        className="h-9 w-9 shrink-0"
+      />
       <div className="leading-none">
-        <span className="block text-[15px] font-bold tracking-tight text-slate-900">QuizAI</span>
-        <span className="block text-[11px] font-medium text-slate-400">Study smarter</span>
+        <span className="block text-[15px] font-bold tracking-tight text-slate-100">QuizAI</span>
+        <span className="block text-[11px] font-medium text-slate-500">Study smarter</span>
       </div>
     </div>
   );
@@ -183,14 +185,14 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
       className={({ isActive }) =>
         `group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
           isActive
-            ? "bg-indigo-50 text-indigo-700"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            ? "bg-indigo-500/15 text-indigo-300"
+            : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
         }`
       }
     >
       {({ isActive }) => (
         <>
-          <Icon className={`h-5 w-5 shrink-0 ${isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"}`} />
+          <Icon className={`h-5 w-5 shrink-0 ${isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300"}`} />
           {item.label}
         </>
       )}
@@ -266,9 +268,9 @@ function AppContent() {
       />
       <SaveQuizModal />
 
-      <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="min-h-screen bg-slate-900 text-slate-100">
         {/* ============================ Desktop sidebar =========================== */}
-        <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r border-slate-200 bg-white">
+        <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r border-slate-800 bg-slate-900">
           <div className="flex h-16 items-center px-5">
             <Link to="/" aria-label="QuizAI home">
               <BrandMark />
@@ -278,7 +280,7 @@ function AppContent() {
           <div className="px-3">
             <Link
               to="sourcePage"
-              className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-600/30 transition-all hover:bg-indigo-700 active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-400 active:scale-[0.98]"
             >
               <PlusIcon className="h-4.5 w-4.5" />
               New Quiz
@@ -287,31 +289,31 @@ function AppContent() {
 
           <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-6">
             <div className="space-y-1">
-              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Study</p>
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Study</p>
               {STUDY_NAV.map((item) => (
                 <SidebarLink key={item.to} item={item} />
               ))}
             </div>
             <div className="space-y-1">
-              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Progress</p>
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Progress</p>
               {PROGRESS_NAV.map((item) => (
                 <SidebarLink key={item.to} item={item} />
               ))}
             </div>
           </nav>
 
-          <div className="space-y-3 border-t border-slate-200 px-3 py-4">
+          <div className="space-y-3 border-t border-slate-800 px-3 py-4">
             <SidebarLink item={{ to: "settingsPage", label: "Settings", icon: SettingsIcon }} />
             <div className="flex flex-col gap-2 px-1">
               <ApiKeyButton />
               <ImportExportButton onClick={() => setShowImportExportModal(true)} />
             </div>
-            <p className="px-3 text-[11px] text-slate-400">v{version}</p>
+            <p className="px-3 text-[11px] text-slate-600">v{version}</p>
           </div>
         </aside>
 
         {/* ============================ Mobile top bar =========================== */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white/85 px-4 backdrop-blur-md lg:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-800 bg-slate-900/85 px-4 backdrop-blur-md lg:hidden">
           <Link to="/" aria-label="QuizAI home">
             <BrandMark />
           </Link>
@@ -360,7 +362,7 @@ function AppContent() {
         </div>
 
         {/* ============================ Mobile bottom tabs ======================= */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-200 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-800 bg-slate-900/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
           {TAB_NAV.map((item) => {
             const Icon = item.icon;
             return (
@@ -370,7 +372,7 @@ function AppContent() {
                 end={item.end}
                 className={({ isActive }) =>
                   `flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors ${
-                    isActive ? "text-indigo-600" : "text-slate-400"
+                    isActive ? "text-indigo-400" : "text-slate-500"
                   }`
                 }
               >
@@ -382,7 +384,7 @@ function AppContent() {
           <button
             onClick={() => setMoreOpen(true)}
             className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors ${
-              moreOpen ? "text-indigo-600" : "text-slate-400"
+              moreOpen ? "text-indigo-400" : "text-slate-500"
             }`}
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -396,11 +398,11 @@ function AppContent() {
         {moreOpen && (
           <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
             <div
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setMoreOpen(false)}
             />
-            <div className="absolute inset-x-0 bottom-0 animate-fade-in rounded-t-2xl border-t border-slate-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl shadow-slate-900/10">
-              <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-200" />
+            <div className="absolute inset-x-0 bottom-0 animate-fade-in rounded-t-2xl border-t border-slate-800 bg-slate-900 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl shadow-black/40">
+              <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-700" />
               <div className="space-y-1">
                 {PROGRESS_NAV.map((item) => (
                   <SidebarLink key={item.to} item={item} onNavigate={() => setMoreOpen(false)} />
@@ -410,7 +412,7 @@ function AppContent() {
                   onNavigate={() => setMoreOpen(false)}
                 />
               </div>
-              <div className="mt-4 flex flex-col gap-2 border-t border-slate-200 pt-4">
+              <div className="mt-4 flex flex-col gap-2 border-t border-slate-800 pt-4">
                 <ImportExportButton onClick={openImportExport} />
               </div>
             </div>

@@ -34,13 +34,13 @@ export function AchievementToast({ achievement, onDismiss, onClick }: Achievemen
   const getStyleClasses = () => {
     switch (achievement.style) {
       case 'legendary':
-        return 'border-purple-300 bg-gradient-to-r from-purple-50 to-violet-100';
+        return 'border-purple-500/50 bg-gradient-to-r from-purple-900 to-indigo-900';
       case 'epic':
-        return 'border-indigo-300 bg-indigo-100';
+        return 'border-indigo-500/50 bg-indigo-900';
       case 'rare':
-        return 'border-cyan-300 bg-white';
+        return 'border-cyan-500/40 bg-slate-800';
       default:
-        return 'border-slate-300 bg-white';
+        return 'border-slate-600 bg-slate-800';
     }
   };
 
@@ -68,13 +68,13 @@ export function AchievementToast({ achievement, onDismiss, onClick }: Achievemen
 
         {/* Content */}
         <div className="text-left">
-          <p className="text-xs text-slate-500 uppercase tracking-wide">
+          <p className="text-xs text-slate-400 uppercase tracking-wide">
             Achievement Unlocked!
           </p>
-          <p className="font-semibold text-slate-900">
+          <p className="font-semibold text-slate-100">
             {achievement.name}
           </p>
-          <p className="text-sm text-indigo-600">
+          <p className="text-sm text-indigo-400">
             +{achievement.points} points
           </p>
         </div>

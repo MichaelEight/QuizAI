@@ -282,7 +282,7 @@ export default function LibraryPage({
     if (sortConfig.field !== field) {
       return (
         <svg
-          className="w-4 h-4 text-slate-400"
+          className="w-4 h-4 text-slate-600"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor">
@@ -297,7 +297,7 @@ export default function LibraryPage({
     }
     return sortConfig.direction === "asc" ? (
       <svg
-        className="w-4 h-4 text-indigo-600"
+        className="w-4 h-4 text-indigo-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor">
@@ -310,7 +310,7 @@ export default function LibraryPage({
       </svg>
     ) : (
       <svg
-        className="w-4 h-4 text-indigo-600"
+        className="w-4 h-4 text-indigo-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor">
@@ -496,7 +496,7 @@ export default function LibraryPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-slate-400">
           <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
             <circle
               className="opacity-25"
@@ -521,11 +521,11 @@ export default function LibraryPage({
 
   if (error) {
     return (
-      <div className="p-6 bg-rose-50 border border-rose-200 rounded-xl text-center">
-        <p className="text-rose-600 mb-4">{error}</p>
+      <div className="p-6 bg-rose-500/10 border border-rose-500/20 rounded-xl text-center">
+        <p className="text-rose-400 mb-4">{error}</p>
         <button
           onClick={refreshQuizzes}
-          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg transition-colors">
+          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors">
           Try Again
         </button>
       </div>
@@ -537,10 +537,10 @@ export default function LibraryPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-100">
             Quiz Library
           </h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-1">
+          <p className="text-sm sm:text-base text-slate-400 mt-1">
             {quizzes.length === 0
               ? "No saved quizzes yet"
               : `${quizzes.length} quiz${quizzes.length === 1 ? "" : "zes"} saved`}
@@ -548,7 +548,7 @@ export default function LibraryPage({
         </div>
         <button
           onClick={() => navigate("/sourcePage")}
-          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
+          className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
           <svg
             className="w-5 h-5"
             fill="none"
@@ -567,10 +567,10 @@ export default function LibraryPage({
 
       {/* Empty State */}
       {quizzes.length === 0 ? (
-        <div className="p-12 bg-slate-50 border border-slate-200 rounded-xl text-center">
-          <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <div className="p-12 bg-slate-800/50 border border-slate-700 rounded-xl text-center">
+          <div className="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-8 h-8 text-indigo-600"
+              className="w-8 h-8 text-indigo-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor">
@@ -582,16 +582,16 @@ export default function LibraryPage({
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">
+          <h2 className="text-xl font-semibold text-slate-100 mb-2">
             Your library is empty
           </h2>
-          <p className="text-slate-500 mb-6 max-w-md mx-auto">
+          <p className="text-slate-400 mb-6 max-w-md mx-auto">
             Create your first quiz by entering source text and generating
             questions. You can save quizzes to access them later.
           </p>
           <button
             onClick={() => navigate("/sourcePage")}
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors">
+            className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg transition-colors">
             Create Your First Quiz
           </button>
         </div>
@@ -603,7 +603,7 @@ export default function LibraryPage({
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor">
@@ -619,21 +619,21 @@ export default function LibraryPage({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search quizzes..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                 />
               </div>
 
               {/* Advanced Filters Toggle */}
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
+                className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
                 <span>Filters</span>
                 {activeFilterCount > 0 && (
-                  <span className="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-xs font-medium">
+                  <span className="px-2 py-0.5 bg-indigo-500 text-white rounded-full text-xs font-medium">
                     {activeFilterCount}
                   </span>
                 )}
@@ -646,19 +646,19 @@ export default function LibraryPage({
 
             {/* Collapsible Advanced Filters Panel */}
             {showAdvancedFilters && (
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+              <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
                 {/* Filters Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Subject Filter */}
                   {uniqueSubjects.length > 0 && (
                     <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-2">
+                      <label className="block text-xs font-medium text-slate-400 mb-2">
                         Subject
                       </label>
                       <select
                         value={subjectFilter}
                         onChange={(e) => setSubjectFilter(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
                         <option value="">All Subjects</option>
                         {uniqueSubjects.map((subject) => (
                           <option key={subject} value={subject}>
@@ -672,13 +672,13 @@ export default function LibraryPage({
                   {/* Teacher Filter */}
                   {uniqueTeachers.length > 0 && (
                     <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-2">
+                      <label className="block text-xs font-medium text-slate-400 mb-2">
                         Teacher
                       </label>
                       <select
                         value={teacherFilter || ""}
                         onChange={(e) => setTeacherFilter(e.target.value || undefined)}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
                         <option value="">All Teachers</option>
                         {uniqueTeachers.map((teacher) => (
                           <option key={teacher} value={teacher}>
@@ -691,13 +691,13 @@ export default function LibraryPage({
 
                   {/* Language Filter */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-2">
+                    <label className="block text-xs font-medium text-slate-400 mb-2">
                       Language
                     </label>
                     <select
                       value={languageFilter || ""}
                       onChange={(e) => setLanguageFilter(e.target.value as QuizLanguage || undefined)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
                       <option value="">All Languages</option>
                       <option value="english">🇬🇧 English</option>
                       <option value="polish">🇵🇱 Polski</option>
@@ -708,13 +708,13 @@ export default function LibraryPage({
 
                   {/* Question Type Filter */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-2">
+                    <label className="block text-xs font-medium text-slate-400 mb-2">
                       Question Type
                     </label>
                     <select
                       value={questionTypeFilter}
                       onChange={(e) => setQuestionTypeFilter(e.target.value as 'open' | 'closed' | 'all')}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50">
                       <option value="all">All Types</option>
                       <option value="open">Open Questions</option>
                       <option value="closed">Closed Questions</option>
@@ -723,7 +723,7 @@ export default function LibraryPage({
 
                   {/* Question Count Range */}
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-slate-500 mb-2">
+                    <label className="block text-xs font-medium text-slate-400 mb-2">
                       Question Count
                     </label>
                     <div className="flex items-center gap-2">
@@ -733,29 +733,29 @@ export default function LibraryPage({
                         onChange={(e) => setQuestionCountMin(e.target.value ? Number(e.target.value) : undefined)}
                         placeholder="Min"
                         min="0"
-                        className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                       />
-                      <span className="text-slate-400">—</span>
+                      <span className="text-slate-500">—</span>
                       <input
                         type="number"
                         value={questionCountMax ?? ""}
                         onChange={(e) => setQuestionCountMax(e.target.value ? Number(e.target.value) : undefined)}
                         placeholder="Max"
                         min="0"
-                        className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Date Filters Section */}
-                <div className="pt-4 border-t border-slate-200">
-                  <h4 className="text-sm font-medium text-slate-600 mb-3">Date Filters</h4>
+                <div className="pt-4 border-t border-slate-700">
+                  <h4 className="text-sm font-medium text-slate-300 mb-3">Date Filters</h4>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Created Date */}
                     <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-2">
+                      <label className="block text-xs font-medium text-slate-400 mb-2">
                         Created Date
                       </label>
 
@@ -765,8 +765,8 @@ export default function LibraryPage({
                           onClick={() => handleCreatedDatePreset(DatePreset.TODAY)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             createdDatePreset === DatePreset.TODAY
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           Today
                         </button>
@@ -774,8 +774,8 @@ export default function LibraryPage({
                           onClick={() => handleCreatedDatePreset(DatePreset.LAST_7_DAYS)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             createdDatePreset === DatePreset.LAST_7_DAYS
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           Last 7 Days
                         </button>
@@ -783,8 +783,8 @@ export default function LibraryPage({
                           onClick={() => handleCreatedDatePreset(DatePreset.LAST_30_DAYS)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             createdDatePreset === DatePreset.LAST_30_DAYS
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           Last 30 Days
                         </button>
@@ -792,8 +792,8 @@ export default function LibraryPage({
                           onClick={() => handleCreatedDatePreset(DatePreset.THIS_YEAR)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             createdDatePreset === DatePreset.THIS_YEAR
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           This Year
                         </button>
@@ -801,8 +801,8 @@ export default function LibraryPage({
                           onClick={() => handleCreatedDatePreset(DatePreset.CUSTOM)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             createdDatePreset === DatePreset.CUSTOM
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           Custom
                         </button>
@@ -815,14 +815,14 @@ export default function LibraryPage({
                             type="date"
                             value={createdAfter ? new Date(createdAfter).toISOString().split('T')[0] : ''}
                             onChange={(e) => setCreatedAfter(e.target.value ? new Date(e.target.value).getTime() : undefined)}
-                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                             placeholder="From"
                           />
                           <input
                             type="date"
                             value={createdBefore ? new Date(createdBefore).toISOString().split('T')[0] : ''}
                             onChange={(e) => setCreatedBefore(e.target.value ? new Date(e.target.value).getTime() : undefined)}
-                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                             placeholder="To"
                           />
                         </div>
@@ -831,7 +831,7 @@ export default function LibraryPage({
 
                     {/* Updated Date */}
                     <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-2">
+                      <label className="block text-xs font-medium text-slate-400 mb-2">
                         Updated Date
                       </label>
 
@@ -841,8 +841,8 @@ export default function LibraryPage({
                           onClick={() => handleUpdatedDatePreset(DatePreset.TODAY)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             updatedDatePreset === DatePreset.TODAY
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           Today
                         </button>
@@ -850,8 +850,8 @@ export default function LibraryPage({
                           onClick={() => handleUpdatedDatePreset(DatePreset.LAST_7_DAYS)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             updatedDatePreset === DatePreset.LAST_7_DAYS
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           Last 7 Days
                         </button>
@@ -859,8 +859,8 @@ export default function LibraryPage({
                           onClick={() => handleUpdatedDatePreset(DatePreset.LAST_30_DAYS)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             updatedDatePreset === DatePreset.LAST_30_DAYS
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           Last 30 Days
                         </button>
@@ -868,8 +868,8 @@ export default function LibraryPage({
                           onClick={() => handleUpdatedDatePreset(DatePreset.THIS_YEAR)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             updatedDatePreset === DatePreset.THIS_YEAR
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           This Year
                         </button>
@@ -877,8 +877,8 @@ export default function LibraryPage({
                           onClick={() => handleUpdatedDatePreset(DatePreset.CUSTOM)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             updatedDatePreset === DatePreset.CUSTOM
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              ? 'bg-indigo-500 text-white'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}>
                           Custom
                         </button>
@@ -891,14 +891,14 @@ export default function LibraryPage({
                             type="date"
                             value={updatedAfter ? new Date(updatedAfter).toISOString().split('T')[0] : ''}
                             onChange={(e) => setUpdatedAfter(e.target.value ? new Date(e.target.value).getTime() : undefined)}
-                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                             placeholder="From"
                           />
                           <input
                             type="date"
                             value={updatedBefore ? new Date(updatedBefore).toISOString().split('T')[0] : ''}
                             onChange={(e) => setUpdatedBefore(e.target.value ? new Date(e.target.value).getTime() : undefined)}
-                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                             placeholder="To"
                           />
                         </div>
@@ -908,11 +908,11 @@ export default function LibraryPage({
                 </div>
 
                 {/* Clear Filters Button */}
-                <div className="pt-4 border-t border-slate-200 flex justify-end">
+                <div className="pt-4 border-t border-slate-700 flex justify-end">
                   <button
                     onClick={handleClearFilters}
                     disabled={activeFilterCount === 0}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-100 disabled:text-slate-400 text-slate-800 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 disabled:cursor-not-allowed">
+                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 text-slate-200 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 disabled:cursor-not-allowed">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -925,7 +925,7 @@ export default function LibraryPage({
 
           {/* Results count */}
           {activeFilterCount > 0 && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Showing {filteredQuizzes.length} of {quizzes.length} quizzes
               {searchQuery && ` matching "${searchQuery}"`}
             </p>
@@ -934,19 +934,19 @@ export default function LibraryPage({
           {/* Mobile Cards View */}
           <div className="md:hidden space-y-3">
             {filteredQuizzes.length === 0 ? (
-              <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl text-center text-slate-400">
+              <div className="p-6 bg-slate-800/50 border border-slate-700 rounded-xl text-center text-slate-500">
                 No quizzes match your search
               </div>
             ) : (
               filteredQuizzes.map((quiz) => (
                 <div
                   key={quiz.id}
-                  className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                  className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3">
                   {/* Title and description */}
                   <div>
-                    <h3 className="font-medium text-slate-900">{quiz.title}</h3>
+                    <h3 className="font-medium text-slate-100">{quiz.title}</h3>
                     {quiz.description && (
-                      <p className="text-sm text-slate-400 mt-1 line-clamp-2">
+                      <p className="text-sm text-slate-500 mt-1 line-clamp-2">
                         {quiz.description}
                       </p>
                     )}
@@ -955,38 +955,38 @@ export default function LibraryPage({
                   {/* Metadata row */}
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     {quiz.language && (
-                      <span className="px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded text-xs font-medium">
+                      <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-xs font-medium">
                         {getLanguageLabel(quiz.language)}
                       </span>
                     )}
-                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">
+                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-xs font-medium">
                       v{quiz.version || 1}
                     </span>
                     {(quiz.subjectName || quiz.subjectCode) && (
-                      <span className="px-2 py-0.5 bg-slate-100 rounded text-slate-600 text-xs">
+                      <span className="px-2 py-0.5 bg-slate-700 rounded text-slate-300 text-xs">
                         {quiz.subjectName || quiz.subjectCode}
                       </span>
                     )}
-                    <span className="text-slate-500">
+                    <span className="text-slate-400">
                       {quiz.totalQuestionCount} questions
                     </span>
-                    <span className="text-slate-400">
+                    <span className="text-slate-500">
                       Updated {formatDate(quiz.updatedAt)}
                     </span>
                     {getTranslations(quiz.id).length > 1 && (
                       <button
                         onClick={() => setShowingVersionsFor(quiz)}
-                        className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded text-xs font-medium hover:bg-purple-100 transition-colors">
+                        className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded text-xs font-medium hover:bg-purple-500/30 transition-colors">
                         {getTranslations(quiz.id).length} versions
                       </button>
                     )}
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-700">
                     <button
                       onClick={() => handleLoadQuiz(quiz)}
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors font-medium">
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-colors font-medium">
                       <svg
                         className="w-5 h-5"
                         fill="none"
@@ -1009,7 +1009,7 @@ export default function LibraryPage({
                     </button>
                     <button
                       onClick={() => handleEditClick(quiz)}
-                      className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors"
+                      className="p-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
                       title="Edit"
                       aria-label={`Edit ${quiz.title}`}>
                       <svg
@@ -1029,7 +1029,7 @@ export default function LibraryPage({
                     <button
                       onClick={() => handleDuplicate(quiz)}
                       disabled={isDuplicating === quiz.id}
-                      className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-wait"
+                      className="p-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-wait"
                       title="Duplicate"
                       aria-label={`Duplicate ${quiz.title}`}>
                       {isDuplicating === quiz.id ? (
@@ -1070,7 +1070,7 @@ export default function LibraryPage({
                     </button>
                     <button
                       onClick={() => handleTranslateClick(quiz)}
-                      className="p-2.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+                      className="p-2.5 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors"
                       title="Translate"
                       aria-label={`Translate ${quiz.title} to another language`}>
                       <svg
@@ -1089,7 +1089,7 @@ export default function LibraryPage({
                     </button>
                     <button
                       onClick={() => setViewingSourceQuiz(quiz)}
-                      className="p-2.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                      className="p-2.5 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
                       title="View Source Text"
                       aria-label={`View source text for ${quiz.title}`}>
                       <svg
@@ -1109,7 +1109,7 @@ export default function LibraryPage({
                     {quiz.previousVersionId && (
                       <button
                         onClick={() => handleRestoreBackup(quiz)}
-                        className="p-2.5 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
+                        className="p-2.5 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
                         title="Restore Backup"
                         aria-label={`Restore previous version of ${quiz.title}`}>
                         <svg
@@ -1129,7 +1129,7 @@ export default function LibraryPage({
                     )}
                     <button
                       onClick={() => setDeletingQuiz(quiz)}
-                      className="p-2.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors"
+                      className="p-2.5 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
                       title="Delete"
                       aria-label={`Delete ${quiz.title}`}>
                       <svg
@@ -1153,28 +1153,28 @@ export default function LibraryPage({
           </div>
 
           {/* Desktop Table View */}
-          <div className="hidden md:block bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+          <div className="hidden md:block bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-white/80 border-b border-slate-200">
+                  <tr className="bg-slate-800/80 border-b border-slate-700">
                     <th className="px-4 py-3 text-left">
                       <button
                         onClick={() => handleSort("title")}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                        className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-slate-100 transition-colors">
                         Title
                         {getSortIcon("title")}
                       </button>
                     </th>
                     <th className="px-4 py-3 text-left">
-                      <span className="text-sm font-medium text-slate-600">
+                      <span className="text-sm font-medium text-slate-300">
                         Subject
                       </span>
                     </th>
                     <th className="px-4 py-3 text-left">
                       <button
                         onClick={() => handleSort("totalQuestionCount")}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                        className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-slate-100 transition-colors">
                         Questions
                         {getSortIcon("totalQuestionCount")}
                       </button>
@@ -1182,7 +1182,7 @@ export default function LibraryPage({
                     <th className="px-4 py-3 text-left">
                       <button
                         onClick={() => handleSort("createdAt")}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                        className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-slate-100 transition-colors">
                         Created
                         {getSortIcon("createdAt")}
                       </button>
@@ -1190,24 +1190,24 @@ export default function LibraryPage({
                     <th className="px-4 py-3 text-left">
                       <button
                         onClick={() => handleSort("updatedAt")}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                        className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-slate-100 transition-colors">
                         Updated
                         {getSortIcon("updatedAt")}
                       </button>
                     </th>
                     <th className="px-4 py-3 text-right">
-                      <span className="text-sm font-medium text-slate-600">
+                      <span className="text-sm font-medium text-slate-300">
                         Actions
                       </span>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-700/50">
                   {filteredQuizzes.length === 0 ? (
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-4 py-8 text-center text-slate-400">
+                        className="px-4 py-8 text-center text-slate-500">
                         No quizzes match your search
                       </td>
                     </tr>
@@ -1215,36 +1215,36 @@ export default function LibraryPage({
                     filteredQuizzes.map((quiz) => (
                       <tr
                         key={quiz.id}
-                        className="hover:bg-slate-100 transition-colors">
+                        className="hover:bg-slate-700/30 transition-colors">
                         <td className="px-4 py-4">
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-medium text-slate-900">
+                              <p className="font-medium text-slate-100">
                                 {quiz.title}
                               </p>
                               {quiz.language && (
-                                <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-500 rounded text-xs font-medium">
+                                <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-xs font-medium">
                                   {getLanguageLabel(quiz.language)}
                                 </span>
                               )}
-                              <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">
+                              <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-xs font-medium">
                                 v{quiz.version || 1}
                               </span>
                               {getTranslations(quiz.id).length > 1 && (
                                 <button
                                   onClick={() => setShowingVersionsFor(quiz)}
-                                  className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-xs font-medium hover:bg-purple-100 transition-colors">
+                                  className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 rounded text-xs font-medium hover:bg-purple-500/30 transition-colors">
                                   {getTranslations(quiz.id).length} versions
                                 </button>
                               )}
                             </div>
                             {quiz.description && (
-                              <p className="text-sm text-slate-400 truncate max-w-xs">
+                              <p className="text-sm text-slate-500 truncate max-w-xs">
                                 {quiz.description}
                               </p>
                             )}
                             {quiz.teacher && (
-                              <p className="text-xs text-slate-400 mt-0.5">
+                              <p className="text-xs text-slate-600 mt-0.5">
                                 by {quiz.teacher}
                               </p>
                             )}
@@ -1254,37 +1254,37 @@ export default function LibraryPage({
                           {quiz.subjectName || quiz.subjectCode ? (
                             <div className="flex items-center gap-2">
                               {quiz.subjectName && (
-                                <span className="text-sm text-slate-600">
+                                <span className="text-sm text-slate-300">
                                   {quiz.subjectName}
                                 </span>
                               )}
                               {quiz.subjectCode && (
-                                <span className="px-1.5 py-0.5 bg-slate-100 rounded text-xs text-slate-500">
+                                <span className="px-1.5 py-0.5 bg-slate-700 rounded text-xs text-slate-400">
                                   {quiz.subjectCode}
                                 </span>
                               )}
                             </div>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-slate-600">—</span>
                           )}
                         </td>
                         <td className="px-4 py-4">
                           <div className="text-sm">
-                            <div className="text-slate-900 font-medium">
+                            <div className="text-slate-100 font-medium">
                               {quiz.totalQuestionCount}
                             </div>
-                            <div className="text-slate-400 text-xs">
+                            <div className="text-slate-500 text-xs">
                               {quiz.closedQuestionCount}c / {quiz.openQuestionCount}o
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-4">
-                          <span className="text-sm text-slate-500">
+                          <span className="text-sm text-slate-400">
                             {formatDate(quiz.createdAt)}
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <span className="text-sm text-slate-500">
+                          <span className="text-sm text-slate-400">
                             {formatDate(quiz.updatedAt)}
                           </span>
                         </td>
@@ -1293,7 +1293,7 @@ export default function LibraryPage({
                             {/* Primary Actions - Always Visible */}
                             <button
                               onClick={() => handleLoadQuiz(quiz)}
-                              className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
+                              className="p-2 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
                               title="Start Quiz">
                               <svg
                                 className="w-5 h-5"
@@ -1316,7 +1316,7 @@ export default function LibraryPage({
                             </button>
                             <button
                               onClick={() => handleEditClick(quiz)}
-                              className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors"
+                              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
                               title="Edit">
                               <svg
                                 className="w-5 h-5"
@@ -1333,7 +1333,7 @@ export default function LibraryPage({
                             </button>
                             <button
                               onClick={() => setDeletingQuiz(quiz)}
-                              className="p-2 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors"
+                              className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
                               title="Delete">
                               <svg
                                 className="w-5 h-5"
@@ -1356,7 +1356,7 @@ export default function LibraryPage({
                                   e.stopPropagation();
                                   setOpenMenuId(openMenuId === quiz.id ? null : quiz.id);
                                 }}
-                                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors"
+                                className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-600/50 rounded-lg transition-colors"
                                 title="More actions">
                                 <svg
                                   className="w-5 h-5"
@@ -1375,7 +1375,7 @@ export default function LibraryPage({
                               {/* Dropdown Menu */}
                               {openMenuId === quiz.id && (
                                 <div
-                                  className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-50"
+                                  className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50"
                                   onClick={(e) => e.stopPropagation()}>
                                   <div className="py-1">
                                     <button
@@ -1384,7 +1384,7 @@ export default function LibraryPage({
                                         setOpenMenuId(null);
                                       }}
                                       disabled={isDuplicating === quiz.id}
-                                      className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-3 disabled:opacity-50 disabled:cursor-wait">
+                                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3 disabled:opacity-50 disabled:cursor-wait">
                                       {isDuplicating === quiz.id ? (
                                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -1402,7 +1402,7 @@ export default function LibraryPage({
                                         handleTranslateClick(quiz);
                                         setOpenMenuId(null);
                                       }}
-                                      className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-3">
+                                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3">
                                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                                       </svg>
@@ -1413,7 +1413,7 @@ export default function LibraryPage({
                                         setViewingSourceQuiz(quiz);
                                         setOpenMenuId(null);
                                       }}
-                                      className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-3">
+                                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3">
                                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                       </svg>
@@ -1425,7 +1425,7 @@ export default function LibraryPage({
                                           handleRestoreBackup(quiz);
                                           setOpenMenuId(null);
                                         }}
-                                        className="w-full px-4 py-2 text-left text-sm text-amber-600 hover:bg-slate-100 hover:text-amber-700 transition-colors flex items-center gap-3">
+                                        className="w-full px-4 py-2 text-left text-sm text-amber-400 hover:bg-slate-700 hover:text-amber-300 transition-colors flex items-center gap-3">
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                         </svg>
@@ -1454,7 +1454,7 @@ export default function LibraryPage({
         onClose={() => setEditingQuiz(null)}
         maxWidth="max-w-lg">
         <div className="p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">
+          <h2 className="text-xl font-bold text-slate-100 mb-6">
             Edit Quiz Metadata
           </h2>
 
@@ -1462,22 +1462,22 @@ export default function LibraryPage({
             <div>
               <label
                 htmlFor="edit-title"
-                className="block text-sm font-medium text-slate-600 mb-1.5">
-                Title <span className="text-rose-600">*</span>
+                className="block text-sm font-medium text-slate-300 mb-1.5">
+                Title <span className="text-rose-400">*</span>
               </label>
               <input
                 id="edit-title"
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
               />
             </div>
 
             <div>
               <label
                 htmlFor="edit-description"
-                className="block text-sm font-medium text-slate-600 mb-1.5">
+                className="block text-sm font-medium text-slate-300 mb-1.5">
                 Description
               </label>
               <textarea
@@ -1485,7 +1485,7 @@ export default function LibraryPage({
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 resize-none"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 resize-none"
               />
             </div>
 
@@ -1493,7 +1493,7 @@ export default function LibraryPage({
               <div className="sm:col-span-2">
                 <label
                   htmlFor="edit-subject"
-                  className="block text-sm font-medium text-slate-600 mb-1.5">
+                  className="block text-sm font-medium text-slate-300 mb-1.5">
                   Subject
                 </label>
                 <input
@@ -1502,13 +1502,13 @@ export default function LibraryPage({
                   value={editSubjectName}
                   onChange={(e) => setEditSubjectName(e.target.value)}
                   placeholder="e.g., Biology"
-                  className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                 />
               </div>
               <div>
                 <label
                   htmlFor="edit-code"
-                  className="block text-sm font-medium text-slate-600 mb-1.5">
+                  className="block text-sm font-medium text-slate-300 mb-1.5">
                   Code
                 </label>
                 <input
@@ -1517,7 +1517,7 @@ export default function LibraryPage({
                   value={editSubjectCode}
                   onChange={(e) => setEditSubjectCode(e.target.value)}
                   placeholder="CS101"
-                  className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                 />
               </div>
             </div>
@@ -1525,7 +1525,7 @@ export default function LibraryPage({
             <div>
               <label
                 htmlFor="edit-teacher"
-                className="block text-sm font-medium text-slate-600 mb-1.5">
+                className="block text-sm font-medium text-slate-300 mb-1.5">
                 Teacher
               </label>
               <input
@@ -1534,20 +1534,20 @@ export default function LibraryPage({
                 value={editTeacher}
                 onChange={(e) => setEditTeacher(e.target.value)}
                 placeholder="Teacher or professor name"
-                className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
               />
             </div>
 
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setEditingQuiz(null)}
-                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg transition-colors">
+                className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors">
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
                 disabled={isSaving || !editTitle.trim()}
-                className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-medium rounded-lg transition-colors">
+                className="flex-1 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors">
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>
             </div>
@@ -1561,9 +1561,9 @@ export default function LibraryPage({
         onClose={() => setDeletingQuiz(null)}
         maxWidth="max-w-md">
         <div className="p-6">
-          <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-6 h-6 text-rose-600"
+              className="w-6 h-6 text-rose-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor">
@@ -1576,10 +1576,10 @@ export default function LibraryPage({
             </svg>
           </div>
 
-          <h2 className="text-xl font-bold text-slate-900 text-center mb-2">
+          <h2 className="text-xl font-bold text-slate-100 text-center mb-2">
             Delete Quiz?
           </h2>
-          <p className="text-slate-500 text-center mb-6">
+          <p className="text-slate-400 text-center mb-6">
             Are you sure you want to delete "{deletingQuiz?.title}"? This action
             cannot be undone.
           </p>
@@ -1587,13 +1587,13 @@ export default function LibraryPage({
           <div className="flex gap-3">
             <button
               onClick={() => setDeletingQuiz(null)}
-              className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg transition-colors">
+              className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors">
               Cancel
             </button>
             <button
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
-              className="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-medium rounded-lg transition-colors">
+              className="flex-1 px-4 py-2.5 bg-rose-500 hover:bg-rose-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors">
               {isDeleting ? "Deleting..." : "Delete"}
             </button>
           </div>
@@ -1606,9 +1606,9 @@ export default function LibraryPage({
         onClose={() => !isTranslating && setTranslatingQuiz(null)}
         maxWidth="max-w-md">
         <div className="p-6">
-          <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-6 h-6 text-indigo-600"
+              className="w-6 h-6 text-indigo-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor">
@@ -1621,21 +1621,21 @@ export default function LibraryPage({
             </svg>
           </div>
 
-          <h2 className="text-xl font-bold text-slate-900 text-center mb-2">
+          <h2 className="text-xl font-bold text-slate-100 text-center mb-2">
             Translate Quiz
           </h2>
-          <p className="text-slate-500 text-center mb-4">
+          <p className="text-slate-400 text-center mb-4">
             Create a translated version of "{translatingQuiz?.title}"
           </p>
 
           {translationError && (
-            <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-600 text-sm text-center">
+            <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-400 text-sm text-center">
               {translationError}
             </div>
           )}
 
           <fieldset className="mb-6">
-            <legend className="block text-sm font-medium text-slate-600 mb-2">
+            <legend className="block text-sm font-medium text-slate-300 mb-2">
               Target Language
             </legend>
             <div className="grid grid-cols-2 gap-2">
@@ -1653,10 +1653,10 @@ export default function LibraryPage({
                 const isDisabled = alreadyExists || isCurrentLang;
 
                 const buttonClass = isSelected
-                  ? "bg-indigo-100 border-2 border-indigo-500 text-indigo-50"
+                  ? "bg-indigo-500/30 border-2 border-indigo-500 text-indigo-100"
                   : isDisabled
-                    ? "bg-slate-50 border-2 border-transparent text-slate-400 cursor-not-allowed"
-                    : "bg-slate-100 border-2 border-transparent text-slate-600 hover:bg-slate-100";
+                    ? "bg-slate-700/30 border-2 border-transparent text-slate-500 cursor-not-allowed"
+                    : "bg-slate-700/50 border-2 border-transparent text-slate-300 hover:bg-slate-700";
 
                 return (
                   <button
@@ -1669,7 +1669,7 @@ export default function LibraryPage({
                       {getLanguageFullName(lang)}
                     </span>
                     {(alreadyExists || isCurrentLang) && (
-                      <span className="block text-xs mt-0.5 text-slate-400">
+                      <span className="block text-xs mt-0.5 text-slate-500">
                         {isCurrentLang ? "Current" : "Exists"}
                       </span>
                     )}
@@ -1683,13 +1683,13 @@ export default function LibraryPage({
             <button
               onClick={() => setTranslatingQuiz(null)}
               disabled={isTranslating}
-              className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-800 font-medium rounded-lg transition-colors">
+              className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 font-medium rounded-lg transition-colors">
               Cancel
             </button>
             <button
               onClick={handleTranslateConfirm}
               disabled={isTranslating}
-              className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+              className="flex-1 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
               {isTranslating ? (
                 <>
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -1724,11 +1724,11 @@ export default function LibraryPage({
         onClose={() => setShowingVersionsFor(null)}
         maxWidth="max-w-lg">
         <div className="p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">
+          <h2 className="text-xl font-bold text-slate-100 mb-4">
             Language Versions
           </h2>
 
-          <p className="text-slate-500 text-sm mb-4">
+          <p className="text-slate-400 text-sm mb-4">
             Select a language version to load:
           </p>
 
@@ -1741,26 +1741,26 @@ export default function LibraryPage({
                     handleLoadQuiz(version);
                     setShowingVersionsFor(null);
                   }}
-                  className="w-full p-4 bg-slate-100 hover:bg-slate-100 border border-slate-300 rounded-lg text-left transition-colors group">
+                  className="w-full p-4 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-lg text-left transition-colors group">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-900">
+                        <span className="font-medium text-slate-100">
                           {version.title}
                         </span>
                         {version.language && (
-                          <span className="px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded text-xs font-medium">
+                          <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-xs font-medium">
                             {getLanguageLabel(version.language)}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-400 mt-1">
+                      <p className="text-sm text-slate-500 mt-1">
                         {version.totalQuestionCount} questions •{" "}
                         {formatDate(version.createdAt)}
                       </p>
                     </div>
                     <svg
-                      className="w-5 h-5 text-slate-400 group-hover:text-emerald-700 transition-colors"
+                      className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 transition-colors"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor">
@@ -1783,13 +1783,13 @@ export default function LibraryPage({
           </div>
 
           {showingVersionsFor && (
-            <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className="mt-4 pt-4 border-t border-slate-700">
               <button
                 onClick={() => {
                   handleTranslateClick(showingVersionsFor);
                   setShowingVersionsFor(null);
                 }}
-                className="w-full px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-500 font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                className="w-full px-4 py-2.5 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
                 <svg
                   className="w-5 h-5"
                   fill="none"
@@ -1826,9 +1826,9 @@ export default function LibraryPage({
         maxWidth="max-w-lg">
         <div className="p-6">
           <div className="flex items-start gap-4 mb-4">
-            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
               <svg
-                className="w-6 h-6 text-amber-600"
+                className="w-6 h-6 text-amber-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -1841,21 +1841,21 @@ export default function LibraryPage({
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
                 Restore Previous Version?
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-400">
                 This will swap versions
               </p>
             </div>
           </div>
 
-          <div className="bg-slate-100 rounded-lg p-4 mb-6">
-            <p className="text-sm text-slate-600 mb-3">
+          <div className="bg-slate-900/50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-slate-300 mb-3">
               Current version (v{restoringQuiz?.version || 1}) will become the
               backup, and the previous version will be restored.
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               You can always swap back if needed.
             </p>
           </div>
@@ -1863,13 +1863,13 @@ export default function LibraryPage({
           <div className="flex gap-3">
             <button
               onClick={() => setRestoringQuiz(null)}
-              className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg transition-colors">
+              className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors">
               Cancel
             </button>
             <button
               onClick={confirmRestoreBackup}
               disabled={isRestoring}
-              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-500 disabled:bg-slate-100 disabled:text-slate-400 text-white font-medium rounded-lg transition-colors">
+              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors">
               {isRestoring ? "Restoring..." : "Restore"}
             </button>
           </div>
@@ -1897,7 +1897,7 @@ export default function LibraryPage({
       {/* Error Toast */}
       {errorMessage && (
         <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-          <div className="bg-rose-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-md">
+          <div className="bg-rose-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-md">
             <svg
               className="w-5 h-5 shrink-0"
               fill="none"

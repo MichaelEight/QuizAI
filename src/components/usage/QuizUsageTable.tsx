@@ -55,7 +55,7 @@ export function QuizUsageTable({
     if (sortField !== field) {
       return (
         <svg
-          className="w-4 h-4 text-slate-400"
+          className="w-4 h-4 text-slate-600"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -72,7 +72,7 @@ export function QuizUsageTable({
 
     return sortDirection === "asc" ? (
       <svg
-        className="w-4 h-4 text-indigo-600"
+        className="w-4 h-4 text-indigo-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -86,7 +86,7 @@ export function QuizUsageTable({
       </svg>
     ) : (
       <svg
-        className="w-4 h-4 text-indigo-600"
+        className="w-4 h-4 text-indigo-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -103,9 +103,9 @@ export function QuizUsageTable({
 
   if (quizzes.length === 0) {
     return (
-      <div className="bg-slate-50 border border-slate-200 rounded-lg p-12 text-center">
+      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-12 text-center">
         <svg
-          className="w-16 h-16 mx-auto text-slate-400 mb-4"
+          className="w-16 h-16 mx-auto text-slate-600 mb-4"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -117,10 +117,10 @@ export function QuizUsageTable({
             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
           />
         </svg>
-        <h3 className="text-lg font-medium text-slate-600 mb-2">
+        <h3 className="text-lg font-medium text-slate-300 mb-2">
           No Usage Data Yet
         </h3>
-        <p className="text-slate-400">
+        <p className="text-slate-500">
           Start using the app to see usage statistics for your quizzes
         </p>
       </div>
@@ -128,18 +128,18 @@ export function QuizUsageTable({
   }
 
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+    <div className="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-slate-100">
+          <thead className="bg-slate-900/50">
             <tr>
               <th className="px-4 py-3 text-left">
-                <span className="text-xs font-medium text-slate-500">#</span>
+                <span className="text-xs font-medium text-slate-400">#</span>
               </th>
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort("title")}
-                  className="flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
                 >
                   Quiz Title
                   <SortIcon field="title" />
@@ -148,7 +148,7 @@ export function QuizUsageTable({
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort("requests")}
-                  className="flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
                 >
                   Requests
                   <SortIcon field="requests" />
@@ -157,7 +157,7 @@ export function QuizUsageTable({
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort("tokens")}
-                  className="flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
                 >
                   Total Tokens
                   <SortIcon field="tokens" />
@@ -166,14 +166,14 @@ export function QuizUsageTable({
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort("cost")}
-                  className="flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
                 >
                   Total Cost
                   <SortIcon field="cost" />
                 </button>
               </th>
               <th className="px-4 py-3 text-right">
-                <span className="text-xs font-medium text-slate-500">
+                <span className="text-xs font-medium text-slate-400">
                   Actions
                 </span>
               </th>
@@ -183,37 +183,37 @@ export function QuizUsageTable({
             {sortedQuizzes.map((quiz, index) => (
               <tr
                 key={quiz.quizId}
-                className="border-t border-slate-200 hover:bg-slate-100 transition-colors"
+                className="border-t border-slate-700 hover:bg-slate-700/30 transition-colors"
               >
                 <td className="px-4 py-4">
-                  <span className="text-sm font-medium text-slate-400">
+                  <span className="text-sm font-medium text-slate-500">
                     {index + 1}
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <span className="text-sm font-medium text-slate-900">
+                  <span className="text-sm font-medium text-slate-100">
                     {quiz.quizTitle}
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <span className="text-sm text-slate-600">
+                  <span className="text-sm text-slate-300">
                     {formatNumber(quiz.totalRequests)}
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <span className="text-sm text-slate-600">
+                  <span className="text-sm text-slate-300">
                     {formatNumber(quiz.totalTokens)}
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <span className="text-sm font-medium text-emerald-600">
+                  <span className="text-sm font-medium text-emerald-400">
                     {formatCurrency(quiz.totalCostUSD)}
                   </span>
                 </td>
                 <td className="px-4 py-4 text-right">
                   <button
                     onClick={() => onViewDetails(quiz)}
-                    className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-500 rounded-lg text-sm font-medium transition-colors"
+                    className="px-3 py-1.5 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-sm font-medium transition-colors"
                   >
                     View Details
                   </button>

@@ -133,7 +133,7 @@ export function LearntEffect({ show }: LearntEffectProps) {
     <div className="absolute -top-2 -right-2 z-10">
       <div className="animate-star-burst">
         <svg
-          className="w-8 h-8 text-emerald-600 drop-shadow-lg"
+          className="w-8 h-8 text-emerald-400 drop-shadow-lg"
           fill="currentColor"
           viewBox="0 0 24 24"
         >

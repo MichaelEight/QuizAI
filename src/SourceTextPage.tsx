@@ -33,7 +33,7 @@ function HelpIcon({ tooltip }: { tooltip: string }) {
     <button
       type="button"
       title={tooltip}
-      className="inline-flex items-center justify-center w-4 h-4 text-slate-500 hover:text-slate-800 transition-colors duration-200 cursor-help"
+      className="inline-flex items-center justify-center w-4 h-4 text-slate-400 hover:text-slate-200 transition-colors duration-200 cursor-help"
       onClick={(e) => e.preventDefault()}
     >
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,14 +53,14 @@ function TokenWarnings({ totalTokens, availableTokens }: { totalTokens: number; 
   return (
     <div className="mb-4">
       {percentage >= 80 && percentage < 100 && (
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
-          <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-2">
+          <svg className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <div>
-            <p className="text-sm text-amber-600 font-medium">Approaching token limit</p>
-            <p className="text-xs text-amber-600 mt-1">
+            <p className="text-sm text-amber-400 font-medium">Approaching token limit</p>
+            <p className="text-xs text-amber-400/80 mt-1">
               {formatNumber(remaining)} tokens remaining. Consider removing some content if generation fails.
             </p>
           </div>
@@ -82,17 +82,17 @@ function ConfirmClearModal({ isOpen, onClose, onConfirm, fileCount }: ConfirmCle
     <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-md">
       <div className="p-6">
         <div className="flex items-start gap-4 mb-4">
-          <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+            <svg className="w-6 h-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">
+            <h2 className="text-xl font-semibold text-slate-100 mb-2">
               Remove All Files?
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               This will remove {fileCount} {fileCount === 1 ? 'file' : 'files'} from the upload list. This action cannot be undone.
             </p>
           </div>
@@ -101,13 +101,13 @@ function ConfirmClearModal({ isOpen, onClose, onConfirm, fileCount }: ConfirmCle
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-lg transition-colors duration-200"
+            className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 rounded-lg transition-colors duration-200"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors duration-200"
+            className="flex-1 px-4 py-2 bg-rose-500 hover:bg-rose-400 text-white rounded-lg transition-colors duration-200"
           >
             Remove All Files
           </button>
@@ -441,14 +441,14 @@ export default function SourceTextPage({
       {/* Header */}
       <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">Input Source Text</h1>
-          <p className="text-sm sm:text-base text-slate-500">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-1 sm:mb-2">Input Source Text</h1>
+          <p className="text-sm sm:text-base text-slate-400">
             Upload files or paste text to generate quiz questions
           </p>
         </div>
         <Link
           to="/library"
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg transition-colors border border-slate-300 w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors border border-slate-600 w-full sm:w-auto"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -458,11 +458,11 @@ export default function SourceTextPage({
       </div>
 
       {/* Main Card */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-lg shadow-slate-900/5 p-4 sm:p-6">
+      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-lg shadow-black/20 p-4 sm:p-6">
         {/* Drop Zone */}
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <label className="block text-sm font-medium text-slate-600">
+            <label className="block text-sm font-medium text-slate-300">
               Upload Files
             </label>
             <HelpIcon tooltip="Upload PDF or TXT files. We extract text automatically and you can edit it after upload if needed." />
@@ -483,8 +483,8 @@ export default function SourceTextPage({
             onClick={() => fileInputRef.current?.click()}
             className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
               isDragOver
-                ? "border-indigo-500 bg-indigo-50"
-                : "border-slate-300 hover:border-slate-400 hover:bg-slate-100"
+                ? "border-indigo-500 bg-indigo-500/10"
+                : "border-slate-600 hover:border-slate-500 hover:bg-slate-700/30"
             }`}
           >
             <input
@@ -498,21 +498,21 @@ export default function SourceTextPage({
             <div className="flex flex-col items-center gap-2">
               {isExtracting ? (
                 <>
-                  <svg className="animate-spin h-8 w-8 text-indigo-600" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-8 w-8 text-indigo-400" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  <p className="text-slate-600">Extracting text...</p>
+                  <p className="text-slate-300">Extracting text...</p>
                 </>
               ) : (
                 <>
-                  <svg className="w-8 h-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <p className="text-slate-600">
-                    Drop files here or <span className="text-indigo-600">click to browse</span>
+                  <p className="text-slate-300">
+                    Drop files here or <span className="text-indigo-400">click to browse</span>
                   </p>
-                  <p className="text-xs text-slate-400">Supports: .txt, .pdf, .md, .csv, .json</p>
+                  <p className="text-xs text-slate-500">Supports: .txt, .pdf, .md, .csv, .json</p>
                 </>
               )}
             </div>
@@ -524,16 +524,16 @@ export default function SourceTextPage({
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-slate-300">
                   Uploaded files ({uploadedFiles.length})
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500">
                   {formatNumber(totalFileTokens)} tokens
                 </span>
               </div>
               <button
                 onClick={clearAllFiles}
-                className="text-xs text-slate-500 hover:text-rose-700 transition-colors duration-200"
+                className="text-xs text-slate-400 hover:text-rose-400 transition-colors duration-200"
                 aria-label={`Remove all ${uploadedFiles.length} files`}
               >
                 Clear all
@@ -544,15 +544,15 @@ export default function SourceTextPage({
                 <div
                   key={file.id}
                   role="listitem"
-                  className="group flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-300 rounded-lg text-sm hover:border-slate-400 transition-colors duration-200"
+                  className="group flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 border border-slate-600 rounded-lg text-sm hover:border-slate-500 transition-colors duration-200"
                 >
                   <svg
                     className={`w-4 h-4 ${
-                      file.type === 'pdf' ? 'text-rose-600' :
-                      file.type === 'md' ? 'text-purple-600' :
-                      file.type === 'csv' ? 'text-emerald-600' :
-                      file.type === 'json' ? 'text-amber-600' :
-                      'text-blue-600'
+                      file.type === 'pdf' ? 'text-rose-400' :
+                      file.type === 'md' ? 'text-purple-400' :
+                      file.type === 'csv' ? 'text-emerald-400' :
+                      file.type === 'json' ? 'text-amber-400' :
+                      'text-blue-400'
                     }`}
                     fill="none"
                     viewBox="0 0 24 24"
@@ -560,14 +560,14 @@ export default function SourceTextPage({
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span className="text-slate-600 max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
-                  <span className="text-slate-400 text-xs">{formatFileSize(file.size)}</span>
+                  <span className="text-slate-300 max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
+                  <span className="text-slate-500 text-xs">{formatFileSize(file.size)}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setPreviewFile(file);
                     }}
-                    className="text-slate-500 hover:text-indigo-700 transition-colors duration-200 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="text-slate-400 hover:text-indigo-400 transition-colors duration-200 sm:opacity-0 sm:group-hover:opacity-100"
                     aria-label={`Edit ${file.name}`}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -579,7 +579,7 @@ export default function SourceTextPage({
                       e.stopPropagation();
                       removeFile(file.id);
                     }}
-                    className="text-slate-500 hover:text-rose-700 transition-colors duration-200"
+                    className="text-slate-400 hover:text-rose-400 transition-colors duration-200"
                     aria-label={`Remove ${file.name}`}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -594,12 +594,12 @@ export default function SourceTextPage({
 
         {/* Textarea */}
         <div className="mb-4">
-          <label htmlFor="sourceText" className="block text-sm font-medium text-slate-600 mb-2">
+          <label htmlFor="sourceText" className="block text-sm font-medium text-slate-300 mb-2">
             Additional Text {uploadedFiles.length > 0 && "(optional)"}
           </label>
           <textarea
             id="sourceText"
-            className="w-full h-48 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
+            className="w-full h-48 bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
             placeholder={uploadedFiles.length > 0
               ? "Add more text here (will be combined with uploaded files)..."
               : "Paste your text here... The AI will generate questions based on this content."
@@ -607,7 +607,7 @@ export default function SourceTextPage({
             value={sourceText}
             onChange={(e) => setSourceText(e.target.value)}
           />
-          <div className="flex justify-between items-center mt-2 text-sm text-slate-400">
+          <div className="flex justify-between items-center mt-2 text-sm text-slate-500">
             <div className="flex items-center gap-4">
               <span>{formatNumber(combinedText.length)} characters</span>
               <span>{formatNumber(combinedText.split(/\s+/).filter(Boolean).length)} words</span>
@@ -620,8 +620,8 @@ export default function SourceTextPage({
                 disabled={!sourceText}
                 className={`transition-colors duration-200 ${
                   sourceText
-                    ? "text-slate-500 hover:text-rose-700"
-                    : "text-slate-400 cursor-not-allowed"
+                    ? "text-slate-400 hover:text-rose-400"
+                    : "text-slate-600 cursor-not-allowed"
                 }`}
               >
                 Clear
@@ -629,7 +629,7 @@ export default function SourceTextPage({
               <button
                 type="button"
                 onClick={() => setSourceText("A little cat found a lost key in the yard. He wondered which door it might fit. After a while, he met an old mouse who had been looking for it for a long time. Together they opened a small box full of seeds.")}
-                className="text-indigo-600 hover:text-indigo-600 transition-colors duration-200"
+                className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
               >
                 Insert example
               </button>
@@ -639,34 +639,34 @@ export default function SourceTextPage({
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-lg">
-            <p className="text-rose-600 text-sm">{error}</p>
+          <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/20 rounded-lg">
+            <p className="text-rose-400 text-sm">{error}</p>
           </div>
         )}
 
         {/* Settings Summary */}
-        <div className="mb-4 p-4 bg-slate-50 rounded-lg">
-          <p className="text-sm text-slate-500 mb-2">
-            <span className="text-slate-600 font-medium">Will generate:</span>{" "}
-            <span className="text-indigo-600">{settings.amountOfClosedQuestions}</span> multiple-choice +{" "}
-            <span className="text-indigo-600">{settings.amountOfOpenQuestions}</span> free-response ={" "}
-            <span className="text-slate-900 font-medium">{totalQuestions} questions</span>
+        <div className="mb-4 p-4 bg-slate-700/30 rounded-lg">
+          <p className="text-sm text-slate-400 mb-2">
+            <span className="text-slate-300 font-medium">Will generate:</span>{" "}
+            <span className="text-indigo-400">{settings.amountOfClosedQuestions}</span> multiple-choice +{" "}
+            <span className="text-indigo-400">{settings.amountOfOpenQuestions}</span> free-response ={" "}
+            <span className="text-slate-100 font-medium">{totalQuestions} questions</span>
           </p>
           <div className="flex flex-wrap gap-2">
-            <span className="px-2 py-1 bg-indigo-50 text-indigo-500 rounded text-xs font-medium">
+            <span className="px-2 py-1 bg-indigo-500/20 text-indigo-300 rounded text-xs font-medium">
               {(MODELS[settings.model] ?? MODELS['gpt-4o-mini']).label}
             </span>
-            <span className="px-2 py-1 bg-slate-200 rounded text-xs text-slate-600">
+            <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
               {settings.difficultyLevel === 'mixed' ? 'Mixed difficulty' : `${settings.difficultyLevel} difficulty`}
             </span>
-            <span className="px-2 py-1 bg-slate-200 rounded text-xs text-slate-600">
+            <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
               {settings.contentFocus === 'important' ? 'Key concepts only' : 'All content'}
             </span>
-            <span className="px-2 py-1 bg-slate-200 rounded text-xs text-slate-600">
+            <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
               {settings.questionStyle === 'conceptual' ? 'Conceptual' : 'Text-based'}
             </span>
             {settings.quizLanguage !== 'english' && (
-              <span className="px-2 py-1 bg-slate-200 rounded text-xs text-slate-600">
+              <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
                 {settings.quizLanguage === 'polish' ? 'Polski' :
                  settings.quizLanguage === 'spanish' ? 'Español' :
                  settings.quizLanguage === 'german' ? 'Deutsch' : settings.quizLanguage}
@@ -679,34 +679,34 @@ export default function SourceTextPage({
         <TokenWarnings totalTokens={totalTokens} availableTokens={availableTokens} />
 
         {/* Token & Cost Summary with Progress Bar */}
-        <div className={`mb-6 p-4 rounded-lg ${isOverLimit ? 'bg-rose-50 border border-rose-200' : 'bg-slate-50'}`}>
+        <div className={`mb-6 p-4 rounded-lg ${isOverLimit ? 'bg-rose-500/10 border border-rose-500/20' : 'bg-slate-700/30'}`}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600 font-medium">Token usage</span>
+              <span className="text-sm text-slate-300 font-medium">Token usage</span>
               <HelpIcon tooltip="Tokens measure text length for AI processing. ~1 token ≈ 4 characters. The limit ensures quality and cost control." />
             </div>
-            <div className="text-sm text-slate-500">
-              <span className="text-slate-600 font-medium">Cost:</span>{" "}
-              <span className="text-emerald-600">{estimateCost(totalTokens, settings.model)}</span>
+            <div className="text-sm text-slate-400">
+              <span className="text-slate-300 font-medium">Cost:</span>{" "}
+              <span className="text-emerald-400">{estimateCost(totalTokens, settings.model)}</span>
             </div>
           </div>
 
           {/* Progress Bar */}
           <div className="mb-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-400">
                 {formatNumber(totalTokens)} / {formatNumber(availableTokens)} tokens
               </span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-400">
                 {Math.min(Math.round((totalTokens / availableTokens) * 100), 100)}%
               </span>
             </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  isOverLimit ? 'bg-rose-600' :
+                  isOverLimit ? 'bg-rose-500' :
                   (totalTokens / availableTokens) >= 0.8 ? 'bg-amber-500' :
-                  'bg-indigo-600'
+                  'bg-indigo-500'
                 }`}
                 style={{ width: `${Math.min((totalTokens / availableTokens) * 100, 100)}%` }}
               />
@@ -715,10 +715,10 @@ export default function SourceTextPage({
 
           {isOverLimit && (
             <div className="flex items-start gap-2">
-              <svg className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-              <p className="text-sm text-rose-600">
+              <p className="text-sm text-rose-400">
                 Token limit exceeded by {formatNumber(totalTokens - availableTokens)} tokens. Remove some content to continue.
               </p>
             </div>
@@ -733,8 +733,8 @@ export default function SourceTextPage({
           aria-busy={isLoading}
           className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold transition-all duration-200 ${
             canGenerate && !isLoading && !isExtracting && !isOverLimit
-              ? "bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg shadow-indigo-600/20 active:scale-[0.99]"
-              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+              ? "bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 active:scale-[0.99]"
+              : "bg-slate-700 text-slate-500 cursor-not-allowed"
           }`}
         >
           {isLoading ? (
@@ -761,7 +761,7 @@ export default function SourceTextPage({
 
         {/* Help Text */}
         {!canGenerate && !isLoading && (
-          <p className="mt-4 text-center text-sm text-slate-400">
+          <p className="mt-4 text-center text-sm text-slate-500">
             {combinedText.trim().length === 0
               ? "Upload files or enter text to generate questions"
               : "Configure at least one question in Settings"}
@@ -770,9 +770,9 @@ export default function SourceTextPage({
       </div>
 
       {/* Tips */}
-      <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-        <h3 className="text-sm font-medium text-slate-600 mb-2">Tips for better results:</h3>
-        <ul className="text-sm text-slate-500 space-y-1">
+      <div className="mt-6 p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg">
+        <h3 className="text-sm font-medium text-slate-300 mb-2">Tips for better results:</h3>
+        <ul className="text-sm text-slate-400 space-y-1">
           <li>Use clear, factual text with specific information</li>
           <li>Longer texts with more details produce better questions</li>
           <li>PDF files with selectable text work best</li>

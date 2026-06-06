@@ -22,7 +22,7 @@ export function DateRangePicker({ selected, onChange }: DateRangePickerProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-slate-500">Filter:</span>
+      <span className="text-sm text-slate-400">Filter:</span>
       <div className="flex gap-2">
         {ranges.map((range) => (
           <button
@@ -30,8 +30,8 @@ export function DateRangePicker({ selected, onChange }: DateRangePickerProps) {
             onClick={() => onChange(range)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               selected === range
-                ? "bg-indigo-600 text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-indigo-500 text-white"
+                : "bg-slate-700 text-slate-300 hover:bg-slate-600"
             }`}
           >
             {DATE_RANGE_LABELS[range]}

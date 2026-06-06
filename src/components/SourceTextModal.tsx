@@ -31,7 +31,7 @@ export function SourceTextModal({
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 transition-colors duration-200"
+        className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 transition-colors duration-200"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -40,42 +40,42 @@ export function SourceTextModal({
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-          <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+          <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-slate-100">
             Source Text
           </h2>
-          <p className="text-sm text-slate-500">{quizTitle}</p>
+          <p className="text-sm text-slate-400">{quizTitle}</p>
         </div>
       </div>
 
       {/* Source text display */}
       <div className="mb-6">
         <div className="relative">
-          <pre className="bg-slate-100 border border-slate-200 rounded-lg p-4 text-sm text-slate-600 whitespace-pre-wrap max-h-96 overflow-y-auto font-mono">
+          <pre className="bg-slate-900/50 border border-slate-700 rounded-lg p-4 text-sm text-slate-300 whitespace-pre-wrap max-h-96 overflow-y-auto font-mono">
             {sourceText}
           </pre>
         </div>
-        <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
+        <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
           <span>{sourceText.length} characters</span>
           <span>{sourceText.split(/\s+/).filter(w => w.length > 0).length} words</span>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-4 border-t border-slate-200">
+      <div className="flex gap-3 pt-4 border-t border-slate-700">
         <button
           onClick={onClose}
-          className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg transition-colors">
+          className="flex-1 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg transition-colors">
           Close
         </button>
         <button
           onClick={handleCopyToClipboard}
-          className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+          className="flex-1 px-4 py-2.5 bg-blue-500 hover:bg-blue-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
           {copySuccess ? (
             <>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1669,9 +1669,9 @@ export default function QuizPage({
   if (!tasks || tasks.length === 0) {
     return (
       <div className="animate-fade-in max-w-2xl mx-auto text-center py-16">
-        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
           <svg
-            className="w-8 h-8 text-slate-500"
+            className="w-8 h-8 text-slate-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor">
@@ -1683,15 +1683,15 @@ export default function QuizPage({
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+        <h2 className="text-2xl font-bold text-slate-100 mb-2">
           No Quiz Available
         </h2>
-        <p className="text-slate-500 mb-6">
+        <p className="text-slate-400 mb-6">
           Generate some questions first to start the quiz
         </p>
         <Link
           to="/sourcePage"
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200">
+          className="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200">
           <svg
             className="w-5 h-5"
             fill="none"
@@ -1715,9 +1715,9 @@ export default function QuizPage({
     return (
       <>
         <div className="animate-fade-in max-w-2xl mx-auto text-center py-16">
-          <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg
-              className="w-10 h-10 text-indigo-600"
+              className="w-10 h-10 text-indigo-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor">
@@ -1729,12 +1729,12 @@ export default function QuizPage({
               />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+          <h2 className="text-3xl font-bold text-slate-100 mb-2">
             Ready to Start?
           </h2>
-          <p className="text-slate-500 mb-8">
+          <p className="text-slate-400 mb-8">
             You have{" "}
-            <span className="text-indigo-600 font-medium">
+            <span className="text-indigo-400 font-medium">
               {totalQuestions}
             </span>{" "}
             questions waiting for you
@@ -1742,7 +1742,7 @@ export default function QuizPage({
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={handleStartQuiz}
-              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg px-8 py-4 transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-[0.98]">
+              className="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-semibold rounded-lg px-8 py-4 transition-all duration-200 shadow-lg shadow-indigo-500/25 active:scale-[0.98]">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -1778,7 +1778,7 @@ export default function QuizPage({
                   },
                 })
               }
-              className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-300">
+              className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-lg px-6 py-4 transition-all duration-200 border border-slate-600">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -1814,9 +1814,9 @@ export default function QuizPage({
     return (
       <>
         <div className="animate-fade-in max-w-2xl mx-auto text-center py-16">
-          <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg
-              className="w-10 h-10 text-emerald-600"
+              className="w-10 h-10 text-emerald-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor">
@@ -1828,12 +1828,12 @@ export default function QuizPage({
               />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+          <h2 className="text-3xl font-bold text-slate-100 mb-2">
             Quiz Complete!
           </h2>
-          <p className="text-slate-500 mb-6">
+          <p className="text-slate-400 mb-6">
             You learnt all{" "}
-            <span className="text-emerald-600 font-medium">
+            <span className="text-emerald-400 font-medium">
               {learntQuestions.size}
             </span>{" "}
             questions
@@ -1841,30 +1841,30 @@ export default function QuizPage({
 
           {/* Final Stats */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8 max-w-md mx-auto">
-            <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4">
-              <p className="text-xl sm:text-2xl font-bold text-emerald-600">
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl font-bold text-emerald-400">
                 {correctAnswers}
               </p>
-              <p className="text-xs sm:text-sm text-slate-500">Correct</p>
+              <p className="text-xs sm:text-sm text-slate-400">Correct</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4">
-              <p className="text-xl sm:text-2xl font-bold text-rose-600">
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl font-bold text-rose-400">
                 {incorrectAnswers}
               </p>
-              <p className="text-xs sm:text-sm text-slate-500">Incorrect</p>
+              <p className="text-xs sm:text-sm text-slate-400">Incorrect</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4">
-              <p className="text-xl sm:text-2xl font-bold text-indigo-600">
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl font-bold text-indigo-400">
                 {accuracyPercent}%
               </p>
-              <p className="text-xs sm:text-sm text-slate-500">Accuracy</p>
+              <p className="text-xs sm:text-sm text-slate-400">Accuracy</p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0">
             <button
               onClick={resetQuiz}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200">
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -1894,7 +1894,7 @@ export default function QuizPage({
                   },
                 })
               }
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200">
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-medium rounded-lg px-6 py-3 transition-all duration-200">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -1911,7 +1911,7 @@ export default function QuizPage({
             </button>
             <Link
               to="/sourcePage"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium rounded-lg px-6 py-3 transition-all duration-200">
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-6 py-3 transition-all duration-200">
               New Quiz
             </Link>
           </div>
@@ -1939,8 +1939,8 @@ export default function QuizPage({
             disabled={!hasChanges}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
               hasChanges
-                ? "text-emerald-600 hover:text-emerald-700 bg-white hover:bg-slate-100 border border-slate-200 hover:border-emerald-300"
-                : "text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed"
+                ? "text-emerald-400 hover:text-emerald-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-emerald-500/50"
+                : "text-slate-500 bg-slate-800/50 border border-slate-700/50 cursor-not-allowed"
             }`}
             title={hasChanges ? "Update quiz in library" : "No changes to update"}>
             <svg
@@ -1960,7 +1960,7 @@ export default function QuizPage({
         )}
         <button
           onClick={() => setShowShortcutsModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-all duration-200"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all duration-200"
           title="Keyboard shortcuts">
           <svg
             className="w-4 h-4"
@@ -1975,13 +1975,13 @@ export default function QuizPage({
             />
           </svg>
           <span className="hidden sm:inline">Shortcuts</span>
-          <kbd className="px-1 py-0.5 text-xs bg-slate-100 rounded border border-slate-300">
+          <kbd className="px-1 py-0.5 text-xs bg-slate-700 rounded border border-slate-600">
             ?
           </kbd>
         </button>
         <button
           onClick={() => setShowEndQuizModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-all duration-200"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all duration-200"
           title="End quiz">
           <svg
             className="w-4 h-4"
@@ -2035,13 +2035,13 @@ export default function QuizPage({
 
       {/* Question Card */}
       {currentTask && (
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-lg shadow-slate-900/5 mb-6">
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg shadow-black/20 mb-6">
           {/* Question header */}
           <div className="flex items-start gap-3 mb-6">
-            <span className="inline-flex items-center justify-center w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-semibold shrink-0">
+            <span className="inline-flex items-center justify-center w-8 h-8 bg-indigo-500/20 text-indigo-400 rounded-lg text-sm font-semibold shrink-0">
               Q
             </span>
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-slate-100">
               {currentTask.question.value}
             </h2>
           </div>
@@ -2051,8 +2051,8 @@ export default function QuizPage({
             <span
               className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                 currentTask.question.isOpen
-                  ? "bg-amber-50 text-amber-600 border border-amber-200"
-                  : "bg-blue-50 text-blue-600 border border-blue-200"
+                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                  : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
               }`}>
               {currentTask.question.isOpen
                 ? "Open Question"
@@ -2064,10 +2064,10 @@ export default function QuizPage({
 
           {/* Hint display */}
           {hint && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
+            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg animate-fade-in">
               <div className="flex items-start gap-2">
                 <svg
-                  className="w-5 h-5 text-blue-600 shrink-0 mt-0.5"
+                  className="w-5 h-5 text-blue-400 shrink-0 mt-0.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor">
@@ -2080,11 +2080,11 @@ export default function QuizPage({
                 </svg>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-sm font-medium text-blue-600">Hint</p>
+                    <p className="text-sm font-medium text-blue-400">Hint</p>
                     <button
                       onClick={() => handleGetHint(true)}
                       disabled={isLoadingHint}
-                      className="text-xs text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1"
+                      className="text-xs text-blue-400/60 hover:text-blue-400 transition-colors flex items-center gap-1"
                       title="Regenerate hint">
                       {isLoadingHint ? (
                         <svg
@@ -2122,7 +2122,7 @@ export default function QuizPage({
                       <span>Regenerate</span>
                     </button>
                   </div>
-                  <Markdown content={hint} className="text-slate-800" />
+                  <Markdown content={hint} className="text-slate-200" />
                 </div>
               </div>
             </div>
@@ -2148,24 +2148,24 @@ export default function QuizPage({
           key={currentTask?.id}
           className={`mb-6 p-4 rounded-xl border ${
             isRoundWon
-              ? "bg-emerald-50 border-emerald-200"
+              ? "bg-emerald-500/10 border-emerald-500/20"
               : isAnswerRevealed
-                ? "bg-amber-50 border-amber-200"
-                : "bg-rose-50 border-rose-200"
+                ? "bg-amber-500/10 border-amber-500/20"
+                : "bg-rose-500/10 border-rose-500/20"
           } animate-fade-in`}>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-3">
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                   isRoundWon
-                    ? "bg-emerald-50"
+                    ? "bg-emerald-500/20"
                     : isAnswerRevealed
-                      ? "bg-amber-50"
-                      : "bg-rose-50"
+                      ? "bg-amber-500/20"
+                      : "bg-rose-500/20"
                 }`}>
                 {isRoundWon ? (
                   <svg
-                    className="w-5 h-5 text-emerald-600"
+                    className="w-5 h-5 text-emerald-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -2178,7 +2178,7 @@ export default function QuizPage({
                   </svg>
                 ) : isAnswerRevealed ? (
                   <svg
-                    className="w-5 h-5 text-amber-600"
+                    className="w-5 h-5 text-amber-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -2197,7 +2197,7 @@ export default function QuizPage({
                   </svg>
                 ) : (
                   <svg
-                    className="w-5 h-5 text-rose-600"
+                    className="w-5 h-5 text-rose-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -2212,7 +2212,7 @@ export default function QuizPage({
               </div>
               <div>
                 <p
-                  className={`font-semibold ${isRoundWon ? "text-emerald-600" : isAnswerRevealed ? "text-amber-600" : "text-rose-600"}`}>
+                  className={`font-semibold ${isRoundWon ? "text-emerald-400" : isAnswerRevealed ? "text-amber-400" : "text-rose-400"}`}>
                   {isRoundWon
                     ? "Correct!"
                     : isAnswerRevealed
@@ -2220,11 +2220,11 @@ export default function QuizPage({
                       : "Incorrect"}
                 </p>
                 {currentTask?.question.isOpen && !isAnswerRevealed && (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-400">
                     You scored{" "}
                     <span
                       className={
-                        isRoundWon ? "text-emerald-600" : "text-rose-600"
+                        isRoundWon ? "text-emerald-400" : "text-rose-400"
                       }>
                       {openAnswerScore}
                     </span>
@@ -2232,7 +2232,7 @@ export default function QuizPage({
                   </p>
                 )}
                 {isAnswerRevealed && (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-400">
                     This counts as incorrect. Review the answer below.
                   </p>
                 )}
@@ -2244,7 +2244,7 @@ export default function QuizPage({
                 <button
                   onClick={initiateAcceptAnswer}
                   aria-label="Override AI scoring and mark your answer as correct for all future attempts"
-                  className="flex items-center gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 min-h-[44px] sm:min-h-0 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-all duration-200"
+                  className="flex items-center gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 min-h-[44px] sm:min-h-0 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 rounded-lg transition-all duration-200"
                   title="Mark my answer as correct">
                   <svg
                     className="w-3.5 h-3.5 shrink-0"
@@ -2264,7 +2264,7 @@ export default function QuizPage({
                 <button
                   onClick={initiateRemoveQuestion}
                   aria-label="Permanently remove this question from the quiz and library"
-                  className="flex items-center gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 min-h-[44px] sm:min-h-0 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-rose-100 border border-slate-300 hover:border-rose-300 rounded-lg transition-all duration-200"
+                  className="flex items-center gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 min-h-[44px] sm:min-h-0 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-rose-500/20 border border-slate-600 hover:border-rose-500/30 rounded-lg transition-all duration-200"
                   title="Remove this question from the quiz">
                   <svg
                     className="w-3.5 h-3.5 shrink-0"
@@ -2289,16 +2289,16 @@ export default function QuizPage({
           {(isAnswerRevealed || areAnswersChecked) &&
             currentTask?.question.isOpen &&
             revealedOpenAnswer && (
-              <div className="mt-4 pt-4 border-t border-amber-200">
+              <div className="mt-4 pt-4 border-t border-amber-500/20">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-amber-600">
+                  <p className="text-sm font-medium text-amber-400">
                     Expected Answer:
                   </p>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleRegenerateExpectedAnswer}
                       disabled={isChecking || isGeneratingOptions}
-                      className="text-xs text-amber-600 hover:text-amber-700 transition-colors flex items-center gap-1"
+                      className="text-xs text-amber-400/60 hover:text-amber-400 transition-colors flex items-center gap-1"
                       title="Regenerate expected answer">
                       {isChecking ? (
                         <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
@@ -2336,7 +2336,7 @@ export default function QuizPage({
                     <button
                       onClick={handleGenerateMultipleExpectedAnswers}
                       disabled={isChecking || isGeneratingOptions}
-                      className="text-xs text-amber-600 hover:text-amber-700 transition-colors flex items-center gap-1"
+                      className="text-xs text-amber-400/60 hover:text-amber-400 transition-colors flex items-center gap-1"
                       title="Generate 3 options">
                       {isGeneratingOptions && optionsField === "expectedAnswer" ? (
                         <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
@@ -2378,7 +2378,7 @@ export default function QuizPage({
                 </div>
                 <Markdown
                   content={revealedOpenAnswer}
-                  className="text-slate-900 bg-slate-50 rounded-lg p-3"
+                  className="text-slate-100 bg-slate-800/50 rounded-lg p-3"
                 />
               </div>
             )}
@@ -2387,8 +2387,8 @@ export default function QuizPage({
           {(isAnswerRevealed || (areAnswersChecked && !isRoundWon)) &&
             !currentTask?.question.isOpen &&
             currentTask?.answers && (
-              <div className="mt-4 pt-4 border-t border-amber-200">
-                <p className="text-sm font-medium text-amber-600 mb-2">
+              <div className="mt-4 pt-4 border-t border-amber-500/20">
+                <p className="text-sm font-medium text-amber-400 mb-2">
                   Correct Answer
                   {currentTask.answers.filter((a) => a.isCorrect).length > 1
                     ? "s"
@@ -2401,9 +2401,9 @@ export default function QuizPage({
                     .map((answer, index) => (
                       <li
                         key={index}
-                        className="flex items-center gap-2 text-slate-900">
+                        className="flex items-center gap-2 text-slate-100">
                         <svg
-                          className="w-4 h-4 text-emerald-600 shrink-0"
+                          className="w-4 h-4 text-emerald-400 shrink-0"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor">
@@ -2422,15 +2422,15 @@ export default function QuizPage({
             )}
 
           {/* Explanation section */}
-          <div className="mt-4 pt-4 border-t border-slate-200">
+          <div className="mt-4 pt-4 border-t border-slate-700">
             {!explanation ? (
               <button
                 onClick={() => handleGetExplanation()}
                 disabled={isLoadingExplanation || !combinedText}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   isLoadingExplanation || !combinedText
-                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                    : "bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200"
+                    ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+                    : "bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 border border-indigo-500/30"
                 }`}>
                 {isLoadingExplanation ? (
                   <>
@@ -2474,7 +2474,7 @@ export default function QuizPage({
               <div className="animate-fade-in">
                 <div className="flex items-start gap-2">
                   <svg
-                    className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5"
+                    className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -2487,14 +2487,14 @@ export default function QuizPage({
                   </svg>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-indigo-600">
+                      <p className="text-sm font-medium text-indigo-400">
                         Explanation
                       </p>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleGetExplanation(true)}
                           disabled={isLoadingExplanation || isGeneratingOptions}
-                          className="text-xs text-indigo-500 hover:text-indigo-700 transition-colors flex items-center gap-1"
+                          className="text-xs text-indigo-400/60 hover:text-indigo-400 transition-colors flex items-center gap-1"
                           title="Regenerate explanation">
                           {isLoadingExplanation ? (
                             <svg
@@ -2534,7 +2534,7 @@ export default function QuizPage({
                         <button
                           onClick={handleGenerateMultipleExplanations}
                           disabled={isLoadingExplanation || isGeneratingOptions}
-                          className="text-xs text-indigo-500 hover:text-indigo-700 transition-colors flex items-center gap-1"
+                          className="text-xs text-indigo-400/60 hover:text-indigo-400 transition-colors flex items-center gap-1"
                           title="Generate 3 options">
                           {isGeneratingOptions && optionsField === "explanation" ? (
                             <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
@@ -2574,21 +2574,21 @@ export default function QuizPage({
                         </button>
                       </div>
                     </div>
-                    <Markdown content={explanation} className="text-slate-800" />
+                    <Markdown content={explanation} className="text-slate-200" />
 
                     {/* Score Breakdown */}
                     {currentTask?.answerOverride?.scoreBreakdown &&
                       currentTask.answerOverride.scoreBreakdown.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-slate-200">
+                        <div className="mt-4 pt-4 border-t border-slate-700">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-sm font-medium text-slate-500">
+                            <p className="text-sm font-medium text-slate-400">
                               Score Breakdown
                             </p>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={handleRegenerateScoreTemplate}
                                 disabled={isChecking || isGeneratingOptions}
-                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
+                                className="text-xs text-slate-400/60 hover:text-slate-400 transition-colors flex items-center gap-1"
                                 title="Regenerate score template">
                                 {isChecking ? (
                                   <svg
@@ -2628,7 +2628,7 @@ export default function QuizPage({
                               <button
                                 onClick={handleGenerateMultipleTemplates}
                                 disabled={isChecking || isGeneratingOptions}
-                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
+                                className="text-xs text-slate-400/60 hover:text-slate-400 transition-colors flex items-center gap-1"
                                 title="Generate 3 options">
                                 {isGeneratingOptions && optionsField === "scoreTemplate" ? (
                                   <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
@@ -2681,10 +2681,10 @@ export default function QuizPage({
                                     key={`breakdown-${item.type}-${idx}`}
                                     className={`flex items-start gap-2 text-sm ${
                                       isAchieved
-                                        ? "text-emerald-600"
+                                        ? "text-emerald-400"
                                         : isIncorrect
-                                          ? "text-rose-600"
-                                          : "text-slate-400 italic"
+                                          ? "text-rose-400"
+                                          : "text-slate-500 italic"
                                     }`}>
                                     <span className="font-mono font-medium w-14 shrink-0 text-right">
                                       {isAchieved && `+${item.points}`}
@@ -2694,8 +2694,8 @@ export default function QuizPage({
                                     <span
                                       className={
                                         isMissed
-                                          ? "text-slate-400"
-                                          : "text-slate-600"
+                                          ? "text-slate-500"
+                                          : "text-slate-300"
                                       }>
                                       {item.reason}
                                     </span>
@@ -2723,8 +2723,8 @@ export default function QuizPage({
           aria-label="Reveal the correct answer. This will count as incorrect and add the question back to your learning pool. Keyboard shortcut: S"
           className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3.5 sm:py-3 px-4 sm:px-3 min-h-[48px] sm:min-h-0 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 active:scale-[0.98]"
+              ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+              : "bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 border border-orange-500/30 active:scale-[0.98]"
           }`}>
           {isChecking && isAnswerRevealed ? (
             <>
@@ -2769,7 +2769,7 @@ export default function QuizPage({
                 />
               </svg>
               <span>Show</span>
-              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-slate-100 rounded border border-slate-300 hidden lg:inline-block">
+              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-slate-700/50 rounded border border-slate-600 hidden lg:inline-block">
                 S
               </kbd>
             </>
@@ -2786,8 +2786,8 @@ export default function QuizPage({
           aria-busy={isLoadingHint}
           className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3.5 sm:py-3 px-4 sm:px-3 min-h-[48px] sm:min-h-0 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked || isChecking || isLoadingHint || !combinedText
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 active:scale-[0.98]"
+              ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+              : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 active:scale-[0.98]"
           }`}>
           {isLoadingHint ? (
             <>
@@ -2826,7 +2826,7 @@ export default function QuizPage({
                 />
               </svg>
               <span>Hint</span>
-              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-slate-100 rounded border border-slate-300 hidden lg:inline-block">
+              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-slate-700/50 rounded border border-slate-600 hidden lg:inline-block">
                 H
               </kbd>
             </>
@@ -2849,8 +2849,8 @@ export default function QuizPage({
             isChecking ||
             isLoadingHint ||
             (currentTask?.question.isOpen && !openAnswer.trim())
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 active:scale-[0.98]"
+              ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+              : "bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg shadow-emerald-500/25 active:scale-[0.98]"
           }`}>
           {isChecking && !isAnswerRevealed ? (
             <>
@@ -2889,7 +2889,7 @@ export default function QuizPage({
                 />
               </svg>
               <span>Check</span>
-              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-emerald-100 rounded border border-emerald-600 hidden lg:inline-block">
+              <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-emerald-700/50 rounded border border-emerald-600 hidden lg:inline-block">
                 Space
               </kbd>
             </>
@@ -2903,8 +2903,8 @@ export default function QuizPage({
           aria-label="Continue to the next question. Keyboard shortcut: Space bar"
           className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3.5 sm:py-3 px-4 sm:px-3 min-h-[48px] sm:min-h-0 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 ${
             areAnswersChecked
-              ? "bg-indigo-600 hover:bg-indigo-700 text-white active:scale-[0.98]"
-              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+              ? "bg-indigo-500 hover:bg-indigo-400 text-white active:scale-[0.98]"
+              : "bg-slate-700/50 text-slate-500 cursor-not-allowed"
           }`}>
           <svg
             className="w-4 h-4 sm:w-5 sm:h-5"
@@ -2919,7 +2919,7 @@ export default function QuizPage({
             />
           </svg>
           <span>Next</span>
-          <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-indigo-100 rounded border border-indigo-600 hidden lg:inline-block">
+          <kbd className="ml-1.5 px-1.5 py-0.5 text-xs bg-indigo-700/50 rounded border border-indigo-600 hidden lg:inline-block">
             Space
           </kbd>
         </button>
@@ -3014,40 +3014,40 @@ export default function QuizPage({
       >
         <div className="p-6">
           <div className="flex items-start gap-4 mb-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
                 Mark Answer as Correct?
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-400">
                 This will override the AI scoring
               </p>
             </div>
           </div>
 
-          <div className="bg-slate-100 rounded-lg p-4 mb-6">
-            <p className="text-sm text-slate-600 mb-3">
+          <div className="bg-slate-900/50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-slate-300 mb-3">
               This action will:
             </p>
-            <ul className="space-y-2 text-sm text-slate-500">
+            <ul className="space-y-2 text-sm text-slate-400">
               <li className="flex items-start gap-2">
-                <svg className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Mark this question as <strong className="text-slate-600">correct</strong> for this attempt</span>
+                <span>Mark this question as <strong className="text-slate-300">correct</strong> for this attempt</span>
               </li>
               <li className="flex items-start gap-2">
-                <svg className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Save your answer as the <strong className="text-slate-600">accepted answer</strong> for future quizzes</span>
+                <span>Save your answer as the <strong className="text-slate-300">accepted answer</strong> for future quizzes</span>
               </li>
               <li className="flex items-start gap-2">
-                <svg className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>Update your quiz library if this quiz is saved</span>
@@ -3058,13 +3058,13 @@ export default function QuizPage({
           <div className="flex gap-3">
             <button
               onClick={() => setShowAcceptModal(false)}
-              className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={confirmAcceptAnswer}
-              className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg transition-colors"
             >
               Mark as Correct
             </button>
@@ -3080,30 +3080,30 @@ export default function QuizPage({
       >
         <div className="p-6">
           <div className="flex items-start gap-4 mb-4">
-            <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
                 Remove Question?
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-400">
                 This action cannot be undone
               </p>
             </div>
           </div>
 
-          <div className="bg-slate-100 rounded-lg p-4 mb-4">
-            <p className="text-sm text-slate-500 mb-2">Question to remove:</p>
-            <p className="text-sm text-slate-900 italic">
+          <div className="bg-slate-900/50 rounded-lg p-4 mb-4">
+            <p className="text-sm text-slate-400 mb-2">Question to remove:</p>
+            <p className="text-sm text-slate-100 italic">
               "{currentTask?.question.value.substring(0, 100)}{currentTask?.question.value.length && currentTask.question.value.length > 100 ? '...' : ''}"
             </p>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
-            <p className="text-sm text-amber-600">
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-6">
+            <p className="text-sm text-amber-400">
               This will remove the question from your current quiz and any saved library version.
             </p>
           </div>
@@ -3111,13 +3111,13 @@ export default function QuizPage({
           <div className="flex gap-3">
             <button
               onClick={() => setShowRemoveModal(false)}
-              className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={confirmRemoveQuestion}
-              className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-rose-500 hover:bg-rose-400 text-white rounded-lg transition-colors"
             >
               Remove Question
             </button>
@@ -3132,8 +3132,8 @@ export default function QuizPage({
         maxWidth="max-w-2xl"
       >
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-            <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+            <svg className="w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -3156,28 +3156,28 @@ export default function QuizPage({
             ].map((shortcut, idx) => (
               <div
                 key={idx}
-                className="flex items-center justify-between py-2 border-b border-slate-200 last:border-0"
+                className="flex items-center justify-between py-2 border-b border-slate-700/50 last:border-0"
               >
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-800">{shortcut.action}</p>
-                  <p className="text-xs text-slate-400">{shortcut.context}</p>
+                  <p className="text-sm font-medium text-slate-200">{shortcut.action}</p>
+                  <p className="text-xs text-slate-500">{shortcut.context}</p>
                 </div>
-                <kbd className="px-3 py-1.5 bg-slate-100 text-slate-800 rounded-lg border border-slate-300 font-mono text-sm">
+                <kbd className="px-3 py-1.5 bg-slate-700 text-slate-200 rounded-lg border border-slate-600 font-mono text-sm">
                   {shortcut.key}
                 </kbd>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-600">
+          <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <p className="text-sm text-blue-400">
               💡 Tip: Most actions can be performed with just the Space bar and number keys
             </p>
           </div>
 
           <button
             onClick={() => setShowShortcutsModal(false)}
-            className="w-full mt-6 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+            className="w-full mt-6 px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg transition-colors"
           >
             Got it!
           </button>
@@ -3192,9 +3192,9 @@ export default function QuizPage({
       >
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-rose-50 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-rose-500/20 rounded-lg flex items-center justify-center">
               <svg
-                className="w-5 h-5 text-rose-600"
+                className="w-5 h-5 text-rose-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -3207,13 +3207,13 @@ export default function QuizPage({
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">End Quiz?</h2>
-              <p className="text-sm text-slate-500">
+              <h2 className="text-xl font-bold text-slate-100">End Quiz?</h2>
+              <p className="text-sm text-slate-400">
                 Your progress will be lost
               </p>
             </div>
           </div>
-          <p className="text-slate-600 mb-6">
+          <p className="text-slate-300 mb-6">
             Are you sure you want to end this quiz? All current progress will be reset.
           </p>
           <div className="flex gap-3">
@@ -3222,12 +3222,12 @@ export default function QuizPage({
                 setShowEndQuizModal(false);
                 resetQuiz();
               }}
-              className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200">
+              className="flex-1 bg-rose-500 hover:bg-rose-400 text-white font-medium rounded-lg px-4 py-3 transition-all duration-200">
               Yes, End Quiz
             </button>
             <button
               onClick={() => setShowEndQuizModal(false)}
-              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium rounded-lg px-4 py-3 transition-all duration-200">
+              className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-lg px-4 py-3 transition-all duration-200">
               No, Continue
             </button>
           </div>
@@ -3236,30 +3236,30 @@ export default function QuizPage({
 
       {/* Save Status - Fixed position, no layout shift */}
       {saveStatus && (
-        <div className="fixed bottom-24 right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-lg animate-fade-in">
+        <div className="fixed bottom-24 right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg shadow-lg animate-fade-in">
           {saveStatus === 'saving' && (
             <>
-              <svg className="animate-spin h-3 w-3 text-slate-500" viewBox="0 0 24 24">
+              <svg className="animate-spin h-3 w-3 text-slate-400" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <span className="text-xs text-slate-500">Saving progress...</span>
+              <span className="text-xs text-slate-400">Saving progress...</span>
             </>
           )}
           {saveStatus === 'saved' && (
             <>
-              <svg className="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-3 w-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span className="text-xs text-emerald-600">Progress saved</span>
+              <span className="text-xs text-emerald-400">Progress saved</span>
             </>
           )}
           {saveStatus === 'error' && (
             <>
-              <svg className="h-3 w-3 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-3 w-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-              <span className="text-xs text-rose-600">Save failed</span>
+              <span className="text-xs text-rose-400">Save failed</span>
             </>
           )}
         </div>

@@ -71,18 +71,18 @@ export function OptionsSelectionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col m-4">
+      <div className="relative bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col m-4">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+        <div className="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-slate-100">{title}</h2>
           <button
             onClick={onClose}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
             title="Close">
             <svg
               className="w-5 h-5"
@@ -111,8 +111,8 @@ export function OptionsSelectionModal({
                 onClick={() => setSelectedIndex(index)}
                 className={`cursor-pointer rounded-xl border-2 transition-all ${
                   isSelected
-                    ? "border-indigo-500 bg-indigo-50"
-                    : "border-slate-300 bg-slate-100 hover:border-slate-400"
+                    ? "border-indigo-500 bg-indigo-500/10"
+                    : "border-slate-600 bg-slate-700/50 hover:border-slate-500"
                 }`}>
                 <div className="p-4 flex items-start gap-3">
                   {/* Radio button */}
@@ -120,8 +120,8 @@ export function OptionsSelectionModal({
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                         isSelected
-                          ? "border-indigo-500 bg-indigo-600"
-                          : "border-slate-400"
+                          ? "border-indigo-500 bg-indigo-500"
+                          : "border-slate-500"
                       }`}>
                       {isSelected && (
                         <div className="w-2 h-2 bg-white rounded-full" />
@@ -131,13 +131,13 @@ export function OptionsSelectionModal({
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-600 mb-1">
+                    <div className="text-sm font-medium text-slate-300 mb-1">
                       Option {index + 1}
-                      <span className="ml-2 text-xs text-slate-400">
+                      <span className="ml-2 text-xs text-slate-500">
                         (Press {index + 1})
                       </span>
                     </div>
-                    <div className="text-sm text-slate-900 whitespace-pre-wrap break-words">
+                    <div className="text-sm text-slate-100 whitespace-pre-wrap break-words">
                       {formattedOption}
                     </div>
                   </div>
@@ -148,16 +148,16 @@ export function OptionsSelectionModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
+        <div className="px-6 py-4 border-t border-slate-700 flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors font-medium">
+            className="px-4 py-2 text-slate-300 hover:text-slate-100 hover:bg-slate-700 rounded-lg transition-colors font-medium">
             Cancel
           </button>
           <button
             onClick={handleApply}
             disabled={selectedIndex === null}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-lg transition-colors font-medium">
+            className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors font-medium">
             Apply
           </button>
         </div>
