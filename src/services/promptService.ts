@@ -8,6 +8,7 @@ import {
   CONTENT_FOCUS_INSTRUCTIONS,
   DIFFICULTY_INSTRUCTIONS,
   QUESTION_STYLE_INSTRUCTIONS,
+  QUESTION_QUALITY_RULES,
   LANGUAGE_INSTRUCTIONS,
 } from "./constants";
 import {
@@ -232,8 +233,10 @@ Identify all key points a complete answer should contain. Points must sum to exa
       : "";
 
     return `
-            You are a JSON generator. Output EXACTLY ${questionsAmount} question objects in a top-level JSON array. Do NOT emit any extra text—only the JSON array.
-            Questions must be directly related to the text. You can't add knowledge outside of the text. Answers must exist in the source text.
+            You are an expert quiz author and a JSON generator. Output EXACTLY ${questionsAmount} question objects in a top-level JSON array. Do NOT emit any extra text—only the JSON array.
+
+            GROUNDING: Base every question and answer ONLY on information contained in, or directly inferable from, the provided text. Never introduce facts that are not supported by it. But do NOT copy the text verbatim and do NOT test whether wording appeared in it — rephrase the ideas into clean, standalone questions about the concepts.
+            ${QUESTION_QUALITY_RULES}
             ${instruction}
             ${focusInstruction}
             ${difficultyInstruction}
@@ -329,26 +332,25 @@ Provide a helpful hint without revealing the answer.`;
   }
 
   private static sysGenerateExplanation(): string {
-    return `You are an educational assistant explaining why a quiz answer is correct.
+    return `You are an educational assistant. Explain why a quiz answer is correct so the student actually LEARNS the concept.
 
-LANGUAGE RULE (MANDATORY): Detect the language of the QUESTION and write your ENTIRE response in that SAME language. 
+LANGUAGE RULE (MANDATORY): Detect the language of the QUESTION and write your ENTIRE response in that SAME language.
 - Polish question → Polish explanation
-- German question → German explanation  
+- German question → German explanation
 - Spanish question → Spanish explanation
 - English question → English explanation
 
-Your explanation should:
-- Explain the reasoning behind why the answer is correct
-- Support with a DIRECT QUOTE from the source text
-- Be concise but complete (2-4 sentences)
+Write 2-4 sentences that do ALL of the following, in order:
+1. Explain in plain terms WHAT the correct answer means and WHY it is correct — the underlying concept or reasoning. Do NOT just assert "it is correct because the text mentions it".
+2. Include ONE short, relevant quote from the source text, in quotation marks, as evidence.
+3. Interpret that quote: state in your own words what it actually means and how it supports the answer. Never drop a quote without explaining it.
 
-Structure your response as:
-1. Start directly with the explanation of WHY this is correct (the concept/reasoning)
-2. Then include a supporting quote from the source text
+FORBIDDEN (too shallow): "It is correct because the text says 'X'." / "Prawda, bo tekst wspomina 'X'."
+Always explain the meaning, not just the presence of words.
 
-Example for Polish question "Czym jest Deep Learning?": "Odpowiedź prawidłowo wskazuje, że Deep Learning to poddziedzina uczenia maszynowego wykorzystująca wielowarstwowe sieci neuronowe. Tekst potwierdza to: 'Deep Learning (głębokie uczenie) → poddziedzina uczenia maszynowego, w której używa się sztucznych sieci neuronowych z wieloma warstwami.'"
+Example (English, "What does a hash function provide?"): "A hash function provides integrity verification: it turns data into a fixed-length, one-way fingerprint, so any change to the data changes the hash. The text states: 'a hash maps input to a fixed-size value that cannot be reversed' — this means you can detect tampering by comparing hashes, but you can never reconstruct the original input from the hash."
 
-Example for English question "What is Deep Learning?": "The answer correctly identifies that Deep Learning is a subfield of machine learning using multi-layer neural networks. The text confirms: 'Deep Learning → a subfield of machine learning that uses artificial neural networks with many layers.'"
+Example (Polish, "Czym jest Deep Learning?"): "Deep Learning to poddziedzina uczenia maszynowego, w której sieci neuronowe z wieloma warstwami samodzielnie uczą się coraz bardziej złożonych cech danych. Tekst potwierdza: 'używa się sztucznych sieci neuronowych z wieloma warstwami' — czyli to właśnie wielowarstwowość pozwala modelowi wykrywać wzorce, których prostsze metody nie uchwycą."
 
 Return ONLY the explanation text in the SAME LANGUAGE as the question. No prefixes like "Explanation:" or "Answer:".`;
   }

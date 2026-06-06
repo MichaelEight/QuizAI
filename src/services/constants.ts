@@ -33,6 +33,11 @@ export class Instructions {
   static readonly OPEN_QUESTION = `
     Each open question object must have:
     - "question": string
+
+    OPEN QUESTION QUALITY:
+    - Ask about ONE specific concept with a clear, bounded expected answer. Never ask the student to "summarize the text" or "list everything about X".
+    - The question must be self-contained: answerable by someone who learned the material, in 1-4 sentences, without seeing any source.
+    - Prefer "explain why/how", "what is the purpose of", "what distinguishes X from Y" over questions that just ask to reproduce a definition word-for-word.
   `;
 
   // Shared rule that prevents length/detail from giving away the correct answer.
@@ -64,6 +69,10 @@ export class Instructions {
     Each question MUST have EXACTLY ONE answer with "isCorrect": true.
     All other ${incorrectCount} answers MUST have "isCorrect": false.
     Do NOT create questions with multiple correct answers.
+
+    QUESTION PHRASING (must match the single-answer structure):
+    - Word the question so it clearly calls for ONE answer (e.g. "What is...", "Which one of the following...", "What best describes...").
+    - NEVER use plural / select-many phrasings like "Which of the following ARE...", "Which of these statements are true", or "Select all that apply" — those imply multiple correct answers and contradict a single-choice question.
 ${Instructions.ANSWER_BALANCE}
   `;
   }
@@ -84,6 +93,11 @@ ${Instructions.ANSWER_BALANCE}
     Each question MUST have AT LEAST TWO answers with "isCorrect": true.
     You can have 2 to ${maxCorrect} correct answers, with the remaining being "isCorrect": false.
     Do NOT create questions with only one correct answer.
+
+    QUESTION PHRASING (must match the multiple-answer structure):
+    - Word the question so it clearly signals that MORE THAN ONE answer is correct (e.g. "Which of the following ARE...", "Select ALL that apply", "Which of these are true?").
+    - The stem must NOT read like a single-answer question (avoid "What is the one...", "Which single...").
+    - Make sure the correct options are genuinely, independently correct — not one true answer plus near-duplicates padded to reach two.
 ${Instructions.ANSWER_BALANCE}
   `;
   }
@@ -287,6 +301,22 @@ EXAMPLES:
 - Can reference specific sections or parts of the text
 - Focus on recall of what was written`,
 } as const;
+
+// Universal quality rubric applied to EVERY generated question, regardless of
+// type, difficulty, focus or style. This is the main defense against low-value
+// or "giveaway" questions.
+export const QUESTION_QUALITY_RULES = `
+QUESTION QUALITY RULES (MANDATORY — every question must satisfy ALL of these):
+1. SELF-CONTAINED: Test understanding of the SUBJECT MATTER. Each question must be answerable by someone who LEARNED the material, without seeing any source. NEVER refer to "the text", "the passage", "the author", "the document", "the reading", "the excerpt", "the fragment", "the lecture", "the slides", "above", or "as mentioned" in questions OR answers.
+2. NO META / WORDING-RECALL: Never ask which statements, sentences, phrases or words appeared in, were mentioned in, or were quoted from the source, nor anything about its structure, order, length or formatting. Test the IDEAS, not memory of exact wording. (FORBIDDEN example: "Which of these statements appeared in the text?")
+3. ONE CLEAR POINT: Each question targets a single, well-defined idea and has exactly one reasonable interpretation. No compound, vague, or trick questions.
+4. UNAMBIGUOUS CORRECTNESS: The correct option(s) must be indisputably correct based on the material; every distractor must be clearly incorrect on the merits — believable to someone who did not study, but wrong to someone who did. Never include a distractor that could be argued correct.
+5. HONEST DISTRACTORS: No "All of the above", "None of the above", joke options, or absurd throwaways. Every option is a serious, on-topic candidate.
+6. DISTINCT OPTIONS: All options are mutually exclusive and meaningfully different. No option may be a subset, superset, or restatement of another, and no two options may mean the same thing.
+7. NO GIVEAWAYS: Never signal the answer through length, grammatical form, specificity, or by echoing words from the question. (See ANSWER BALANCE.)
+8. NO DUPLICATES: Do not produce two questions that test the same fact or are paraphrases of each other within this set. Each question covers a different point.
+9. STANDALONE ANSWERS: Each option is a complete, understandable statement on its own — never "the first one", "as above", or a bare disconnected fragment.
+`;
 
 // Language instructions for quiz generation
 export const LANGUAGE_INSTRUCTIONS = {

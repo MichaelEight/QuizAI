@@ -66,6 +66,7 @@ async function generateQuestionsPerType(
   amount: number,
   type: QuestionType,
   options: GenerationOptions,
+  seenKeys: Set<string>,
   quizId?: string | null,
   quizTitle?: string | null,
   onProgress?: ProgressCallback,
@@ -102,7 +103,7 @@ async function generateQuestionsPerType(
 
     // Validate and filter questions
     if (Array.isArray(parsed)) {
-      return validateAndFilterQuestions(parsed, type, onProgress);
+      return validateAndFilterQuestions(parsed, type, seenKeys, onProgress);
     }
 
     return parsed;
@@ -126,6 +127,8 @@ async function generateQuestionsWithRetry(
 ): Promise<GeneratedQuestion[]> {
   const MAX_ATTEMPTS = 3;
   const accumulatedQuestions: GeneratedQuestion[] = [];
+  // Shared across attempts so retries never reintroduce a duplicate question.
+  const seenKeys = new Set<string>();
   let attempt = 0;
 
   // Human-readable type name
@@ -153,7 +156,7 @@ async function generateQuestionsWithRetry(
 
     console.log(`[Attempt ${attempt}/${MAX_ATTEMPTS}] Requesting ${remaining} ${type} questions...`);
 
-    const result = await generateQuestionsPerType(text, remaining, type, options, quizId, quizTitle, onProgress);
+    const result = await generateQuestionsPerType(text, remaining, type, options, seenKeys, quizId, quizTitle, onProgress);
 
     // Handle error responses
     if (!Array.isArray(result)) {
@@ -211,33 +214,105 @@ async function generateQuestionsWithRetry(
   return finalQuestions;
 }
 
-function validateQuestionType(
+// Normalized key for detecting duplicate / near-duplicate questions.
+export function normalizeQuestionKey(question: string): string {
+  return question
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "") // strip diacritics so "tekście" ~ "tekscie"
+    .replace(/[^\p{L}\p{N}\s]/gu, "") // drop punctuation
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// High-precision patterns for "meta" questions that test memory of the source
+// wording instead of understanding (e.g. "which of these appeared in the text").
+// These are a disaster for quiz quality, so we drop them as a backstop even if
+// the prompt fails to prevent them.
+const META_QUESTION_PATTERNS: readonly RegExp[] = [
+  /\bin the (text|passage|reading|excerpt|document|article|material|source)\b/i,
+  /\baccording to the (text|passage|author|document|reading|article)\b/i,
+  /\b(appear|appeared|appears|mentioned|stated|listed|quoted|written|said)\b[^.?!]*\bin the (text|passage|reading|document|source|article)\b/i,
+  /\bw\s+(powy[zż]szym\s+)?tek[sś]cie\b/i,
+  /\bwed[lł]ug\s+tekstu\b/i,
+  /\bwymienion\w*\s+w\s+tek[sś]cie\b/i,
+  /\bz\s+powy[zż]szego\s+tekstu\b/i,
+  /\ben el texto\b/i,
+  /\bseg[uú]n el texto\b/i,
+  /\bim text(e|es)?\b/i,
+  /\blaut (dem )?text\b/i,
+];
+
+function isMetaQuestion(question: string): boolean {
+  return META_QUESTION_PATTERNS.some((re) => re.test(question));
+}
+
+// Fisher-Yates shuffle (returns a new array) — removes answer-position bias.
+function shuffle<T>(items: readonly T[]): T[] {
+  const out = items.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+// Clean a single question and reject it if it is structurally invalid or
+// low-quality. Returns a sanitized copy, or null if it must be discarded.
+function sanitizeQuestion(
   question: GeneratedQuestion,
-  expectedType: QuestionType
-): boolean {
-  if (!question.answers || question.answers.length === 0) {
-    return true; // Open question, no validation needed
+  expectedType: QuestionType,
+): GeneratedQuestion | null {
+  const text = (question.question ?? "").trim();
+  if (text.length < 8) return null; // empty / nonsense stub
+  if (isMetaQuestion(text)) return null; // wording-recall giveaway
+
+  const hasAnswers = Array.isArray(question.answers) && question.answers.length > 0;
+
+  // Open questions carry no answers.
+  if (expectedType === QuestionTypes.OPEN) {
+    return { question: text }; // ignore any stray answers the model added
   }
 
-  const correctCount = question.answers.filter(a => a.isCorrect).length;
+  if (!hasAnswers) return null; // closed type but no options
 
-  if (expectedType === QuestionTypes.CLOSED) {
-    // Single choice: must have exactly 1 correct answer
-    return correctCount === 1;
-  } else if (expectedType === QuestionTypes.CLOSED_MULTI) {
-    // Multiple choice: must have 2+ correct answers
-    return correctCount >= 2;
+  // De-duplicate and trim options.
+  const cleaned: Array<{ content: string; isCorrect: boolean }> = [];
+  const seen = new Set<string>();
+  for (const a of question.answers!) {
+    const content = (a?.content ?? "").trim();
+    if (!content) continue;
+    const key = content.toLowerCase().replace(/\s+/g, " ");
+    if (seen.has(key)) continue; // drop duplicate option
+    seen.add(key);
+    cleaned.push({ content, isCorrect: Boolean(a?.isCorrect) });
   }
 
-  return true;
+  if (cleaned.length < 2) return null; // need at least two distinct options
+  const correctCount = cleaned.filter((a) => a.isCorrect).length;
+  if (correctCount === cleaned.length) return null; // no wrong option to pick
+  if (expectedType === QuestionTypes.CLOSED && correctCount !== 1) return null;
+  if (expectedType === QuestionTypes.CLOSED_MULTI && correctCount < 2) return null;
+
+  return { question: text, answers: shuffle(cleaned) };
 }
 
 function validateAndFilterQuestions(
   questions: GeneratedQuestion[],
   expectedType: QuestionType,
+  seenKeys: Set<string>,
   onProgress?: ProgressCallback,
 ): GeneratedQuestion[] {
-  const validated = questions.filter(q => validateQuestionType(q, expectedType));
+  const validated: GeneratedQuestion[] = [];
+  for (const q of questions) {
+    const cleaned = sanitizeQuestion(q, expectedType);
+    if (!cleaned) continue;
+    const key = normalizeQuestionKey(cleaned.question);
+    if (seenKeys.has(key)) continue; // duplicate within set / across retries
+    seenKeys.add(key);
+    validated.push(cleaned);
+  }
 
   if (validated.length < questions.length) {
     const filtered = questions.length - validated.length;
@@ -249,8 +324,7 @@ function validateAndFilterQuestions(
     });
 
     console.warn(
-      `AI generated ${filtered} questions that don't match expected type ${expectedType}. ` +
-      `Filtered them out.`
+      `Filtered ${filtered} low-quality/invalid/duplicate question(s) for type ${expectedType}.`
     );
   }
 
