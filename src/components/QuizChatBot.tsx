@@ -4,6 +4,8 @@ import {
   sendChatMessage,
   ChatMessage,
   ChatContext,
+  loadChatCache,
+  saveChatCache,
 } from "../services/chatService";
 import { Markdown } from "./Markdown";
 
@@ -12,6 +14,7 @@ interface QuizChatBotProps {
   readonly questionId: string;
   readonly isOpen: boolean;
   readonly onToggle: (open: boolean) => void;
+  readonly quizKey: string; // tasks hash — scopes the cached chat to this quiz
 }
 
 let messageIdCounter = 0;
@@ -24,9 +27,11 @@ export function QuizChatBot({
   questionId,
   isOpen,
   onToggle,
+  quizKey,
 }: Readonly<QuizChatBotProps>) {
+  // Restore cached chat for the current quiz (survives page reloads).
   const [messages, setMessages] = useState<Map<string, ChatMessage[]>>(
-    new Map(),
+    () => new Map(Object.entries(loadChatCache(quizKey))),
   );
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +45,16 @@ export function QuizChatBot({
 
   // Get messages for current question
   const currentMessages = messages.get(questionId) || [];
+
+  // Persist chat whenever it changes, scoped to the current quiz.
+  useEffect(() => {
+    saveChatCache(quizKey, Object.fromEntries(messages));
+  }, [messages, quizKey]);
+
+  // Loading a different quiz swaps in that quiz's cached chat (empty if none).
+  useEffect(() => {
+    setMessages(new Map(Object.entries(loadChatCache(quizKey))));
+  }, [quizKey]);
 
   // Handle open/close animations
   useEffect(() => {

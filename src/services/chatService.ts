@@ -19,6 +19,46 @@ export interface ChatContext {
 
 const MAX_HISTORY_PAIRS = 10;
 
+/* ----------------------------- Chat persistence ---------------------------- */
+// Chat messages are cached per question, scoped to the currently loaded quiz
+// (keyed by its tasks hash). Survives page reloads; cleared when the quiz is
+// reset/ended or a different quiz is loaded.
+const CHAT_CACHE_KEY = "quizai_chat_cache";
+
+export function loadChatCache(quizKey: string): Record<string, ChatMessage[]> {
+  try {
+    const raw = localStorage.getItem(CHAT_CACHE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as {
+      quizKey?: string;
+      messages?: Record<string, ChatMessage[]>;
+    };
+    if (parsed.quizKey === quizKey && parsed.messages) return parsed.messages;
+  } catch {
+    // ignore parse/storage errors
+  }
+  return {};
+}
+
+export function saveChatCache(
+  quizKey: string,
+  messages: Record<string, ChatMessage[]>,
+): void {
+  try {
+    localStorage.setItem(CHAT_CACHE_KEY, JSON.stringify({ quizKey, messages }));
+  } catch {
+    // ignore storage errors (e.g. quota)
+  }
+}
+
+export function clearChatCache(): void {
+  try {
+    localStorage.removeItem(CHAT_CACHE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 /**
  * Build the system prompt with full quiz context
  */

@@ -30,7 +30,7 @@ import { useSaveQuizModal } from "./context/SaveQuizModalContext";
 import { SuccessToast } from "./components/SuccessToast";
 import { BaseModal } from "./components/BaseModal";
 import { QuizChatBot } from "./components/QuizChatBot";
-import { ChatContext } from "./services/chatService";
+import { ChatContext, clearChatCache } from "./services/chatService";
 import { OptionsSelectionModal } from "./components/OptionsSelectionModal";
 import { ScoreBreakdownTemplate } from "./QuestionsTypes";
 import { DiffModal } from "./components/DiffModal";
@@ -312,6 +312,11 @@ export default function QuizPage({
     return () => clearTimeout(t);
   }, [showLearntEffect]);
 
+  // Drop cached chat once the quiz ends, so reopening it starts fresh.
+  useEffect(() => {
+    if (isQuizEnded) clearChatCache();
+  }, [isQuizEnded]);
+
   // Achievement state
   const [toastAchievement, setToastAchievement] = useState<Achievement | null>(
     null,
@@ -513,6 +518,7 @@ export default function QuizPage({
     setIncorrectAnswers(0);
     setTaskPool(createPool([...tasks], settings.defaultPoolSize));
     clearQuizProgress();
+    clearChatCache();
     // Reset gamification session state
     gamification.resetSession();
   }
@@ -2986,6 +2992,7 @@ export default function QuizPage({
           questionId={currentTask.id}
           isOpen={isChatOpen}
           onToggle={setIsChatOpen}
+          quizKey={getTasksHash(tasks)}
         />
       )}
       </div>
