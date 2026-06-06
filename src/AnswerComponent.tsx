@@ -55,16 +55,16 @@ function OpenAnswer({ openAnswer, setOpenAnswer, areAnswersChecked, inputRef, on
 
   return (
     <div>
-      <label htmlFor="openAnswer" className="block text-sm font-medium text-slate-400 mb-2">
+      <label htmlFor="openAnswer" className="block text-sm font-medium text-slate-500 mb-2">
         Your Answer
       </label>
       <textarea
         ref={inputRef}
         id="openAnswer"
-        className={`w-full h-32 bg-slate-900 border rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 transition-all duration-200 resize-none ${
+        className={`w-full h-32 bg-slate-50 border rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 transition-all duration-200 resize-none ${
           areAnswersChecked
-            ? "border-slate-600 opacity-75 cursor-not-allowed"
-            : "border-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            ? "border-slate-300 opacity-75 cursor-not-allowed"
+            : "border-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
         }`}
         placeholder="Type your answer here..."
         value={openAnswer}
@@ -75,7 +75,7 @@ function OpenAnswer({ openAnswer, setOpenAnswer, areAnswersChecked, inputRef, on
         autoFocus
       />
       <div className="flex justify-end mt-2">
-        <span className="text-sm text-slate-500">{openAnswer.length} characters</span>
+        <span className="text-sm text-slate-400">{openAnswer.length} characters</span>
       </div>
     </div>
   );
@@ -105,20 +105,20 @@ function ClosedAnswer({ currentTask, setCurrentTask, areAnswersChecked }: Closed
     if (areAnswersChecked) {
       // After checking - show correct/incorrect states
       if (answer.isCorrect) {
-        return `${base} bg-emerald-500/10 border-emerald-500 text-emerald-400`;
+        return `${base} bg-emerald-50 border-emerald-500 text-emerald-600`;
       } else if (answer.isSelected && !answer.isCorrect) {
-        return `${base} bg-rose-500/10 border-rose-500 text-rose-400`;
+        return `${base} bg-rose-50 border-rose-500 text-rose-600`;
       } else {
-        return `${base} bg-slate-800 border-slate-700 text-slate-400 opacity-60`;
+        return `${base} bg-white border-slate-200 text-slate-500 opacity-60`;
       }
     }
 
     // Before checking - show selection states
     if (answer.isSelected) {
-      return `${base} bg-indigo-500/20 border-indigo-500 text-slate-100`;
+      return `${base} bg-indigo-50 border-indigo-500 text-slate-900`;
     }
 
-    return `${base} bg-slate-800 border-slate-700 text-slate-100 hover:border-slate-500 hover:bg-slate-750 hover:-translate-y-0.5 cursor-pointer`;
+    return `${base} bg-white border-slate-200 text-slate-900 hover:border-slate-400 hover:bg-slate-100 hover:-translate-y-0.5 cursor-pointer`;
   };
 
   return (
@@ -135,13 +135,13 @@ function ClosedAnswer({ currentTask, setCurrentTask, areAnswersChecked }: Closed
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${
               areAnswersChecked
                 ? answer.isCorrect
-                  ? "border-emerald-500 bg-emerald-500"
+                  ? "border-emerald-500 bg-emerald-600"
                   : answer.isSelected
-                  ? "border-rose-500 bg-rose-500"
-                  : "border-slate-600"
+                  ? "border-rose-500 bg-rose-600"
+                  : "border-slate-300"
                 : answer.isSelected
-                ? "border-indigo-500 bg-indigo-500"
-                : "border-slate-600"
+                ? "border-indigo-500 bg-indigo-600"
+                : "border-slate-300"
             }`}>
               {(answer.isSelected || (areAnswersChecked && answer.isCorrect)) && (
                 <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

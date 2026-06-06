@@ -46,15 +46,15 @@ export function QuizProgress({
       {/* Learning Progress Bar */}
       <div>
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-slate-400">Learning</span>
-          <span className="text-slate-300">
-            <span className="text-emerald-400 font-medium">{learntCount}</span>
-            <span className="text-slate-500"> / </span>
+          <span className="text-slate-500">Learning</span>
+          <span className="text-slate-600">
+            <span className="text-emerald-600 font-medium">{learntCount}</span>
+            <span className="text-slate-400"> / </span>
             <span>{totalQuestions}</span>
-            <span className="text-slate-500"> learnt</span>
+            <span className="text-slate-400"> learnt</span>
           </span>
         </div>
-        <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+        <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500 ease-out"
             style={{
@@ -70,29 +70,29 @@ export function QuizProgress({
       {/* Answer Quality Bar */}
       <div>
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-emerald-400 font-medium">
+          <span className="text-emerald-600 font-medium">
             {correctAnswers} correct
           </span>
-          <span className="text-rose-400 font-medium">
+          <span className="text-rose-600 font-medium">
             {incorrectAnswers} incorrect
           </span>
         </div>
-        <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden relative">
+        <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden relative">
           {totalAnswers > 0 ? (
             <>
               {/* Green bar from left */}
               <div
-                className="absolute left-0 top-0 h-full bg-emerald-500 transition-all duration-500 ease-out"
+                className="absolute left-0 top-0 h-full bg-emerald-600 transition-all duration-500 ease-out"
                 style={{ width: `${correctPercentage}%` }}
               />
               {/* Red bar from right */}
               <div
-                className="absolute right-0 top-0 h-full bg-rose-500 transition-all duration-500 ease-out"
+                className="absolute right-0 top-0 h-full bg-rose-600 transition-all duration-500 ease-out"
                 style={{ width: `${100 - correctPercentage}%` }}
               />
             </>
           ) : (
-            <div className="w-full h-full bg-slate-600" />
+            <div className="w-full h-full bg-slate-200" />
           )}
         </div>
       </div>

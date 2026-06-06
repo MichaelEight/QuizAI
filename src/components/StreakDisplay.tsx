@@ -24,36 +24,36 @@ export function StreakDisplay({ streak, animate = false }: StreakDisplayProps) {
   const getStreakStyle = () => {
     if (streak >= 20) {
       return {
-        bg: 'bg-purple-500/20',
-        border: 'border-purple-500/30',
-        text: 'text-purple-400',
-        icon: 'text-purple-400',
-        glow: 'shadow-purple-500/30',
+        bg: 'bg-purple-50',
+        border: 'border-purple-200',
+        text: 'text-purple-600',
+        icon: 'text-purple-600',
+        glow: 'shadow-purple-600/20',
       };
     }
     if (streak >= 10) {
       return {
-        bg: 'bg-rose-500/20',
-        border: 'border-rose-500/30',
-        text: 'text-rose-400',
-        icon: 'text-rose-400',
-        glow: 'shadow-rose-500/30',
+        bg: 'bg-rose-50',
+        border: 'border-rose-200',
+        text: 'text-rose-600',
+        icon: 'text-rose-600',
+        glow: 'shadow-rose-600/20',
       };
     }
     if (streak >= 5) {
       return {
-        bg: 'bg-orange-500/20',
-        border: 'border-orange-500/30',
-        text: 'text-orange-400',
-        icon: 'text-orange-400',
-        glow: 'shadow-orange-500/30',
+        bg: 'bg-orange-50',
+        border: 'border-orange-200',
+        text: 'text-orange-600',
+        icon: 'text-orange-600',
+        glow: 'shadow-orange-500/20',
       };
     }
     return {
-      bg: 'bg-amber-500/20',
-      border: 'border-amber-500/30',
-      text: 'text-amber-400',
-      icon: 'text-amber-400',
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      text: 'text-amber-600',
+      icon: 'text-amber-600',
       glow: 'shadow-amber-500/20',
     };
   };

@@ -48,10 +48,10 @@ export function TimerDisplay({ startTime, isRunning = true }: TimerDisplayProps)
       className={`
         flex items-center gap-1.5 px-2.5 py-1 rounded-lg border
         ${isWarning
-          ? 'bg-rose-500/10 border-rose-500/20'
+          ? 'bg-rose-50 border-rose-200'
           : isSlow
-          ? 'bg-amber-500/10 border-amber-500/20'
-          : 'bg-slate-700/50 border-slate-600'
+          ? 'bg-amber-50 border-amber-200'
+          : 'bg-slate-100 border-slate-300'
         }
         transition-colors duration-200
       `}
@@ -60,10 +60,10 @@ export function TimerDisplay({ startTime, isRunning = true }: TimerDisplayProps)
       <svg
         className={`w-4 h-4 ${
           isWarning
-            ? 'text-rose-400 animate-timer-warning'
+            ? 'text-rose-600 animate-timer-warning'
             : isSlow
-            ? 'text-amber-400'
-            : 'text-slate-400'
+            ? 'text-amber-600'
+            : 'text-slate-500'
         }`}
         fill="none"
         viewBox="0 0 24 24"
@@ -81,7 +81,7 @@ export function TimerDisplay({ startTime, isRunning = true }: TimerDisplayProps)
       <span
         className={`
           font-mono text-sm font-medium
-          ${isWarning ? 'text-rose-400' : isSlow ? 'text-amber-400' : 'text-slate-300'}
+          ${isWarning ? 'text-rose-600' : isSlow ? 'text-amber-600' : 'text-slate-600'}
         `}
       >
         {formatTime()}
@@ -113,14 +113,14 @@ export function TimeStatDisplay({ label, timeMs, variant = 'default' }: TimeStat
   };
 
   const styles = {
-    default: 'text-slate-400',
-    best: 'text-emerald-400',
-    average: 'text-indigo-400',
+    default: 'text-slate-500',
+    best: 'text-emerald-600',
+    average: 'text-indigo-600',
   };
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="text-slate-500">{label}:</span>
+      <span className="text-slate-400">{label}:</span>
       <span className={`font-mono font-medium ${styles[variant]}`}>
         {formatTime()}
       </span>

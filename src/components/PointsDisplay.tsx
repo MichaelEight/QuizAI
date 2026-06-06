@@ -25,10 +25,10 @@ export function PointsDisplay({ points, showFloating = true }: PointsDisplayProp
   }, [points, showFloating]);
 
   return (
-    <div className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+    <div className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200">
       {/* Star icon */}
       <svg
-        className="w-4 h-4 text-indigo-400"
+        className="w-4 h-4 text-indigo-600"
         fill="currentColor"
         viewBox="0 0 24 24"
       >
@@ -36,7 +36,7 @@ export function PointsDisplay({ points, showFloating = true }: PointsDisplayProp
       </svg>
 
       {/* Points number */}
-      <span className="font-bold text-sm text-indigo-400">
+      <span className="font-bold text-sm text-indigo-600">
         {points.toLocaleString()}
       </span>
 
@@ -46,7 +46,7 @@ export function PointsDisplay({ points, showFloating = true }: PointsDisplayProp
           key={fp.id}
           className="absolute -top-2 left-1/2 -translate-x-1/2 pointer-events-none animate-points-float"
         >
-          <span className="text-emerald-400 font-bold text-sm whitespace-nowrap">
+          <span className="text-emerald-600 font-bold text-sm whitespace-nowrap">
             +{fp.value}
           </span>
         </div>
@@ -71,7 +71,7 @@ export function PointsBadge({ points, size = 'sm' }: PointsBadgeProps) {
     <span
       className={`
         inline-flex items-center gap-1 rounded-full
-        bg-indigo-500/10 text-indigo-400 font-medium
+        bg-indigo-50 text-indigo-600 font-medium
         ${sizeClasses[size]}
       `}
     >
@@ -107,28 +107,28 @@ export function PointsBreakdown({
 
   return (
     <div className="text-sm space-y-1">
-      <div className="flex justify-between text-slate-400">
+      <div className="flex justify-between text-slate-500">
         <span>Base:</span>
         <span>{base}</span>
       </div>
       {timeMultiplier !== 1 && (
-        <div className="flex justify-between text-cyan-400">
+        <div className="flex justify-between text-cyan-600">
           <span>Time bonus:</span>
           <span>x{timeMultiplier.toFixed(1)}</span>
         </div>
       )}
       {streakMultiplier !== 1 && (
-        <div className="flex justify-between text-amber-400">
+        <div className="flex justify-between text-amber-600">
           <span>Streak bonus:</span>
           <span>x{streakMultiplier.toFixed(2)}</span>
         </div>
       )}
-      <div className="flex justify-between text-indigo-400 font-medium border-t border-slate-700 pt-1">
+      <div className="flex justify-between text-indigo-600 font-medium border-t border-slate-200 pt-1">
         <span>Total:</span>
         <span>+{total}</span>
       </div>
       {bonusReasons.length > 0 && (
-        <div className="text-xs text-slate-500 pt-1">
+        <div className="text-xs text-slate-400 pt-1">
           {bonusReasons.join(' ')}
         </div>
       )}

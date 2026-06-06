@@ -30,20 +30,20 @@ export function SuccessToast({ message, onDismiss }: SuccessToastProps) {
       <div
         className={`
           flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl
-          border-emerald-500/50 bg-slate-800
+          border-emerald-300 bg-white
           ${isExiting ? 'animate-toast-out' : 'animate-toast-in'}
           max-w-xs
         `}
       >
         {/* Checkmark Icon */}
-        <div className="shrink-0 w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center">
-          <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="shrink-0 w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center">
+          <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
 
         {/* Message */}
-        <p className="font-medium text-slate-100">
+        <p className="font-medium text-slate-900">
           {message}
         </p>
       </div>

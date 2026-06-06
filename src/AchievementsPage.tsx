@@ -51,14 +51,14 @@ export default function AchievementsPage() {
       <div className="animate-fade-in max-w-4xl mx-auto">
       {/* Header */}
       <div className="text-center mb-6 sm:mb-8">
-        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-indigo-500/20 rounded-xl sm:rounded-2xl mb-3 sm:mb-4">
-          <svg className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-indigo-50 rounded-xl sm:rounded-2xl mb-3 sm:mb-4">
+          <svg className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
           </svg>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-1 sm:mb-2">Achievements</h1>
-        <p className="text-sm sm:text-base text-slate-400">
-          <span className="text-indigo-400 font-medium">{unlockedCount}</span> of {totalAchievements} unlocked
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">Achievements</h1>
+        <p className="text-sm sm:text-base text-slate-500">
+          <span className="text-indigo-600 font-medium">{unlockedCount}</span> of {totalAchievements} unlocked
         </p>
       </div>
 
@@ -74,8 +74,8 @@ export default function AchievementsPage() {
           aria-controls="achievements-panel"
           className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg font-medium transition-all duration-200 min-h-[44px] ${
             activeTab === 'achievements'
-              ? 'bg-indigo-500 text-white'
-              : 'bg-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-700'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <span className="flex items-center justify-center gap-2">
@@ -93,8 +93,8 @@ export default function AchievementsPage() {
           aria-controls="stats-panel"
           className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg font-medium transition-all duration-200 min-h-[44px] ${
             activeTab === 'stats'
-              ? 'bg-indigo-500 text-white'
-              : 'bg-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-700'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <span className="flex items-center justify-center gap-2">
@@ -122,8 +122,8 @@ export default function AchievementsPage() {
                 aria-label={`Filter by ${cat.label}`}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 min-h-[36px] ${
                   selectedCategory === cat.value
-                    ? 'bg-slate-700 text-slate-100'
-                    : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'bg-slate-50 text-slate-500 hover:text-slate-800 hover:bg-slate-100'
                 }`}
               >
                 {cat.label}
@@ -151,10 +151,10 @@ export default function AchievementsPage() {
                   className={`
                     relative p-4 rounded-xl border text-left transition-all duration-200 min-h-[44px]
                     ${isUnlocked
-                      ? 'bg-slate-800 border-slate-700 hover:border-slate-600 hover:bg-slate-750'
+                      ? 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-100'
                       : isHidden
-                      ? 'bg-slate-800/30 border-slate-800 cursor-not-allowed'
-                      : 'bg-slate-800/50 border-slate-700/50 hover:border-slate-600 hover:bg-slate-800'
+                      ? 'bg-slate-50 border-slate-200 cursor-not-allowed'
+                      : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                     }
                   `}
                 >
@@ -162,8 +162,8 @@ export default function AchievementsPage() {
                     {/* Icon */}
                     <div className={`shrink-0 ${!isUnlocked && !isHidden ? 'opacity-40 grayscale' : ''}`}>
                       {isHidden ? (
-                        <div className="w-10 h-10 bg-slate-700/50 rounded-lg flex items-center justify-center">
-                          <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                          <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
@@ -179,26 +179,26 @@ export default function AchievementsPage() {
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <h3 className={`font-semibold truncate ${isUnlocked ? 'text-slate-100' : isHidden ? 'text-slate-500' : 'text-slate-300'}`}>
+                      <h3 className={`font-semibold truncate ${isUnlocked ? 'text-slate-900' : isHidden ? 'text-slate-400' : 'text-slate-600'}`}>
                         {isHidden ? '???' : achievement.name}
                       </h3>
-                      <p className={`text-sm mt-0.5 line-clamp-2 ${isUnlocked ? 'text-slate-400' : 'text-slate-500'}`}>
+                      <p className={`text-sm mt-0.5 line-clamp-2 ${isUnlocked ? 'text-slate-500' : 'text-slate-400'}`}>
                         {isHidden ? 'Keep playing to discover this achievement' : achievement.description}
                       </p>
 
                       {/* Points and tier */}
                       <div className="flex items-center gap-2 mt-2">
                         {!isHidden && (
-                          <span className={`text-xs font-medium ${isUnlocked ? 'text-indigo-400' : 'text-slate-500'}`}>
+                          <span className={`text-xs font-medium ${isUnlocked ? 'text-indigo-600' : 'text-slate-400'}`}>
                             +{achievement.points} pts
                           </span>
                         )}
                         {achievement.tier && !isHidden && (
                           <span className={`text-xs px-1.5 py-0.5 rounded capitalize ${
-                            achievement.tier === 'bronze' ? 'bg-amber-900/30 text-amber-600' :
-                            achievement.tier === 'silver' ? 'bg-slate-600/30 text-slate-300' :
-                            achievement.tier === 'gold' ? 'bg-amber-500/20 text-amber-400' :
-                            'bg-purple-500/20 text-purple-300'
+                            achievement.tier === 'bronze' ? 'bg-amber-100 text-amber-600' :
+                            achievement.tier === 'silver' ? 'bg-slate-100 text-slate-600' :
+                            achievement.tier === 'gold' ? 'bg-amber-50 text-amber-600' :
+                            'bg-purple-50 text-purple-600'
                           }`}>
                             {achievement.tier}
                           </span>
@@ -210,8 +210,8 @@ export default function AchievementsPage() {
                   {/* Unlocked badge */}
                   {isUnlocked && (
                     <div className="absolute top-2 right-2" aria-hidden="true">
-                      <div className="w-6 h-6 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <div className="w-6 h-6 bg-emerald-50 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
@@ -220,7 +220,7 @@ export default function AchievementsPage() {
 
                   {/* Unlock date */}
                   {unlockDate && (
-                    <p className="text-xs text-slate-500 mt-2">
+                    <p className="text-xs text-slate-400 mt-2">
                       Unlocked {unlockDate}
                     </p>
                   )}
@@ -234,60 +234,60 @@ export default function AchievementsPage() {
         <div role="tabpanel" id="stats-panel" aria-labelledby="stats-tab" className="space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-indigo-400">{userStats.totalPoints.toLocaleString()}</p>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">Total Points</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-indigo-600">{userStats.totalPoints.toLocaleString()}</p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">Total Points</p>
             </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-400">{userStats.bestStreak}</p>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">Best Streak</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-600">{userStats.bestStreak}</p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">Best Streak</p>
             </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-400">{accuracy}%</p>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">Accuracy</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-600">{accuracy}%</p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">Accuracy</p>
             </div>
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-400">{userStats.totalQuizzesCompleted}</p>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">Quizzes</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-600">{userStats.totalQuizzesCompleted}</p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">Quizzes</p>
             </div>
           </div>
 
           {/* Detailed Stats */}
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-semibold text-slate-100 mb-3 sm:mb-4">Detailed Statistics</h2>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Detailed Statistics</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Questions Answered</span>
-                  <span className="text-slate-100 font-medium">{userStats.totalQuestionsAnswered}</span>
+                  <span className="text-slate-500">Questions Answered</span>
+                  <span className="text-slate-900 font-medium">{userStats.totalQuestionsAnswered}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Correct Answers</span>
-                  <span className="text-emerald-400 font-medium">{userStats.totalCorrectAnswers}</span>
+                  <span className="text-slate-500">Correct Answers</span>
+                  <span className="text-emerald-600 font-medium">{userStats.totalCorrectAnswers}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Incorrect Answers</span>
-                  <span className="text-rose-400 font-medium">{userStats.totalIncorrectAnswers}</span>
+                  <span className="text-slate-500">Incorrect Answers</span>
+                  <span className="text-rose-600 font-medium">{userStats.totalIncorrectAnswers}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Current Streak</span>
-                  <span className="text-amber-400 font-medium">{userStats.currentStreak}</span>
+                  <span className="text-slate-500">Current Streak</span>
+                  <span className="text-amber-600 font-medium">{userStats.currentStreak}</span>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Best Time</span>
-                  <span className="text-cyan-400 font-medium">
+                  <span className="text-slate-500">Best Time</span>
+                  <span className="text-cyan-600 font-medium">
                     {userStats.allTimeBestTime ? formatTime(userStats.allTimeBestTime) : '-'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Achievements Unlocked</span>
-                  <span className="text-indigo-400 font-medium">{unlockedCount} / {totalAchievements}</span>
+                  <span className="text-slate-500">Achievements Unlocked</span>
+                  <span className="text-indigo-600 font-medium">{unlockedCount} / {totalAchievements}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Achievement Points</span>
-                  <span className="text-indigo-400 font-medium">
+                  <span className="text-slate-500">Achievement Points</span>
+                  <span className="text-indigo-600 font-medium">
                     {userStats.unlockedAchievements.reduce((sum, a) => {
                       const achievement = ACHIEVEMENTS.find(ach => ach.id === a.id);
                       return sum + (achievement?.points || 0);
@@ -295,8 +295,8 @@ export default function AchievementsPage() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Member Since</span>
-                  <span className="text-slate-100 font-medium">
+                  <span className="text-slate-500">Member Since</span>
+                  <span className="text-slate-900 font-medium">
                     {new Date(userStats.createdAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -305,18 +305,18 @@ export default function AchievementsPage() {
           </div>
 
           {/* Progress Bars */}
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-slate-100 mb-4">Progress</h2>
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">Progress</h2>
             <div className="space-y-4">
               {/* Achievement Progress */}
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-400">Achievements</span>
-                  <span className="text-slate-300">{Math.round((unlockedCount / totalAchievements) * 100)}%</span>
+                  <span className="text-slate-500">Achievements</span>
+                  <span className="text-slate-600">{Math.round((unlockedCount / totalAchievements) * 100)}%</span>
                 </div>
-                <div className="w-full bg-slate-700 rounded-full h-2.5">
+                <div className="w-full bg-slate-100 rounded-full h-2.5">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"
                     style={{ width: `${(unlockedCount / totalAchievements) * 100}%` }}
                   />
                 </div>
@@ -325,12 +325,12 @@ export default function AchievementsPage() {
               {/* Accuracy Progress */}
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-400">Accuracy</span>
-                  <span className="text-slate-300">{accuracy}%</span>
+                  <span className="text-slate-500">Accuracy</span>
+                  <span className="text-slate-600">{accuracy}%</span>
                 </div>
-                <div className="w-full bg-slate-700 rounded-full h-2.5">
+                <div className="w-full bg-slate-100 rounded-full h-2.5">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-cyan-600 transition-all duration-500"
                     style={{ width: `${accuracy}%` }}
                   />
                 </div>
@@ -339,14 +339,14 @@ export default function AchievementsPage() {
               {/* Points toward next milestone */}
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-400">Points to Next Milestone</span>
-                  <span className="text-slate-300">
+                  <span className="text-slate-500">Points to Next Milestone</span>
+                  <span className="text-slate-600">
                     {userStats.totalPoints.toLocaleString()} / {getNextMilestone(userStats.totalPoints).toLocaleString()}
                   </span>
                 </div>
-                <div className="w-full bg-slate-700 rounded-full h-2.5">
+                <div className="w-full bg-slate-100 rounded-full h-2.5">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-600 transition-all duration-500"
                     style={{ width: `${(userStats.totalPoints / getNextMilestone(userStats.totalPoints)) * 100}%` }}
                   />
                 </div>
@@ -356,8 +356,8 @@ export default function AchievementsPage() {
 
           {/* Recent Achievements */}
           {userStats.unlockedAchievements.length > 0 && (
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-4">Recent Achievements</h2>
+            <div className="bg-white border border-slate-200 rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Recent Achievements</h2>
               <div className="space-y-3">
                 {userStats.unlockedAchievements
                   .slice()
@@ -371,7 +371,7 @@ export default function AchievementsPage() {
                         key={unlocked.id}
                         onClick={() => setSelectedAchievement(achievement)}
                         aria-label={`${achievement.name}: ${achievement.points} points. Unlocked ${new Date(unlocked.unlockedAt).toLocaleDateString()}`}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-colors text-left min-h-[44px]"
+                        className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors text-left min-h-[44px]"
                       >
                         <AchievementIcon
                           icon={achievement.icon}
@@ -380,12 +380,12 @@ export default function AchievementsPage() {
                           size="sm"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-slate-100 truncate">{achievement.name}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="font-medium text-slate-900 truncate">{achievement.name}</p>
+                          <p className="text-xs text-slate-400">
                             {new Date(unlocked.unlockedAt).toLocaleDateString()}
                           </p>
                         </div>
-                        <span className="text-sm text-indigo-400 font-medium">+{achievement.points}</span>
+                        <span className="text-sm text-indigo-600 font-medium">+{achievement.points}</span>
                       </button>
                     );
                   })}

@@ -155,13 +155,13 @@ export function QuizChatBot({
         }}
         className={`w-12 h-12 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
           isOpen
-            ? "bg-slate-700 hover:bg-slate-600"
-            : "bg-indigo-500 hover:bg-indigo-400"
+            ? "bg-slate-100 hover:bg-slate-200"
+            : "bg-indigo-600 hover:bg-indigo-700"
         }`}
         title={isOpen ? "Close chat" : "Ask AI about this question"}>
         {isOpen ? (
           <svg
-            className="w-6 h-6 text-white"
+            className="w-6 h-6 text-slate-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor">
@@ -197,15 +197,15 @@ export function QuizChatBot({
             right: "1rem",
             zIndex: 9999,
           }}
-          className={`w-96 max-w-[calc(100vw-2rem)] h-[500px] max-h-[calc(100vh-12rem)] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden ${
+          className={`w-96 max-w-[calc(100vw-2rem)] h-[500px] max-h-[calc(100vh-12rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden ${
             isAnimatingOut ? 'animate-chat-out' : 'animate-chat-in'
           }`}>
           {/* Header */}
-          <div className="px-4 py-3 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
+          <div className="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-indigo-400"
+                  className="w-5 h-5 text-indigo-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor">
@@ -218,10 +218,10 @@ export function QuizChatBot({
                 </svg>
               </div>
               <div>
-                <h3 className="font-medium text-slate-100 text-sm">
+                <h3 className="font-medium text-slate-900 text-sm">
                   AI Assistant
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-400">
                   Ask about this question
                 </p>
               </div>
@@ -230,7 +230,7 @@ export function QuizChatBot({
               {currentMessages.length > 0 && (
                 <button
                   onClick={handleClearChat}
-                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-700 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-rose-700 hover:bg-slate-100 rounded-lg transition-colors"
                   title="Clear chat">
                   <svg
                     className="w-5 h-5"
@@ -248,7 +248,7 @@ export function QuizChatBot({
               )}
               <button
                 onClick={() => onToggle(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
                 title="Close chat">
                 <svg
                   className="w-5 h-5"
@@ -270,9 +270,9 @@ export function QuizChatBot({
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {currentMessages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center px-4">
-                <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mb-3">
+                <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
                   <svg
-                    className="w-6 h-6 text-indigo-400"
+                    className="w-6 h-6 text-indigo-600"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -284,10 +284,10 @@ export function QuizChatBot({
                     />
                   </svg>
                 </div>
-                <p className="text-slate-300 font-medium mb-1">
+                <p className="text-slate-600 font-medium mb-1">
                   Need help understanding?
                 </p>
-                <p className="text-slate-500 text-sm">
+                <p className="text-slate-400 text-sm">
                   Ask me anything about this question, the correct answer, or
                   related concepts.
                 </p>
@@ -300,8 +300,8 @@ export function QuizChatBot({
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
                       msg.role === "user"
-                        ? "bg-indigo-500 text-white rounded-br-md"
-                        : "bg-slate-700 text-slate-100 rounded-bl-md"
+                        ? "bg-indigo-600 text-white rounded-br-md"
+                        : "bg-slate-100 text-slate-900 rounded-bl-md"
                     }`}>
                     {msg.role === "user" ? (
                       <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -315,7 +315,7 @@ export function QuizChatBot({
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-slate-700 rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="bg-slate-100 rounded-2xl rounded-bl-md px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
                     <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
@@ -327,7 +327,7 @@ export function QuizChatBot({
 
             {error && (
               <div className="flex justify-center">
-                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg px-3 py-2 text-sm">
+                <div className="bg-rose-50 border border-rose-200 text-rose-600 rounded-lg px-3 py-2 text-sm">
                   {error}
                 </div>
               </div>
@@ -337,7 +337,7 @@ export function QuizChatBot({
           </div>
 
           {/* Input Area */}
-          <div className="p-3 bg-slate-800 border-t border-slate-700">
+          <div className="p-3 bg-white border-t border-slate-200">
             <div className="flex items-end gap-2">
               <textarea
                 ref={inputRef}
@@ -346,7 +346,7 @@ export function QuizChatBot({
                 onKeyDown={handleKeyDown}
                 placeholder="Type your question..."
                 rows={1}
-                className="flex-1 px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-500 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 max-h-24"
+                className="flex-1 px-4 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 max-h-24"
                 style={{
                   height: "auto",
                   minHeight: "42px",
@@ -361,7 +361,7 @@ export function QuizChatBot({
               <button
                 onClick={handleSend}
                 disabled={!inputValue.trim() || isLoading}
-                className="p-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl transition-colors">
+                className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl transition-colors">
                 <svg
                   className="w-5 h-5"
                   fill="none"

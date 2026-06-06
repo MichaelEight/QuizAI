@@ -49,7 +49,7 @@ function parseInline(text: string): ReactNode[] {
       nodes.push(
         <code
           key={nextKey()}
-          className="px-1 py-0.5 rounded bg-slate-700/70 text-slate-100 text-[0.9em] font-mono"
+          className="px-1 py-0.5 rounded bg-slate-100 text-slate-900 text-[0.9em] font-mono"
         >
           {token.slice(1, -1)}
         </code>,
@@ -58,7 +58,7 @@ function parseInline(text: string): ReactNode[] {
       // bold
       const inner = token.slice(2, -2);
       nodes.push(
-        <strong key={nextKey()} className="font-semibold text-slate-100">
+        <strong key={nextKey()} className="font-semibold text-slate-900">
           {parseInline(inner)}
         </strong>,
       );
@@ -76,7 +76,7 @@ function parseInline(text: string): ReactNode[] {
             href={linkMatch[2]}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-400 hover:text-indigo-300 underline"
+            className="text-indigo-600 hover:text-indigo-600 underline"
           >
             {parseInline(linkMatch[1])}
           </a>,
@@ -148,7 +148,7 @@ function parseBlocks(content: string): ReactNode[] {
     const heading = HEADING_RE.exec(line);
     if (heading) {
       blocks.push(
-        <p key={nextKey()} className="font-semibold text-slate-100">
+        <p key={nextKey()} className="font-semibold text-slate-900">
           {parseInline(heading[2])}
         </p>,
       );

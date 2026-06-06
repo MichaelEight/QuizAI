@@ -199,7 +199,7 @@ export function ImportExportModal({
       {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 transition-colors duration-200"
+          className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 transition-colors duration-200"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -208,31 +208,31 @@ export function ImportExportModal({
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-            <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-100">Import / Export</h2>
-            <p className="text-sm text-slate-400">Manage your quiz questions</p>
+            <h2 className="text-xl font-bold text-slate-900">Import / Export</h2>
+            <p className="text-sm text-slate-500">Manage your quiz questions</p>
           </div>
         </div>
 
         {/* Import Section */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-slate-300 mb-3 uppercase tracking-wide">Import</h3>
+          <h3 className="text-sm font-medium text-slate-600 mb-3 uppercase tracking-wide">Import</h3>
           <div className="space-y-2">
             {/* Legacy Import */}
-            <label className="flex items-center gap-3 p-3 bg-slate-700/30 hover:bg-slate-700/50 rounded-lg cursor-pointer transition-colors duration-200">
-              <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors duration-200">
+              <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-slate-200 font-medium">Import Legacy (.txt)</p>
-                <p className="text-xs text-slate-400">Select multiple .txt files from baza folder</p>
+                <p className="text-slate-800 font-medium">Import Legacy (.txt)</p>
+                <p className="text-xs text-slate-500">Select multiple .txt files from baza folder</p>
               </div>
               <input
                 ref={legacyInputRef}
@@ -245,15 +245,15 @@ export function ImportExportModal({
             </label>
 
             {/* JSON Import */}
-            <label className="flex items-center gap-3 p-3 bg-slate-700/30 hover:bg-slate-700/50 rounded-lg cursor-pointer transition-colors duration-200">
-              <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors duration-200">
+              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-slate-200 font-medium">Import JSON</p>
-                <p className="text-xs text-slate-400">QuizAI native format</p>
+                <p className="text-slate-800 font-medium">Import JSON</p>
+                <p className="text-xs text-slate-500">QuizAI native format</p>
               </div>
               <input
                 ref={jsonInputRef}
@@ -268,22 +268,22 @@ export function ImportExportModal({
 
         {/* Export Section */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-slate-300 mb-3 uppercase tracking-wide">Export</h3>
+          <h3 className="text-sm font-medium text-slate-600 mb-3 uppercase tracking-wide">Export</h3>
           <div className="space-y-2">
             {/* Legacy Export */}
             <button
               onClick={handleLegacyExport}
               disabled={tasks.length === 0 || status.type === 'loading'}
-              className="flex items-center gap-3 p-3 w-full bg-slate-700/30 hover:bg-slate-700/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors duration-200 text-left"
+              className="flex items-center gap-3 p-3 w-full bg-slate-50 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors duration-200 text-left"
             >
-              <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-slate-200 font-medium">Export Legacy (.zip)</p>
-                <p className="text-xs text-slate-400">Numbered .txt files in ZIP archive</p>
+                <p className="text-slate-800 font-medium">Export Legacy (.zip)</p>
+                <p className="text-xs text-slate-500">Numbered .txt files in ZIP archive</p>
               </div>
             </button>
 
@@ -291,16 +291,16 @@ export function ImportExportModal({
             <button
               onClick={handleJsonExport}
               disabled={tasks.length === 0 || status.type === 'loading'}
-              className="flex items-center gap-3 p-3 w-full bg-slate-700/30 hover:bg-slate-700/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors duration-200 text-left"
+              className="flex items-center gap-3 p-3 w-full bg-slate-50 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors duration-200 text-left"
             >
-              <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-slate-200 font-medium">Export JSON</p>
-                <p className="text-xs text-slate-400">Full data with all metadata</p>
+                <p className="text-slate-800 font-medium">Export JSON</p>
+                <p className="text-xs text-slate-500">Full data with all metadata</p>
               </div>
             </button>
           </div>
@@ -311,11 +311,11 @@ export function ImportExportModal({
           <div
             className={`p-3 rounded-lg text-sm ${
               status.type === 'loading'
-                ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-400'
+                ? 'bg-indigo-50 border border-indigo-200 text-indigo-600'
                 : status.type === 'success'
-                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                ? 'bg-emerald-50 border border-emerald-200 text-emerald-600'
                 : status.type === 'error'
-                ? 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+                ? 'bg-rose-50 border border-rose-200 text-rose-600'
                 : ''
             }`}
           >
@@ -332,7 +332,7 @@ export function ImportExportModal({
         )}
 
         {/* Question count */}
-        <div className="mt-4 text-center text-xs text-slate-500">
+        <div className="mt-4 text-center text-xs text-slate-400">
           {tasks.length} questions currently loaded
         </div>
     </BaseModal>

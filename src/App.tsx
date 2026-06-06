@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, NavLink, useLocation } from "react-router";
+import { Routes, Route, NavLink, Link, useLocation } from "react-router";
 import SourceTextPage from "./SourceTextPage";
 import SettingsPage from "./SettingsPage";
 import QuizPage from "./QuizPage";
@@ -81,6 +81,123 @@ function saveToStorage<T>(key: string, value: T): void {
   }
 }
 
+/* ----------------------------- Navigation icons ---------------------------- */
+
+type IconProps = { className?: string };
+
+const HomeIcon = ({ className }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 11.5 12 4l9 7.5M5.5 10v9a1 1 0 0 0 1 1H10v-5h4v5h3.5a1 1 0 0 0 1-1v-9" />
+  </svg>
+);
+
+const CreateIcon = ({ className }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M3 12h3m12 0h3M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1" />
+    <circle cx="12" cy="12" r="3.2" strokeWidth={1.8} />
+  </svg>
+);
+
+const QuizIcon = ({ className }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <rect x="4" y="3.5" width="16" height="17" rx="2.5" strokeWidth={1.8} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.5 9.2a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1.1.9-1.1 1.7v.4" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.8 16.6h.01" />
+  </svg>
+);
+
+const LibraryIcon = ({ className }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 4.5h3.5v15H5a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1Zm3.5 0H12v15H8.5z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="m13.4 5.2 3.3-.6 2.4 13.4-3.3.6z" />
+  </svg>
+);
+
+const TrophyIcon = ({ className }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 4.5h10V9a5 5 0 0 1-10 0V4.5Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 6H4.5a2.5 2.5 0 0 0 2.5 2.5M17 6h2.5A2.5 2.5 0 0 1 17 8.5M12 14v3m-3 3h6m-5 0a3 3 0 0 1 4 0" />
+  </svg>
+);
+
+const UsageIcon = ({ className }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 20h16M7 20v-6m5 6V8m5 12v-9" />
+  </svg>
+);
+
+const SettingsIcon = ({ className }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <circle cx="12" cy="12" r="3" strokeWidth={1.8} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.2A1.6 1.6 0 0 0 7 19.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H3a2 2 0 1 1 0-4h.2A1.6 1.6 0 0 0 4.7 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9.3A1.6 1.6 0 0 0 10 3.2V3a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.4 1Z" />
+  </svg>
+);
+
+const PlusIcon = ({ className }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+type NavItem = { to: string; label: string; icon: (p: IconProps) => React.ReactElement; end?: boolean };
+
+const STUDY_NAV: NavItem[] = [
+  { to: "/", label: "Dashboard", icon: HomeIcon, end: true },
+  { to: "sourcePage", label: "Create", icon: CreateIcon },
+  { to: "quizPage", label: "Quiz", icon: QuizIcon },
+  { to: "library", label: "Library", icon: LibraryIcon },
+];
+
+const PROGRESS_NAV: NavItem[] = [
+  { to: "achievements", label: "Achievements", icon: TrophyIcon },
+  { to: "usage", label: "Usage", icon: UsageIcon },
+];
+
+const TAB_NAV: NavItem[] = STUDY_NAV;
+
+/* ------------------------------- Brand mark -------------------------------- */
+
+function BrandMark() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-sm shadow-indigo-600/30">
+        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-5 w-5 brightness-0 invert" />
+      </div>
+      <div className="leading-none">
+        <span className="block text-[15px] font-bold tracking-tight text-slate-900">QuizAI</span>
+        <span className="block text-[11px] font-medium text-slate-400">Study smarter</span>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Sidebar link ------------------------------- */
+
+function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+  const Icon = item.icon;
+  return (
+    <NavLink
+      to={item.to}
+      end={item.end}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        `group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+          isActive
+            ? "bg-indigo-50 text-indigo-700"
+            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <Icon className={`h-5 w-5 shrink-0 ${isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"}`} />
+          {item.label}
+        </>
+      )}
+    </NavLink>
+  );
+}
+
 function AppContent() {
   const [sourceText, setSourceText] = useState(() =>
     loadFromStorage(STORAGE_KEYS.SOURCE_TEXT, "")
@@ -94,7 +211,7 @@ function AppContent() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(() =>
     loadFromStorage(STORAGE_KEYS.UPLOADED_FILES, [])
   );
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // Persist settings to localStorage
   useEffect(() => {
@@ -123,17 +240,15 @@ function AppContent() {
   // Enable fast tooltips (500ms delay instead of browser default 2-3s)
   useFastTooltips();
 
-  // Close mobile menu on navigation
+  // Close mobile "More" sheet on navigation
   useEffect(() => {
-    setMobileMenuOpen(false);
+    setMoreOpen(false);
   }, [location.pathname]);
 
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
-      isActive
-        ? "bg-indigo-500/20 text-indigo-400"
-        : "text-slate-400 hover:text-slate-100 hover:bg-slate-700/50"
-    }`;
+  const openImportExport = () => {
+    setMoreOpen(false);
+    setShowImportExportModal(true);
+  };
 
   return (
     <>
@@ -150,176 +265,157 @@ function AppContent() {
         sourceText={sourceText}
       />
       <SaveQuizModal />
-      <div className="min-h-screen bg-slate-900">
-        {/* Navigation */}
-        <nav className="sticky top-0 z-40 bg-slate-800/80 backdrop-blur-md border-b border-slate-700">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-between h-14 sm:h-16">
-              {/* Logo */}
-              <div className="flex items-center gap-2">
-                <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="QuizAI" className="w-8 h-8" />
-                <span className="text-slate-100 font-semibold text-lg">QuizAI</span>
+
+      <div className="min-h-screen bg-slate-50 text-slate-900">
+        {/* ============================ Desktop sidebar =========================== */}
+        <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r border-slate-200 bg-white">
+          <div className="flex h-16 items-center px-5">
+            <Link to="/" aria-label="QuizAI home">
+              <BrandMark />
+            </Link>
+          </div>
+
+          <div className="px-3">
+            <Link
+              to="sourcePage"
+              className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-600/30 transition-all hover:bg-indigo-700 active:scale-[0.98]"
+            >
+              <PlusIcon className="h-4.5 w-4.5" />
+              New Quiz
+            </Link>
+          </div>
+
+          <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-6">
+            <div className="space-y-1">
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Study</p>
+              {STUDY_NAV.map((item) => (
+                <SidebarLink key={item.to} item={item} />
+              ))}
+            </div>
+            <div className="space-y-1">
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Progress</p>
+              {PROGRESS_NAV.map((item) => (
+                <SidebarLink key={item.to} item={item} />
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-3 border-t border-slate-200 px-3 py-4">
+            <SidebarLink item={{ to: "settingsPage", label: "Settings", icon: SettingsIcon }} />
+            <div className="flex flex-col gap-2 px-1">
+              <ApiKeyButton />
+              <ImportExportButton onClick={() => setShowImportExportModal(true)} />
+            </div>
+            <p className="px-3 text-[11px] text-slate-400">v{version}</p>
+          </div>
+        </aside>
+
+        {/* ============================ Mobile top bar =========================== */}
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white/85 px-4 backdrop-blur-md lg:hidden">
+          <Link to="/" aria-label="QuizAI home">
+            <BrandMark />
+          </Link>
+          <ApiKeyButton />
+        </header>
+
+        {/* ============================== Main content =========================== */}
+        <div className="lg:pl-64">
+          <main className="mx-auto w-full max-w-5xl px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-10">
+            <Routes>
+              <Route
+                path="/"
+                element={<Homepage setTasks={setTasks} setSourceText={setSourceText} />}
+              />
+              <Route
+                path="settingsPage"
+                element={
+                  <SettingsPage settings={settings} setSettings={setSettings} />
+                }
+              />
+              <Route
+                path="sourcePage"
+                element={
+                  <SourceTextPage
+                    sourceText={sourceText}
+                    setSourceText={setSourceText}
+                    setTasks={setTasks}
+                    settings={settings}
+                    uploadedFiles={uploadedFiles}
+                    setUploadedFiles={setUploadedFiles}
+                  />
+                }
+              />
+              <Route
+                path="quizPage"
+                element={<QuizPage sourceText={sourceText} uploadedFiles={uploadedFiles} tasks={tasks} setTasks={setTasks} settings={settings} />}
+              />
+              <Route
+                path="library"
+                element={<LibraryPage setTasks={setTasks} setSourceText={setSourceText} />}
+              />
+              <Route path="achievements" element={<AchievementsPage />} />
+              <Route path="usage" element={<UsagePage />} />
+            </Routes>
+          </main>
+        </div>
+
+        {/* ============================ Mobile bottom tabs ======================= */}
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-200 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
+          {TAB_NAV.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  `flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors ${
+                    isActive ? "text-indigo-600" : "text-slate-400"
+                  }`
+                }
+              >
+                <Icon className="h-6 w-6" />
+                {item.label}
+              </NavLink>
+            );
+          })}
+          <button
+            onClick={() => setMoreOpen(true)}
+            className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors ${
+              moreOpen ? "text-indigo-600" : "text-slate-400"
+            }`}
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01" />
+            </svg>
+            More
+          </button>
+        </nav>
+
+        {/* ============================ Mobile "More" sheet ===================== */}
+        {moreOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
+            <div
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={() => setMoreOpen(false)}
+            />
+            <div className="absolute inset-x-0 bottom-0 animate-fade-in rounded-t-2xl border-t border-slate-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-2xl shadow-slate-900/10">
+              <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-200" />
+              <div className="space-y-1">
+                {PROGRESS_NAV.map((item) => (
+                  <SidebarLink key={item.to} item={item} onNavigate={() => setMoreOpen(false)} />
+                ))}
+                <SidebarLink
+                  item={{ to: "settingsPage", label: "Settings", icon: SettingsIcon }}
+                  onNavigate={() => setMoreOpen(false)}
+                />
               </div>
-
-              {/* Desktop Nav Links */}
-              <div className="hidden lg:flex items-center gap-0.5">
-                <NavLink to="/" end className={navLinkClass}>
-                  Home
-                </NavLink>
-                <NavLink to="settingsPage" end className={navLinkClass}>
-                  Settings
-                </NavLink>
-                <NavLink to="sourcePage" end className={navLinkClass}>
-                  Input Text
-                </NavLink>
-                <NavLink to="quizPage" end className={navLinkClass}>
-                  Quiz
-                </NavLink>
-                <NavLink to="library" end className={navLinkClass}>
-                  <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    Library
-                  </span>
-                </NavLink>
-                <NavLink to="achievements" end className={navLinkClass}>
-                  <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
-                    </svg>
-                    Achievements
-                  </span>
-                </NavLink>
-                <NavLink to="usage" end className={navLinkClass}>
-                  <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    Usage
-                  </span>
-                </NavLink>
-              </div>
-
-              {/* Right side: Desktop toolbar + Mobile hamburger */}
-              <div className="flex items-center gap-2">
-                {/* Desktop toolbar buttons */}
-                <div className="hidden sm:flex items-center gap-2">
-                  <ImportExportButton onClick={() => setShowImportExportModal(true)} />
-                  <ApiKeyButton />
-                </div>
-
-                {/* Mobile hamburger button */}
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="lg:hidden p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-700/50 rounded-lg transition-colors"
-                  aria-label="Toggle menu"
-                >
-                  {mobileMenuOpen ? (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  ) : (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                  )}
-                </button>
+              <div className="mt-4 flex flex-col gap-2 border-t border-slate-200 pt-4">
+                <ImportExportButton onClick={openImportExport} />
               </div>
             </div>
           </div>
-
-          {/* Mobile menu drawer */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden border-t border-slate-700 bg-slate-800/95 backdrop-blur-md animate-fade-in">
-              <div className="px-4 py-3 space-y-1">
-                <NavLink to="/" end className={({ isActive }) => `block px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? "bg-indigo-500/20 text-indigo-400" : "text-slate-300 hover:bg-slate-700/50"}`}>
-                  Home
-                </NavLink>
-                <NavLink to="settingsPage" end className={({ isActive }) => `block px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? "bg-indigo-500/20 text-indigo-400" : "text-slate-300 hover:bg-slate-700/50"}`}>
-                  Settings
-                </NavLink>
-                <NavLink to="sourcePage" end className={({ isActive }) => `block px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? "bg-indigo-500/20 text-indigo-400" : "text-slate-300 hover:bg-slate-700/50"}`}>
-                  Input Text
-                </NavLink>
-                <NavLink to="quizPage" end className={({ isActive }) => `block px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? "bg-indigo-500/20 text-indigo-400" : "text-slate-300 hover:bg-slate-700/50"}`}>
-                  Quiz
-                </NavLink>
-                <NavLink to="library" end className={({ isActive }) => `block px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? "bg-indigo-500/20 text-indigo-400" : "text-slate-300 hover:bg-slate-700/50"}`}>
-                  <span className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    Library
-                  </span>
-                </NavLink>
-                <NavLink to="achievements" end className={({ isActive }) => `block px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? "bg-indigo-500/20 text-indigo-400" : "text-slate-300 hover:bg-slate-700/50"}`}>
-                  <span className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
-                    </svg>
-                    Achievements
-                  </span>
-                </NavLink>
-                <NavLink to="usage" end className={({ isActive }) => `block px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? "bg-indigo-500/20 text-indigo-400" : "text-slate-300 hover:bg-slate-700/50"}`}>
-                  <span className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    Usage
-                  </span>
-                </NavLink>
-
-                {/* Mobile toolbar buttons */}
-                <div className="flex items-center gap-2 pt-3 mt-3 border-t border-slate-700">
-                  <ImportExportButton onClick={() => setShowImportExportModal(true)} />
-                  <ApiKeyButton />
-                </div>
-              </div>
-            </div>
-          )}
-        </nav>
-
-        {/* Main Content */}
-        <main className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-          <Routes>
-            <Route path="/" element={<Homepage />} />
-            <Route
-              path="settingsPage"
-              element={
-                <SettingsPage settings={settings} setSettings={setSettings} />
-              }
-            />
-            <Route
-              path="sourcePage"
-              element={
-                <SourceTextPage
-                  sourceText={sourceText}
-                  setSourceText={setSourceText}
-                  setTasks={setTasks}
-                  settings={settings}
-                  uploadedFiles={uploadedFiles}
-                  setUploadedFiles={setUploadedFiles}
-                />
-              }
-            />
-            <Route
-              path="quizPage"
-              element={<QuizPage sourceText={sourceText} uploadedFiles={uploadedFiles} tasks={tasks} setTasks={setTasks} settings={settings} />}
-            />
-            <Route
-              path="library"
-              element={<LibraryPage setTasks={setTasks} setSourceText={setSourceText} />}
-            />
-            <Route path="achievements" element={<AchievementsPage />} />
-            <Route path="usage" element={<UsagePage />} />
-          </Routes>
-        </main>
-
-        {/* Version */}
-        <div className="fixed bottom-3 right-4 text-xs text-slate-600">
-          v{version}
-        </div>
+        )}
       </div>
     </>
   );

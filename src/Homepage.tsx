@@ -1,174 +1,273 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useGamification } from "./context/GamificationContext";
+import { useQuizLibrary } from "./context/QuizLibraryContext";
+import { SavedQuiz } from "./types/quizLibrary";
+import { Task } from "./QuestionsTypes";
 
-export default function Homepage() {
+interface HomepageProps {
+  setTasks: (tasks: Task[]) => void;
+  setSourceText: (text: string) => void;
+}
+
+export default function Homepage({ setTasks, setSourceText }: HomepageProps) {
+  const navigate = useNavigate();
+  const { userStats } = useGamification();
+  const { quizzes } = useQuizLibrary();
+
+  const hasActivity =
+    userStats.totalQuestionsAnswered > 0 || userStats.totalPoints > 0;
+  const accuracy =
+    userStats.totalQuestionsAnswered > 0
+      ? Math.round(
+          (userStats.totalCorrectAnswers / userStats.totalQuestionsAnswered) * 100
+        )
+      : 0;
+
+  const recent = [...quizzes].sort((a, b) => b.updatedAt - a.updatedAt);
+  const lastQuiz = recent[0];
+
+  const loadQuiz = (quiz: SavedQuiz) => {
+    setTasks(quiz.tasks);
+    setSourceText(quiz.sourceText);
+    navigate("/quizPage", {
+      state: { loadedQuizId: quiz.id, loadedQuizVersion: quiz.version || 1 },
+    });
+  };
+
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+  })();
+
   return (
-    <div className="animate-fade-in">
-      {/* Hero Section */}
-      <div className="text-center py-8 sm:py-12 md:py-16">
-        <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6">
-          <span className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" />
-          <span className="text-indigo-400 text-xs sm:text-sm font-medium">Powered by AI</span>
+    <div className="animate-fade-in space-y-8">
+      {/* Greeting */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-indigo-600">{greeting} 👋</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            {hasActivity ? "Ready for another round?" : "Let's build your first quiz"}
+          </h1>
+          <p className="mt-1.5 max-w-xl text-sm text-slate-500">
+            Turn any notes, PDF, or text into an interactive quiz — then learn it
+            through smart spaced repetition.
+          </p>
         </div>
+      </header>
 
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-100 mb-3 sm:mb-4">
-          Generate Quizzes
-          <span className="text-indigo-400"> Instantly</span>
-        </h1>
+      {/* Stats */}
+      {hasActivity && (
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <StatCard
+            label="Points"
+            value={userStats.totalPoints.toLocaleString()}
+            tone="indigo"
+            icon={
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.9z" />
+            }
+          />
+          <StatCard
+            label="Current streak"
+            value={`${userStats.currentStreak}`}
+            tone="amber"
+            icon={
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3c.5 3-1.5 4.5-3 6.5S7 14 9 15c.4-1 1.2-1.8 2-2.5.3 2 1.7 2.8 2.4 4.3.8 1.7-.2 4.2-2.4 4.2C7.6 21 5 18.4 5 14.8 5 10 9.5 8.5 12 3Z" />
+            }
+          />
+          <StatCard
+            label="Quizzes done"
+            value={`${userStats.totalQuizzesCompleted}`}
+            tone="emerald"
+            icon={
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="m5 13 4 4 10-11" />
+            }
+          />
+          <StatCard
+            label="Accuracy"
+            value={`${accuracy}%`}
+            tone="violet"
+            icon={
+              <>
+                <circle cx="12" cy="12" r="8.5" strokeWidth={1.8} />
+                <circle cx="12" cy="12" r="3.5" strokeWidth={1.8} />
+              </>
+            }
+          />
+        </section>
+      )}
 
-        <p className="text-base sm:text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-          Transform any text into interactive quizzes with AI. Perfect for studying,
-          teaching, or testing your knowledge.
-        </p>
+      {/* Primary actions */}
+      <section className="grid gap-4 md:grid-cols-2">
+        {/* Generate */}
+        <Link
+          to="/sourcePage"
+          className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 p-6 text-white shadow-lg shadow-indigo-600/20 transition-transform hover:-translate-y-0.5"
+        >
+          <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/10 transition-transform group-hover:scale-125" />
+          <div className="relative">
+            <div className="grid h-11 w-11 place-items-center rounded-xl bg-white/15">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 12h14M12 5v14" />
+              </svg>
+            </div>
+            <h2 className="mt-4 text-lg font-bold">Generate a quiz</h2>
+            <p className="mt-1 text-sm text-indigo-100">
+              Paste text or upload files and let AI write the questions.
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold">
+              Start creating
+              <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-6-6 6 6-6 6" />
+              </svg>
+            </span>
+          </div>
+        </Link>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 sm:px-0">
-          <Link
-            to="/sourcePage"
-            className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white font-semibold rounded-lg px-6 sm:px-8 py-3 sm:py-4 transition-all duration-200 active:scale-[0.98] shadow-lg shadow-indigo-500/25"
+        {/* Continue / Library */}
+        {lastQuiz ? (
+          <button
+            onClick={() => loadQuiz(lastQuiz)}
+            className="group rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm shadow-slate-900/5 transition-transform hover:-translate-y-0.5 hover:border-indigo-200"
           >
-            Get Started
-          </Link>
+            <div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 6.5v11l9-5.5z" />
+              </svg>
+            </div>
+            <h2 className="mt-4 text-lg font-bold text-slate-900">Continue studying</h2>
+            <p className="mt-1 line-clamp-1 text-sm text-slate-500">
+              {lastQuiz.title} · {lastQuiz.tasks.length} questions
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600">
+              Resume quiz
+              <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-6-6 6 6-6 6" />
+              </svg>
+            </span>
+          </button>
+        ) : (
           <Link
-            to="/settingsPage"
-            className="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold rounded-lg px-6 sm:px-8 py-3 sm:py-4 transition-all duration-200 active:scale-[0.98]"
+            to="/library"
+            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-900/5 transition-transform hover:-translate-y-0.5 hover:border-indigo-200"
           >
-            Settings
+            <div className="grid h-11 w-11 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 5h6v14H5zM13 5h6v14h-6z" />
+              </svg>
+            </div>
+            <h2 className="mt-4 text-lg font-bold text-slate-900">Your library</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Save quizzes, organize by subject, and revisit them anytime.
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600">
+              Browse library
+              <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-6-6 6 6-6 6" />
+              </svg>
+            </span>
           </Link>
-        </div>
-      </div>
+        )}
+      </section>
 
-      {/* Feature Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
-        <FeatureCard
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          }
-          title="AI-Powered"
-          description="Advanced AI generates relevant questions directly from your text content."
-          delay="stagger-1"
-        />
+      {/* Recent quizzes */}
+      {recent.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-slate-900">Recent quizzes</h2>
+            <Link to="/library" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+              View all
+            </Link>
+          </div>
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            {recent.slice(0, 5).map((quiz) => (
+              <button
+                key={quiz.id}
+                onClick={() => loadQuiz(quiz)}
+                className="group flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-slate-50"
+              >
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-sm font-bold text-indigo-600">
+                  {quiz.title.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-900">{quiz.title}</p>
+                  <p className="truncate text-xs text-slate-500">
+                    {quiz.subjectName ? `${quiz.subjectName} · ` : ""}
+                    {quiz.tasks.length} questions
+                  </p>
+                </div>
+                <span className="hidden shrink-0 items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-600 transition-colors group-hover:bg-emerald-100 sm:inline-flex">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 6.5v11l9-5.5z" />
+                  </svg>
+                  Start
+                </span>
+                <svg className="h-5 w-5 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 6 6 6-6 6" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
-        <FeatureCard
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-          }
-          title="Hints & Explanations"
-          description="Get AI-generated hints when stuck and detailed explanations with source quotes after answering."
-          delay="stagger-2"
-        />
-
-        <FeatureCard
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-          title="Spaced Repetition"
-          description="Failed questions return to the pool for review. Master every concept through smart repetition."
-          delay="stagger-3"
-        />
-      </div>
-
-      {/* Second row of features */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mt-4 sm:mt-6">
-        <FeatureCard
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-          }
-          title="Multiple Types"
-          description="Create both multiple-choice and open-ended questions for comprehensive testing."
-          delay="stagger-1"
-        />
-
-        <FeatureCard
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          }
-          title="Conceptual Learning"
-          description="Questions test understanding of concepts, not just text recall. Toggle between conceptual and text-based styles."
-          delay="stagger-2"
-        />
-
-        <FeatureCard
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-            </svg>
-          }
-          title="Import & Export"
-          description="Save your quizzes and progress. Import questions from JSON or export to share with others."
-          delay="stagger-3"
-        />
-      </div>
-
-      {/* How it works */}
-      <div className="mt-12 sm:mt-16 md:mt-20">
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-100 text-center mb-8 sm:mb-12">
-          How It Works
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-          <StepCard
-            number="1"
-            title="Paste Your Text"
-            description="Enter or paste any text you want to create a quiz from."
-          />
-          <StepCard
-            number="2"
-            title="Generate Questions"
-            description="AI analyzes your text and creates relevant questions."
-          />
-          <StepCard
-            number="3"
-            title="Take the Quiz"
-            description="Answer questions and get instant feedback on your performance."
-          />
-        </div>
-      </div>
+      {/* First-run guide */}
+      {!hasActivity && recent.length === 0 && (
+        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="text-base font-semibold text-slate-900">How it works</h2>
+          <div className="mt-5 grid gap-6 sm:grid-cols-3">
+            <Step n="1" title="Add your source" desc="Paste text or drop in a PDF, slides, or notes." />
+            <Step n="2" title="Generate questions" desc="AI writes multiple-choice and open questions." />
+            <Step n="3" title="Study & master" desc="Answer, get hints, and repeat what you miss." />
+          </div>
+        </section>
+      )}
     </div>
   );
 }
 
-interface FeatureCardProps {
+const TONES = {
+  indigo: "bg-indigo-50 text-indigo-600",
+  amber: "bg-amber-50 text-amber-600",
+  emerald: "bg-emerald-50 text-emerald-600",
+  violet: "bg-violet-50 text-violet-600",
+} as const;
+
+function StatCard({
+  label,
+  value,
+  tone,
+  icon,
+}: {
+  label: string;
+  value: string;
+  tone: keyof typeof TONES;
   icon: React.ReactNode;
-  title: string;
-  description: string;
-  delay?: string;
-}
-
-function FeatureCard({ icon, title, description, delay }: FeatureCardProps) {
+}) {
   return (
-    <div className={`bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/5 hover:border-slate-600 animate-fade-in opacity-0 ${delay}`}>
-      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-400 mb-3 sm:mb-4">
-        {icon}
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
+      <div className={`grid h-9 w-9 place-items-center rounded-lg ${TONES[tone]}`}>
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          {icon}
+        </svg>
       </div>
-      <h3 className="text-base sm:text-lg font-semibold text-slate-100 mb-1.5 sm:mb-2">{title}</h3>
-      <p className="text-sm sm:text-base text-slate-400">{description}</p>
+      <p className="mt-3 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
+      <p className="text-xs font-medium text-slate-500">{label}</p>
     </div>
   );
 }
 
-interface StepCardProps {
-  number: string;
-  title: string;
-  description: string;
-}
-
-function StepCard({ number, title, description }: StepCardProps) {
+function Step({ n, title, desc }: { n: string; title: string; desc: string }) {
   return (
-    <div className="text-center">
-      <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
-        {number}
+    <div className="flex gap-3">
+      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+        {n}
       </div>
-      <h3 className="text-lg font-semibold text-slate-100 mb-2">{title}</h3>
-      <p className="text-slate-400">{description}</p>
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+        <p className="mt-0.5 text-sm text-slate-500">{desc}</p>
+      </div>
     </div>
   );
 }

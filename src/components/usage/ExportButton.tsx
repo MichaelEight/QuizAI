@@ -61,7 +61,7 @@ export function ExportButton({ logs }: ExportButtonProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={logs.length === 0}
-        className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
+        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
       >
         <svg
           className="w-4 h-4"
@@ -80,11 +80,11 @@ export function ExportButton({ logs }: ExportButtonProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-50">
           <div className="py-1">
             <button
               onClick={() => handleExport("csv")}
-              className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3"
+              className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-3"
             >
               <svg
                 className="w-4 h-4"
@@ -103,7 +103,7 @@ export function ExportButton({ logs }: ExportButtonProps) {
             </button>
             <button
               onClick={() => handleExport("json")}
-              className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3"
+              className="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-3"
             >
               <svg
                 className="w-4 h-4"

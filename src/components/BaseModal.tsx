@@ -31,12 +31,12 @@ export function BaseModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className={`relative bg-slate-800 border border-slate-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 ${maxWidth} w-full mx-2 sm:mx-4 shadow-2xl shadow-black/50 animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto`}>
+      <div className={`relative bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 ${maxWidth} w-full mx-2 sm:mx-4 shadow-2xl shadow-slate-900/10 animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto`}>
         {children}
       </div>
     </div>
