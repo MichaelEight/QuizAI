@@ -142,12 +142,12 @@ const PlusIcon = ({ className }: IconProps) => (
 
 type NavItem = { to: string; label: string; icon: (p: IconProps) => React.ReactElement; end?: boolean };
 
-// Desktop sidebar order — Settings sits where it belongs in the create flow:
-// Create (add source) → Settings (tune generation) → Quiz.
+// Desktop sidebar order — Settings (tune generation) comes before Create
+// (add source), reflecting the create flow.
 const STUDY_NAV: NavItem[] = [
   { to: "/", label: "Dashboard", icon: HomeIcon, end: true },
-  { to: "sourcePage", label: "Create", icon: CreateIcon },
   { to: "settingsPage", label: "Settings", icon: SettingsIcon },
+  { to: "sourcePage", label: "Create", icon: CreateIcon },
   { to: "quizPage", label: "Quiz", icon: QuizIcon },
   { to: "library", label: "Library", icon: LibraryIcon },
 ];
