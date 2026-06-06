@@ -114,6 +114,7 @@ export async function generateHint(
   text: string,
   question: string,
   questionStyle: QuestionStyle = "conceptual",
+  correctAnswers: string[] = [],
   quizId?: string | null,
   quizTitle?: string | null,
 ): Promise<string> {
@@ -124,7 +125,7 @@ export async function generateHint(
   }
 
   try {
-    return await generateHintService(text, question, questionStyle, quizId, quizTitle);
+    return await generateHintService(text, question, questionStyle, correctAnswers, quizId, quizTitle);
   } catch (error) {
     console.error("Error in generateHint:", error);
     return "";

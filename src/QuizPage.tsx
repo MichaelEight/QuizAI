@@ -1016,10 +1016,15 @@ export default function QuizPage({
     }
 
     setIsLoadingHint(true);
+    const hintCorrectAnswers =
+      currentTask.answers
+        ?.filter((a) => a.isCorrect)
+        .map((a) => a.value) ?? [];
     const generatedHint = await generateHint(
       combinedText,
       currentTask.question.value,
       settings.questionStyle,
+      hintCorrectAnswers,
       loadedQuizId,
       loadedQuizTitle,
     );

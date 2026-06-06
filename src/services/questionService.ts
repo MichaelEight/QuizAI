@@ -642,6 +642,7 @@ export async function generateHint(
   text: string,
   question: string,
   questionStyle: QuestionStyle = "conceptual",
+  correctAnswers: string[] = [],
   quizId?: string | null,
   quizTitle?: string | null,
 ): Promise<string> {
@@ -651,6 +652,7 @@ export async function generateHint(
   const devPrompt = getDevPrompt(PromptTypes.GENERATE_HINT, {
     text,
     question,
+    correctAnswers,
   });
   const userPrompt = getUserPrompt(PromptTypes.GENERATE_HINT);
 

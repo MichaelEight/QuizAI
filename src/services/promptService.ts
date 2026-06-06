@@ -50,6 +50,7 @@ interface GenerateHintArgs {
   text?: string;
   question?: string;
   questionStyle?: QuestionStyle;
+  correctAnswers?: string[];
 }
 
 interface GenerateExplanationArgs {
@@ -93,6 +94,13 @@ CRITICAL RULES:
   * "type": "achieved", "missed", or "incorrect"
   * "reason": brief explanation in the SAME LANGUAGE as the question
   * "templateIndex": index from template (omit for "incorrect" items)
+
+JUDGMENT RULES (grade by meaning, fairly):
+- Judge by MEANING, not wording. Accept synonyms, paraphrases, examples, and the student's own words. The student does NOT need to use the same terms as the template.
+- Mark an item "achieved" if the student conveys its CORE idea, even if phrased differently, briefly, or imperfectly. Mark "missed" only when the idea is genuinely absent.
+- Add an "incorrect" item ONLY for statements that are factually WRONG. Never penalize for omissions, brevity, or imperfect phrasing — those are just "missed", not "incorrect".
+- Do NOT award an item for vague filler that does not actually address it.
+- If the answer is empty, off-topic, or gibberish, mark every template item "missed" (score 0) and add no "incorrect" items.
 
 SCORING MATH:
 - User's score = sum of "achieved" points + sum of "incorrect" penalties (capped at -50)
@@ -163,6 +171,11 @@ POINT DISTRIBUTION GUIDELINES:
 - Minor detail or example: 5-15 points
 - Aim for 3-6 template items total
 - Points must sum to exactly 100
+
+RUBRIC QUALITY:
+- Each item must be a DISTINCT, substantive idea a knowledgeable answer would include — not overlapping restatements of the same point.
+- Reward understanding of the concept, not memorization of exact wording. Do not create items about trivia, the document's structure, or which words appeared.
+- Describe each item by its MEANING so it can be credited even when the student paraphrases.
 
 LANGUAGE: ALL "description" fields MUST be in the SAME LANGUAGE as the question.
 
@@ -306,25 +319,42 @@ Make sure your answer addresses each point in the template.`;
         : `- You may reference specific parts of the text
 - Guide the student to the relevant section`;
 
-    return `You are a helpful tutor providing hints to guide students toward the correct answer.
+    return `You are a helpful tutor giving a hint that nudges a student toward figuring out the answer themselves.
 
-Your hint should:
-- NOT give away the complete answer
+LANGUAGE RULE (MANDATORY): Write the hint in the SAME LANGUAGE as the question (Polish question → Polish hint, German → German, Spanish → Spanish, English → English). Never default to English.
+
+Your hint MUST:
+- NEVER reveal, state, name, quote, or paraphrase the correct answer or any answer option. If you are given the correct answer, use it ONLY to aim the hint — never disclose it.
+- Point the student to the right idea to think about, or recall, so they can reason their way to the answer.
 ${styleGuidance}
-- Be brief (1-2 sentences)
-- Ask a guiding question or highlight what to focus on
+- Be brief (1-2 sentences) and phrased as a nudge or guiding question.
 
 Return ONLY the hint text, no prefixes like "Hint:" or additional commentary.`;
   }
 
-  private static devGenerateHint(text: string, question: string): string {
-    return `Based on the following text:
+  private static devGenerateHint(
+    text: string,
+    question: string,
+    correctAnswers: string[] = [],
+  ): string {
+    let prompt = `Based on the following text:
 ${text}
 
 The student is trying to answer this question:
-${question}
+${question}`;
 
-Provide a helpful hint without revealing the answer.`;
+    if (correctAnswers.length > 0) {
+      prompt += `
+
+FOR YOUR REFERENCE ONLY (never reveal this in the hint) — the correct answer(s): ${correctAnswers.join(" | ")}
+Use it only to make sure your hint points in the right direction.`;
+    }
+
+    prompt += `
+
+Provide a helpful hint that guides the student without revealing the answer.`;
+
+    return prompt;
   }
 
   private static userGenerateHint(): string {
@@ -467,6 +497,7 @@ MANDATORY: The question above is in a specific language. You MUST write your ENT
           return Prompts.devGenerateHint(
             hintArgs?.text ?? "",
             hintArgs?.question ?? "",
+            hintArgs?.correctAnswers ?? [],
           );
         case PromptRank.USER:
           return Prompts.userGenerateHint();
