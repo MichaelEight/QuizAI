@@ -10,6 +10,7 @@ export interface ChatMessage {
 export interface ChatContext {
   sourceText: string;
   question: string;
+  options?: string[]; // Answer choices for closed/multiple-choice questions
   userAnswer?: string;
   correctAnswer?: string;
   explanation?: string;
@@ -37,6 +38,14 @@ function buildSystemPrompt(context: ChatContext): string {
     context.question,
   ];
 
+  if (context.options && context.options.length > 0) {
+    parts.push(
+      ``,
+      `ANSWER OPTIONS:`,
+      ...context.options.map((opt, i) => `${i + 1}. ${opt}`),
+    );
+  }
+
   if (context.userAnswer) {
     parts.push(``, `USER'S ANSWER:`, context.userAnswer);
   }
@@ -63,6 +72,13 @@ function buildSystemPrompt(context: ChatContext): string {
     `- Be concise but helpful`,
     `- If asked about something not in the source text, say so clearly but still answer the question up to your knowledge`,
   );
+
+  // Before the user checks their answer, don't hand them the correct option outright.
+  if (context.options && context.options.length > 0 && !context.correctAnswer) {
+    parts.push(
+      `- The user has NOT checked their answer yet. Help them reason toward the right option, but do NOT directly reveal which option is correct unless they explicitly ask for it.`,
+    );
+  }
 
   return parts.join("\n");
 }

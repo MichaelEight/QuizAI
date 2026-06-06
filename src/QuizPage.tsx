@@ -368,6 +368,10 @@ export default function QuizPage({
     return {
       sourceText: combinedText,
       question: currentTask?.question.value || "",
+      options:
+        currentTask && !currentTask.question.isOpen
+          ? currentTask.answers?.map((a) => a.value)
+          : undefined,
       userAnswer: currentTask?.question.isOpen
         ? openAnswer
         : currentTask?.answers
