@@ -19,6 +19,65 @@ export interface ChatContext {
 
 const MAX_HISTORY_PAIRS = 10;
 
+/* ----------------------- Slash commands & @ mentions ----------------------- */
+
+export interface SlashCommand {
+  cmd: string; // e.g. "why" (typed as "/why")
+  description: string;
+  build: (ctx: ChatContext) => string; // expansion actually sent to the model
+}
+
+export const SLASH_COMMANDS: SlashCommand[] = [
+  {
+    cmd: "why",
+    description: "Explain why the correct answer is right and the others wrong",
+    build: () =>
+      "Explain why the correct answer to this question is correct, and why each of the other answer options is incorrect. Answer in the same language as the question.",
+  },
+];
+
+// @ mentions available for THIS question — only the ones that actually exist.
+export function getMentionNames(ctx: ChatContext): string[] {
+  const names: string[] = ["question"];
+  if (ctx.hint) names.push("hint");
+  if (ctx.explanation) names.push("explanation");
+  const count = ctx.options?.length ?? 0;
+  for (let i = 1; i <= count; i++) names.push(`answer${i}`);
+  return names;
+}
+
+// Resolve a single @mention name to its "name: '...'" form (or a placeholder).
+function resolveMention(name: string, ctx: ChatContext): string {
+  const key = name.toLowerCase();
+  if (key === "question") return `question: '${ctx.question}'`;
+  if (key === "hint")
+    return `hint: ${ctx.hint ? `'${ctx.hint}'` : "(not generated)"}`;
+  if (key === "explanation")
+    return `explanation: ${ctx.explanation ? `'${ctx.explanation}'` : "(not generated)"}`;
+  const m = key.match(/^answer(\d+)$/);
+  if (m) {
+    const idx = parseInt(m[1], 10) - 1;
+    const opts = ctx.options ?? [];
+    if (idx >= 0 && idx < opts.length) return `answer${m[1]}: '${opts[idx]}'`;
+    return `answer${m[1]}: (no such answer)`;
+  }
+  return `@${name}`; // unknown token — leave it untouched
+}
+
+// Expand a typed message before sending: resolve a leading slash command,
+// otherwise replace inline @mentions with their quoted content.
+export function expandMessage(input: string, ctx: ChatContext): string {
+  const trimmed = input.trim();
+  if (trimmed.startsWith("/")) {
+    const cmdName = trimmed.slice(1).split(/\s+/)[0].toLowerCase();
+    const command = SLASH_COMMANDS.find((c) => c.cmd === cmdName);
+    if (command) return command.build(ctx);
+  }
+  return input.replace(/@(\w+)/g, (_full, name: string) =>
+    resolveMention(name, ctx),
+  );
+}
+
 /* ----------------------------- Chat persistence ---------------------------- */
 // Chat messages are cached per question, scoped to the currently loaded quiz
 // (keyed by its tasks hash). Survives page reloads; cleared when the quiz is

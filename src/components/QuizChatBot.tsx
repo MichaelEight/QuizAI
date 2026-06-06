@@ -6,6 +6,9 @@ import {
   ChatContext,
   loadChatCache,
   saveChatCache,
+  expandMessage,
+  getMentionNames,
+  SLASH_COMMANDS,
 } from "../services/chatService";
 import { Markdown } from "./Markdown";
 
@@ -38,6 +41,14 @@ export function QuizChatBot({
   const [error, setError] = useState<string | null>(null);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [shouldRender, setShouldRender] = useState(isOpen);
+  // Autocomplete for @mentions and /commands, + a help popover.
+  const [suggest, setSuggest] = useState<{
+    trigger: "@" | "/";
+    query: string;
+    start: number;
+  } | null>(null);
+  const [suggestIndex, setSuggestIndex] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   // Element that had focus before the chat opened, to restore on close.
@@ -107,6 +118,9 @@ export function QuizChatBot({
     const trimmedInput = inputValue.trim();
     if (!trimmedInput || isLoading) return;
 
+    // Expand /slash commands and @mentions before sending.
+    const content = expandMessage(trimmedInput, context);
+
     setError(null);
     setInputValue("");
 
@@ -114,7 +128,7 @@ export function QuizChatBot({
     const userMessage: ChatMessage = {
       id: generateMessageId(),
       role: "user",
-      content: trimmedInput,
+      content,
     };
     const updatedMessages = [...currentMessages, userMessage];
 
@@ -128,7 +142,7 @@ export function QuizChatBot({
 
     try {
       const response = await sendChatMessage(
-        trimmedInput,
+        content,
         context,
         updatedMessages,
         undefined,
@@ -157,7 +171,82 @@ export function QuizChatBot({
     }
   }, [inputValue, isLoading, currentMessages, questionId, context]);
 
+  // Suggestions for the @ / token currently being typed.
+  const suggestItems: Array<{ value: string; desc?: string }> = (() => {
+    if (!suggest) return [];
+    if (suggest.trigger === "@") {
+      return getMentionNames(context)
+        .filter((n) => n.toLowerCase().startsWith(suggest.query.toLowerCase()))
+        .map((n) => ({ value: n }));
+    }
+    return SLASH_COMMANDS.filter((c) =>
+      c.cmd.startsWith(suggest.query.toLowerCase()),
+    ).map((c) => ({ value: c.cmd, desc: c.description }));
+  })();
+
+  // Detect a trigger token (@x, or leading /x) right before the caret.
+  const updateSuggest = (value: string, caret: number) => {
+    const before = value.slice(0, caret);
+    const m = before.match(/(^|\s)([@/])(\w*)$/);
+    if (m) {
+      const trigger = m[2] as "@" | "/";
+      const query = m[3];
+      const start = caret - query.length - 1;
+      if (trigger === "/" && start !== 0) {
+        setSuggest(null); // slash commands only at the start of the message
+        return;
+      }
+      setSuggest({ trigger, query, start });
+      setSuggestIndex(0);
+    } else {
+      setSuggest(null);
+    }
+  };
+
+  const applySuggestion = (val: string) => {
+    if (!suggest) return;
+    const tokenEnd = suggest.start + 1 + suggest.query.length;
+    const insert = `${suggest.trigger}${val} `;
+    const next =
+      inputValue.slice(0, suggest.start) + insert + inputValue.slice(tokenEnd);
+    setInputValue(next);
+    setSuggest(null);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (el) {
+        const pos = suggest.start + insert.length;
+        el.focus();
+        el.setSelectionRange(pos, pos);
+      }
+    });
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (suggest && suggestItems.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSuggestIndex((i) => (i + 1) % suggestItems.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSuggestIndex(
+          (i) => (i - 1 + suggestItems.length) % suggestItems.length,
+        );
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        const pick = suggestItems[suggestIndex] ?? suggestItems[0];
+        applySuggestion(pick.value);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSuggest(null);
+        return;
+      }
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -249,6 +338,28 @@ export function QuizChatBot({
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowHelp((v) => !v)}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  showHelp
+                    ? "text-indigo-400 bg-slate-700"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700"
+                }`}
+                title="Commands help">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <circle cx="12" cy="12" r="9" strokeWidth={1.6} />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.6 9.4a2.4 2.4 0 1 1 3.2 2.3c-.7.3-1.3.9-1.3 1.7v.3m0 2.6h.01"
+                  />
+                </svg>
+              </button>
               {currentMessages.length > 0 && (
                 <button
                   onClick={handleClearChat}
@@ -287,6 +398,31 @@ export function QuizChatBot({
               </button>
             </div>
           </div>
+
+          {/* Commands help popover */}
+          {showHelp && (
+            <div className="absolute right-3 top-14 z-20 w-72 rounded-xl border border-slate-600 bg-slate-900 p-3 text-sm shadow-xl">
+              <p className="mb-1 font-medium text-slate-200">Slash commands</p>
+              <ul className="mb-3 space-y-1">
+                {SLASH_COMMANDS.map((c) => (
+                  <li key={c.cmd} className="text-slate-400">
+                    <span className="font-mono text-indigo-300">/{c.cmd}</span> — {c.description}
+                  </li>
+                ))}
+              </ul>
+              <p className="mb-1 font-medium text-slate-200">
+                Mentions{" "}
+                <span className="font-normal text-slate-400">(insert the referenced text)</span>
+              </p>
+              <p className="font-mono text-xs text-indigo-300">
+                @question @hint @explanation @answer1 …
+              </p>
+              <p className="mt-2 text-xs text-slate-500">
+                Type <span className="font-mono">/</span> or{" "}
+                <span className="font-mono">@</span> in the box for suggestions.
+              </p>
+            </div>
+          )}
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -359,14 +495,49 @@ export function QuizChatBot({
           </div>
 
           {/* Input Area */}
-          <div className="p-3 bg-slate-800 border-t border-slate-700">
+          <div className="relative p-3 bg-slate-800 border-t border-slate-700">
+            {/* Autocomplete for @mentions / slash commands */}
+            {suggest && suggestItems.length > 0 && (
+              <div className="absolute bottom-full left-3 right-3 mb-2 max-h-48 overflow-y-auto rounded-xl border border-slate-600 bg-slate-900 shadow-xl">
+                {suggestItems.map((item, i) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      applySuggestion(item.value);
+                    }}
+                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                      i === Math.min(suggestIndex, suggestItems.length - 1)
+                        ? "bg-indigo-500/20"
+                        : "hover:bg-slate-700"
+                    }`}>
+                    <span className="font-mono text-indigo-300">
+                      {suggest.trigger}
+                      {item.value}
+                    </span>
+                    {item.desc && (
+                      <span className="truncate text-xs text-slate-400">
+                        {item.desc}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex items-end gap-2">
               <textarea
                 ref={inputRef}
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  updateSuggest(
+                    e.target.value,
+                    e.target.selectionStart ?? e.target.value.length,
+                  );
+                }}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your question..."
+                placeholder="Ask, or type / and @ for commands..."
                 rows={1}
                 className="flex-1 px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-500 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 max-h-24"
                 style={{
