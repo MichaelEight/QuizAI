@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { flushSync } from "react-dom";
+import { flushSync, createPortal } from "react-dom";
 import { Link, useLocation } from "react-router";
 import { Task, AnswerOverride } from "./QuestionsTypes";
 import { Settings } from "./SettingsType";
@@ -3241,9 +3241,10 @@ export default function QuizPage({
         </div>
       </BaseModal>
 
-      {/* Save Status - Fixed position, no layout shift */}
-      {saveStatus && (
-        <div className="fixed bottom-24 right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg shadow-lg animate-fade-in">
+      {/* Save Status - viewport bottom-right, stacked ABOVE the chat FAB so it
+          never overlaps the chat button */}
+      {saveStatus && createPortal(
+        <div className="fixed bottom-36 right-4 z-[60] flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-600 rounded-lg shadow-lg animate-fade-in">
           {saveStatus === 'saving' && (
             <>
               <svg className="animate-spin h-3 w-3 text-slate-400" viewBox="0 0 24 24">
@@ -3269,7 +3270,8 @@ export default function QuizPage({
               <span className="text-xs text-rose-400">Save failed</span>
             </>
           )}
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Success Toast */}

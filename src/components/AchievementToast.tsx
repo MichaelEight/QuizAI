@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Achievement } from '../types/gamification';
 import { AchievementIcon } from './AchievementIcon';
 
@@ -44,8 +45,8 @@ export function AchievementToast({ achievement, onDismiss, onClick }: Achievemen
     }
   };
 
-  return (
-    <div className="fixed top-20 right-4 z-50">
+  return createPortal(
+    <div className="fixed top-16 right-4 z-[60]">
       <button
         onClick={handleClick}
         className={`
@@ -79,6 +80,7 @@ export function AchievementToast({ achievement, onDismiss, onClick }: Achievemen
           </p>
         </div>
       </button>
-    </div>
+    </div>,
+    document.body
   );
 }

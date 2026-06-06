@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface SuccessToastProps {
   message: string | null;
@@ -25,8 +26,8 @@ export function SuccessToast({ message, onDismiss }: SuccessToastProps) {
 
   if (!message) return null;
 
-  return (
-    <div className="fixed top-20 right-4 z-[100]">
+  return createPortal(
+    <div className="fixed top-16 right-4 z-[110]">
       <div
         className={`
           flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl
@@ -47,6 +48,7 @@ export function SuccessToast({ message, onDismiss }: SuccessToastProps) {
           {message}
         </p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
