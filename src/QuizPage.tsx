@@ -114,6 +114,7 @@ function loadQuizProgress(tasks: readonly Task[]): QuizProgressState | null {
 function saveQuizProgress(state: QuizProgressState): void {
   try {
     localStorage.setItem(QUIZ_PROGRESS_KEY, JSON.stringify(state));
+    window.dispatchEvent(new Event("quizai:quiz-progress"));
   } catch (error) {
     console.error("Error saving quiz progress:", error);
   }
@@ -122,6 +123,7 @@ function saveQuizProgress(state: QuizProgressState): void {
 function clearQuizProgress(): void {
   try {
     localStorage.removeItem(QUIZ_PROGRESS_KEY);
+    window.dispatchEvent(new Event("quizai:quiz-progress"));
   } catch (error) {
     console.error("Error clearing quiz progress:", error);
   }

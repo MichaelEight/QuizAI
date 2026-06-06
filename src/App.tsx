@@ -176,7 +176,17 @@ function BrandMark() {
 
 /* ------------------------------ Sidebar link ------------------------------- */
 
-function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+// Small "live" pulse shown on a nav item that points to an in-progress quiz.
+function LivePulse() {
+  return (
+    <span className="relative ml-auto flex h-2.5 w-2.5" aria-label="Quiz in progress" title="Quiz in progress">
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+    </span>
+  );
+}
+
+function SidebarLink({ item, onNavigate, indicator }: { item: NavItem; onNavigate?: () => void; indicator?: boolean }) {
   const Icon = item.icon;
   return (
     <NavLink
@@ -195,10 +205,24 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
         <>
           <Icon className={`h-5 w-5 shrink-0 ${isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300"}`} />
           {item.label}
+          {indicator && <LivePulse />}
         </>
       )}
     </NavLink>
   );
+}
+
+const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
+
+function readQuizActive(): boolean {
+  try {
+    const raw = localStorage.getItem(QUIZ_PROGRESS_KEY);
+    if (!raw) return false;
+    const p = JSON.parse(raw) as { isQuizStarted?: boolean; isQuizEnded?: boolean };
+    return Boolean(p.isQuizStarted) && !p.isQuizEnded;
+  } catch {
+    return false;
+  }
 }
 
 function AppContent() {
@@ -255,6 +279,19 @@ function AppContent() {
     setMoreOpen(false);
   }, [location.pathname]);
 
+  // Track whether a quiz is in progress, to highlight the Quiz nav entry.
+  const [isQuizActive, setIsQuizActive] = useState<boolean>(() => readQuizActive());
+  useEffect(() => {
+    const update = () => setIsQuizActive(readQuizActive());
+    update();
+    window.addEventListener("quizai:quiz-progress", update);
+    window.addEventListener("storage", update);
+    return () => {
+      window.removeEventListener("quizai:quiz-progress", update);
+      window.removeEventListener("storage", update);
+    };
+  }, [location.pathname]);
+
   const openImportExport = () => {
     setMoreOpen(false);
     setShowImportExportModal(true);
@@ -305,7 +342,7 @@ function AppContent() {
             <div className="space-y-1">
               <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Study</p>
               {STUDY_NAV.map((item) => (
-                <SidebarLink key={item.to} item={item} />
+                <SidebarLink key={item.to} item={item} indicator={isQuizActive && item.to === "quizPage"} />
               ))}
             </div>
             <div className="space-y-1">
@@ -380,6 +417,7 @@ function AppContent() {
         <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-800 bg-slate-900/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
           {TAB_NAV.map((item) => {
             const Icon = item.icon;
+            const showPulse = isQuizActive && item.to === "quizPage";
             return (
               <NavLink
                 key={item.to}
@@ -391,7 +429,15 @@ function AppContent() {
                   }`
                 }
               >
-                <Icon className="h-6 w-6" />
+                <span className="relative">
+                  <Icon className="h-6 w-6" />
+                  {showPulse && (
+                    <span className="absolute -right-1 -top-0.5 flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                    </span>
+                  )}
+                </span>
                 {item.label}
               </NavLink>
             );
