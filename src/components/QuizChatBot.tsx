@@ -35,6 +35,8 @@ export function QuizChatBot({
   const [shouldRender, setShouldRender] = useState(isOpen);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // Element that had focus before the chat opened, to restore on close.
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   // Get messages for current question
   const currentMessages = messages.get(questionId) || [];
@@ -64,12 +66,27 @@ export function QuizChatBot({
     }
   }, [currentMessages, isOpen]);
 
-  // Focus input when chat opens
+  // On open: remember what was focused. On close: restore that focus.
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+    if (isOpen) {
+      previousFocusRef.current = (document.activeElement as HTMLElement) || null;
+    } else if (previousFocusRef.current) {
+      const prev = previousFocusRef.current;
+      previousFocusRef.current = null;
+      if (typeof prev.focus === "function" && document.contains(prev)) {
+        prev.focus();
+      }
     }
   }, [isOpen]);
+
+  // Move focus into the chat input once the window has actually mounted
+  // (it renders a frame after isOpen flips, behind the open animation).
+  useEffect(() => {
+    if (isOpen && shouldRender) {
+      const id = requestAnimationFrame(() => inputRef.current?.focus());
+      return () => cancelAnimationFrame(id);
+    }
+  }, [isOpen, shouldRender]);
 
   const handleSend = useCallback(async () => {
     const trimmedInput = inputValue.trim();
