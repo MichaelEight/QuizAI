@@ -164,13 +164,8 @@ export function QuizChatBot({
       {/* Chat Toggle Button - positioned on right edge, above app version */}
       <button
         onClick={() => onToggle(!isOpen)}
-        style={{
-          position: "fixed",
-          bottom: "5rem",
-          right: "1rem",
-          zIndex: 9999,
-        }}
-        className={`w-12 h-12 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
+        style={{ position: "fixed", right: "1rem", zIndex: 9999 }}
+        className={`bottom-20 lg:bottom-4 w-12 h-12 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
           isOpen
             ? "bg-slate-700 hover:bg-slate-600"
             : "bg-indigo-500 hover:bg-indigo-400"
@@ -208,13 +203,8 @@ export function QuizChatBot({
       {/* Chat Window */}
       {shouldRender && (
         <div
-          style={{
-            position: "fixed",
-            bottom: "9rem",
-            right: "1rem",
-            zIndex: 9999,
-          }}
-          className={`w-96 max-w-[calc(100vw-2rem)] h-[500px] max-h-[calc(100vh-12rem)] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden ${
+          style={{ position: "fixed", right: "1rem", zIndex: 9999 }}
+          className={`bottom-36 lg:bottom-20 w-96 max-w-[calc(100vw-2rem)] h-[700px] max-h-[calc(100vh-12rem)] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden ${
             isAnimatingOut ? 'animate-chat-out' : 'animate-chat-in'
           }`}>
           {/* Header */}
