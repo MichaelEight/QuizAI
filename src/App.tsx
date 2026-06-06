@@ -8,6 +8,7 @@ import LibraryPage from "./LibraryPage";
 import Homepage from "./Homepage";
 import UsagePage from "./UsagePage";
 import { Settings } from "./SettingsType";
+import { DEFAULT_MODEL } from "./services/constants";
 import { Task } from "./QuestionsTypes";
 import { UploadedFile } from "./services/fileExtractService";
 import { ApiKeyProvider, useApiKey } from "./context/ApiKeyContext";
@@ -46,6 +47,7 @@ const DEFAULT_SETTINGS: Settings = {
   questionStyle: 'conceptual',
   customInstructions: '',
   quizLanguage: 'english',
+  model: DEFAULT_MODEL,
 };
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {

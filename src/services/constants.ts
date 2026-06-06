@@ -104,15 +104,106 @@ export class Instructions {
 
 // Storage constants
 export const OPENAI_API_KEY_STORAGE_KEY = "openai_api_key";
-export const DEFAULT_MODEL = "gpt-4o-mini";
+// Must match STORAGE_KEYS.SETTINGS in App.tsx (settings persisted here)
+export const SETTINGS_STORAGE_KEY = "quizai_settings";
 
-// OpenAI Pricing (per 1M tokens)
-export const PRICING = {
+// Selectable OpenAI models
+export type ModelId =
+  | "gpt-4o-mini"
+  | "gpt-5.4-nano"
+  | "gpt-5.4-mini"
+  | "gpt-5.4"
+  | "gpt-5.5";
+
+export const DEFAULT_MODEL: ModelId = "gpt-4o-mini";
+
+export interface ModelInfo {
+  id: ModelId;
+  label: string;
+  description: string;
+  // Standard (short-context, non-cached) pricing per 1M tokens — used for estimates and usage cost
+  inputCostPer1M: number;
+  outputCostPer1M: number;
+  // NOTE: context windows for gpt-5.x are assumptions (only pricing was provided).
+  // Adjust here if the real limits differ.
+  contextWindow: number;
+}
+
+// Single source of truth for model metadata. Ordered cheapest -> most capable.
+export const MODELS: Record<ModelId, ModelInfo> = {
   "gpt-4o-mini": {
+    id: "gpt-4o-mini",
+    label: "GPT-4o mini",
+    description: "Cheapest and fast. Good for simple texts.",
     inputCostPer1M: 0.15,
     outputCostPer1M: 0.6,
+    contextWindow: 128_000,
   },
-} as const;
+  "gpt-5.4-nano": {
+    id: "gpt-5.4-nano",
+    label: "GPT-5.4 nano",
+    description: "Very cheap and fast. A step up from 4o mini.",
+    inputCostPer1M: 0.2,
+    outputCostPer1M: 1.25,
+    contextWindow: 400_000,
+  },
+  "gpt-5.4-mini": {
+    id: "gpt-5.4-mini",
+    label: "GPT-5.4 mini",
+    description: "Balanced cost and quality.",
+    inputCostPer1M: 0.75,
+    outputCostPer1M: 4.5,
+    contextWindow: 400_000,
+  },
+  "gpt-5.4": {
+    id: "gpt-5.4",
+    label: "GPT-5.4",
+    description: "High quality. Best for complex material.",
+    inputCostPer1M: 2.5,
+    outputCostPer1M: 15.0,
+    contextWindow: 400_000,
+  },
+  "gpt-5.5": {
+    id: "gpt-5.5",
+    label: "GPT-5.5",
+    description: "Top quality. Most expensive.",
+    inputCostPer1M: 5.0,
+    outputCostPer1M: 30.0,
+    contextWindow: 400_000,
+  },
+};
+
+// Dropdown order
+export const MODEL_LIST: ModelInfo[] = [
+  MODELS["gpt-4o-mini"],
+  MODELS["gpt-5.4-nano"],
+  MODELS["gpt-5.4-mini"],
+  MODELS["gpt-5.4"],
+  MODELS["gpt-5.5"],
+];
+
+// OpenAI Pricing (per 1M tokens) — alias kept for backward compatibility (usageLogger)
+export const PRICING = MODELS;
+
+/**
+ * Read the user-selected model from persisted settings.
+ * Used by services that have no access to React state (e.g. openaiClient).
+ * Falls back to DEFAULT_MODEL if missing or invalid.
+ */
+export function getSelectedModel(): ModelId {
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as { model?: string };
+      if (parsed?.model && parsed.model in MODELS) {
+        return parsed.model as ModelId;
+      }
+    }
+  } catch {
+    // ignore parse/storage errors, use default
+  }
+  return DEFAULT_MODEL;
+}
 
 // Utility constants
 export const TRAILING_COMMA_REGEX = /,\s*([\]}])/g;

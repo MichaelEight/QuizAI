@@ -12,6 +12,7 @@ import {
 } from "./services/fileExtractService";
 import { FilePreviewModal } from "./components/FilePreviewModal";
 import { countTokens, formatNumber, estimateCost, getAvailableTokens } from "./services/tokenCounterService";
+import { MODELS } from "./services/constants";
 import { SuccessToast } from "./components/SuccessToast";
 import { BaseModal } from "./components/BaseModal";
 import { GenerationProgress } from "./components/GenerationProgress";
@@ -241,9 +242,10 @@ export default function SourceTextPage({
     getAvailableTokens(
       settings.contentFocus,
       settings.difficultyLevel,
-      settings.customInstructions
+      settings.customInstructions,
+      settings.model
     )
-  , [settings.contentFocus, settings.difficultyLevel, settings.customInstructions]);
+  , [settings.contentFocus, settings.difficultyLevel, settings.customInstructions, settings.model]);
 
   const isOverLimit = totalTokens > availableTokens;
 
@@ -651,6 +653,9 @@ export default function SourceTextPage({
             <span className="text-slate-100 font-medium">{totalQuestions} questions</span>
           </p>
           <div className="flex flex-wrap gap-2">
+            <span className="px-2 py-1 bg-indigo-500/20 text-indigo-300 rounded text-xs font-medium">
+              {(MODELS[settings.model] ?? MODELS['gpt-4o-mini']).label}
+            </span>
             <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
               {settings.difficultyLevel === 'mixed' ? 'Mixed difficulty' : `${settings.difficultyLevel} difficulty`}
             </span>
@@ -682,7 +687,7 @@ export default function SourceTextPage({
             </div>
             <div className="text-sm text-slate-400">
               <span className="text-slate-300 font-medium">Cost:</span>{" "}
-              <span className="text-emerald-400">{estimateCost(totalTokens)}</span>
+              <span className="text-emerald-400">{estimateCost(totalTokens, settings.model)}</span>
             </div>
           </div>
 

@@ -5,6 +5,7 @@ import {
   ChatMessage,
   ChatContext,
 } from "../services/chatService";
+import { Markdown } from "./Markdown";
 
 interface QuizChatBotProps {
   readonly context: ChatContext;
@@ -302,7 +303,11 @@ export function QuizChatBot({
                         ? "bg-indigo-500 text-white rounded-br-md"
                         : "bg-slate-700 text-slate-100 rounded-bl-md"
                     }`}>
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === "user" ? (
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    ) : (
+                      <Markdown content={msg.content} className="text-sm" />
+                    )}
                   </div>
                 </div>
               ))

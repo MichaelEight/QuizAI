@@ -34,6 +34,7 @@ import { ChatContext } from "./services/chatService";
 import { OptionsSelectionModal } from "./components/OptionsSelectionModal";
 import { ScoreBreakdownTemplate } from "./QuestionsTypes";
 import { DiffModal } from "./components/DiffModal";
+import { Markdown } from "./components/Markdown";
 import { compareQuizzes, QuizDiffSummary } from "./utils/quizDiff";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
@@ -2121,7 +2122,7 @@ export default function QuizPage({
                       <span>Regenerate</span>
                     </button>
                   </div>
-                  <p className="text-slate-200">{hint}</p>
+                  <Markdown content={hint} className="text-slate-200" />
                 </div>
               </div>
             </div>
@@ -2375,9 +2376,10 @@ export default function QuizPage({
                     </button>
                   </div>
                 </div>
-                <p className="text-slate-100 bg-slate-800/50 rounded-lg p-3">
-                  {revealedOpenAnswer}
-                </p>
+                <Markdown
+                  content={revealedOpenAnswer}
+                  className="text-slate-100 bg-slate-800/50 rounded-lg p-3"
+                />
               </div>
             )}
 
@@ -2572,7 +2574,7 @@ export default function QuizPage({
                         </button>
                       </div>
                     </div>
-                    <p className="text-slate-200">{explanation}</p>
+                    <Markdown content={explanation} className="text-slate-200" />
 
                     {/* Score Breakdown */}
                     {currentTask?.answerOverride?.scoreBreakdown &&

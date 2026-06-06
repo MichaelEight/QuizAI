@@ -1,12 +1,17 @@
 import { getSysPrompt } from './promptService';
-import { PromptTypes, QuestionTypes } from './constants';
+import { PromptTypes, QuestionTypes, MODELS, DEFAULT_MODEL, ModelId } from './constants';
 import { ContentFocus, DifficultyLevel } from '../SettingsType';
 
-// gpt-4o-mini context window limit
-export const TOKEN_LIMIT = 128_000;
+// Default context window (fallback) — gpt-4o-mini
+export const TOKEN_LIMIT = MODELS[DEFAULT_MODEL].contextWindow;
 
 // Reserve tokens for output (questions generated)
 const OUTPUT_RESERVE = 2_000;
+
+/** Context window for a given model, falling back to the default model. */
+function getContextWindow(model: ModelId = DEFAULT_MODEL): number {
+  return MODELS[model]?.contextWindow ?? MODELS[DEFAULT_MODEL].contextWindow;
+}
 
 /**
  * Estimate tokens in text using character-based approximation
@@ -27,11 +32,12 @@ export function formatNumber(num: number): string {
 }
 
 /**
- * Estimate API cost based on gpt-4o-mini pricing
- * Input: $0.15 per 1M tokens
+ * Estimate API input cost for the source text based on the selected model's
+ * standard (short-context) input price.
  */
-export function estimateCost(tokens: number): string {
-  const cost = (tokens / 1_000_000) * 0.15;
+export function estimateCost(tokens: number, model: ModelId = DEFAULT_MODEL): string {
+  const inputCostPer1M = MODELS[model]?.inputCostPer1M ?? MODELS[DEFAULT_MODEL].inputCostPer1M;
+  const cost = (tokens / 1_000_000) * inputCostPer1M;
   if (cost < 0.001) return '<$0.001';
   return `~$${cost.toFixed(3)}`;
 }
@@ -63,8 +69,9 @@ export function getSystemPromptTokens(
 export function getAvailableTokens(
   contentFocus: ContentFocus = 'important',
   difficultyLevel: DifficultyLevel = 'mixed',
-  customInstructions: string = ''
+  customInstructions: string = '',
+  model: ModelId = DEFAULT_MODEL
 ): number {
   const systemTokens = getSystemPromptTokens(contentFocus, difficultyLevel, customInstructions);
-  return TOKEN_LIMIT - systemTokens - OUTPUT_RESERVE;
+  return getContextWindow(model) - systemTokens - OUTPUT_RESERVE;
 }

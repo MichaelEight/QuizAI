@@ -1,3 +1,5 @@
+import type { ModelId } from "./services/constants";
+
 // prettier-ignore
 export type ContentFocus = 'all' | 'important';
 export type DifficultyLevel = "mixed" | "easy" | "medium" | "hard";
@@ -22,6 +24,7 @@ export type Settings = {
   questionStyle: QuestionStyle; // Conceptual (test understanding) vs text-based (test recall of text)
   customInstructions: string; // Custom instructions appended to prompt
   quizLanguage: QuizLanguage; // Language for generated quizzes
+  model: ModelId; // OpenAI model used for generation and grading
 };
 
 export type SettingsTypes = number | boolean | string;

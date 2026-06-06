@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { OPENAI_API_KEY_STORAGE_KEY, DEFAULT_MODEL, PromptRank } from './constants';
+import { OPENAI_API_KEY_STORAGE_KEY, getSelectedModel, PromptRank } from './constants';
 import { logUsage, UsageContext } from './usageLogger';
 
 let clientInstance: OpenAI | null = null;
@@ -40,8 +40,8 @@ export class OpenAIClientManager {
     return clientInstance;
   }
 
-  static getDefaultModel(): string {
-    return DEFAULT_MODEL;
+  static getModel(): string {
+    return getSelectedModel();
   }
 }
 
@@ -57,7 +57,7 @@ export async function makeApiRequest(
   usageContext?: UsageContext
 ): Promise<string> {
   const client = OpenAIClientManager.getClient();
-  const model = OpenAIClientManager.getDefaultModel();
+  const model = OpenAIClientManager.getModel();
 
   const messages: ChatMessage[] = [
     { role: PromptRank.SYSTEM, content: systemPrompt },
