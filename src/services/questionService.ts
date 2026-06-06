@@ -59,6 +59,7 @@ interface GenerationOptions {
   minAnswersPerQuestion: number;
   maxAnswersPerQuestion: number;
   quizLanguage: QuizLanguage;
+  modelOverride?: string; // per-quiz model; falls back to global if empty
 }
 
 async function generateQuestionsPerType(
@@ -97,7 +98,7 @@ async function generateQuestionsPerType(
   };
 
   try {
-    const ans = await makeApiRequest(sysPrompt, "", userPrompt, usageContext);
+    const ans = await makeApiRequest(sysPrompt, "", userPrompt, usageContext, options.modelOverride);
     const corrected = correctTrailingComma(ans);
     const parsed = JSON.parse(corrected) as QuestionResponse;
 
@@ -337,6 +338,7 @@ export async function generateQuestions(
   quizId?: string | null,
   quizTitle?: string | null,
   onProgress?: ProgressCallback,
+  modelOverride?: string,
 ): Promise<Task[]> {
   const allQuestions: GeneratedQuestion[] = [];
 
@@ -362,6 +364,7 @@ export async function generateQuestions(
     minAnswersPerQuestion,
     maxAnswersPerQuestion,
     quizLanguage,
+    modelOverride,
   };
 
   // EMIT: Initialization

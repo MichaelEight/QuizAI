@@ -54,10 +54,15 @@ export async function makeApiRequest(
   systemPrompt: string,
   developerPrompt: string,
   userPrompt: string,
-  usageContext?: UsageContext
+  usageContext?: UsageContext,
+  modelOverride?: string
 ): Promise<string> {
   const client = OpenAIClientManager.getClient();
-  const model = OpenAIClientManager.getModel();
+  // Per-call override (used for quiz generation) falls back to the global model.
+  const model =
+    modelOverride && modelOverride.trim().length > 0
+      ? modelOverride
+      : OpenAIClientManager.getModel();
 
   const messages: ChatMessage[] = [
     { role: PromptRank.SYSTEM, content: systemPrompt },

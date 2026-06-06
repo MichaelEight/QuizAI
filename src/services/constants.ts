@@ -214,12 +214,24 @@ export const PRICING = MODELS;
  * Used by services that have no access to React state (e.g. openaiClient).
  * Falls back to DEFAULT_MODEL if missing or invalid.
  */
+// Global AI model — governs ALL AI usage (generation, grading, hints,
+// explanations, chat, ...) unless a per-quiz override is supplied for a single
+// generation. Stored separately from quiz settings so it is a clear, app-wide
+// choice rather than a quiz-specific one.
+export const GLOBAL_MODEL_STORAGE_KEY = "quizai_global_model";
+
 export function getSelectedModel(): ModelId {
   try {
+    const direct = localStorage.getItem(GLOBAL_MODEL_STORAGE_KEY);
+    if (direct && direct in MODELS) {
+      return direct as ModelId;
+    }
+    // One-time migration: the model used to live inside quiz settings.
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as { model?: string };
       if (parsed?.model && parsed.model in MODELS) {
+        localStorage.setItem(GLOBAL_MODEL_STORAGE_KEY, parsed.model);
         return parsed.model as ModelId;
       }
     }
@@ -227,6 +239,36 @@ export function getSelectedModel(): ModelId {
     // ignore parse/storage errors, use default
   }
   return DEFAULT_MODEL;
+}
+
+export function setGlobalModel(model: ModelId): void {
+  try {
+    localStorage.setItem(GLOBAL_MODEL_STORAGE_KEY, model);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+// Per-quiz model override. "" / null means "follow the global model".
+export const QUIZ_MODEL_OVERRIDE_STORAGE_KEY = "quizai_quiz_model";
+
+export function getQuizModelOverride(): ModelId | "" {
+  try {
+    const raw = localStorage.getItem(QUIZ_MODEL_OVERRIDE_STORAGE_KEY);
+    if (raw && raw in MODELS) return raw as ModelId;
+  } catch {
+    // ignore
+  }
+  return "";
+}
+
+export function setQuizModelOverride(model: ModelId | ""): void {
+  try {
+    if (model) localStorage.setItem(QUIZ_MODEL_OVERRIDE_STORAGE_KEY, model);
+    else localStorage.removeItem(QUIZ_MODEL_OVERRIDE_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 // Utility constants

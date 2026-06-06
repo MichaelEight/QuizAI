@@ -54,6 +54,7 @@ export async function generateQuestions(
   text: string,
   settings: Settings,
   onProgress?: import("./services/questionService").ProgressCallback,
+  modelOverride?: string,
 ): Promise<Task[]> {
   if (!text || !settings) {
     throw new Error(
@@ -62,7 +63,7 @@ export async function generateQuestions(
   }
 
   try {
-    return await generateQuestionsService(text, settings, undefined, undefined, onProgress);
+    return await generateQuestionsService(text, settings, undefined, undefined, onProgress, modelOverride);
   } catch (error) {
     console.error("Error in generateQuestions:", error);
     return [];

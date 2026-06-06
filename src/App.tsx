@@ -8,7 +8,6 @@ import LibraryPage from "./LibraryPage";
 import Homepage from "./Homepage";
 import UsagePage from "./UsagePage";
 import { Settings } from "./SettingsType";
-import { DEFAULT_MODEL } from "./services/constants";
 import { Task } from "./QuestionsTypes";
 import { UploadedFile } from "./services/fileExtractService";
 import { ApiKeyProvider, useApiKey } from "./context/ApiKeyContext";
@@ -18,6 +17,9 @@ import { SaveQuizModalProvider } from "./context/SaveQuizModalContext";
 import { UsageProvider } from "./context/UsageContext";
 import { ApiKeyModal } from "./components/ApiKeyModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
+import { AiModelButton } from "./components/AiModelButton";
+import { AiModelModal } from "./components/AiModelModal";
+import { getSelectedModel, setGlobalModel, MODELS, ModelId } from "./services/constants";
 import { ImportExportButton } from "./components/ImportExportButton";
 import { ImportExportModal } from "./components/ImportExportModal";
 import { SaveQuizModal } from "./components/SaveQuizModal";
@@ -47,7 +49,6 @@ const DEFAULT_SETTINGS: Settings = {
   questionStyle: 'conceptual',
   customInstructions: '',
   quizLanguage: 'english',
-  model: DEFAULT_MODEL,
 };
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {
@@ -237,7 +238,14 @@ function AppContent() {
 
   const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
   const [showImportExportModal, setShowImportExportModal] = useState(false);
+  const [showModelModal, setShowModelModal] = useState(false);
+  const [globalModel, setGlobalModelState] = useState<ModelId>(() => getSelectedModel());
   const location = useLocation();
+
+  const changeGlobalModel = (id: ModelId) => {
+    setGlobalModel(id);
+    setGlobalModelState(id);
+  };
 
   // Enable fast tooltips (500ms delay instead of browser default 2-3s)
   useFastTooltips();
@@ -267,6 +275,12 @@ function AppContent() {
         sourceText={sourceText}
       />
       <SaveQuizModal />
+      <AiModelModal
+        isOpen={showModelModal}
+        onClose={() => setShowModelModal(false)}
+        value={globalModel}
+        onChange={changeGlobalModel}
+      />
 
       <div className="min-h-screen bg-slate-900 text-slate-100">
         {/* ============================ Desktop sidebar =========================== */}
@@ -305,6 +319,7 @@ function AppContent() {
           <div className="space-y-3 border-t border-slate-800 px-3 py-4">
             <SidebarLink item={{ to: "settingsPage", label: "Settings", icon: SettingsIcon }} />
             <div className="flex flex-col gap-2 px-1">
+              <AiModelButton label={MODELS[globalModel]?.label ?? "AI Model"} onClick={() => setShowModelModal(true)} />
               <ApiKeyButton />
               <ImportExportButton onClick={() => setShowImportExportModal(true)} />
             </div>
@@ -413,6 +428,13 @@ function AppContent() {
                 />
               </div>
               <div className="mt-4 flex flex-col gap-2 border-t border-slate-800 pt-4">
+                <AiModelButton
+                  label={MODELS[globalModel]?.label ?? "AI Model"}
+                  onClick={() => {
+                    setMoreOpen(false);
+                    setShowModelModal(true);
+                  }}
+                />
                 <ImportExportButton onClick={openImportExport} />
               </div>
             </div>

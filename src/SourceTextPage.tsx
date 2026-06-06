@@ -12,7 +12,14 @@ import {
 } from "./services/fileExtractService";
 import { FilePreviewModal } from "./components/FilePreviewModal";
 import { countTokens, formatNumber, estimateCost, getAvailableTokens } from "./services/tokenCounterService";
-import { MODELS } from "./services/constants";
+import {
+  MODELS,
+  MODEL_LIST,
+  ModelId,
+  getSelectedModel,
+  getQuizModelOverride,
+  setQuizModelOverride,
+} from "./services/constants";
 import { SuccessToast } from "./components/SuccessToast";
 import { BaseModal } from "./components/BaseModal";
 import { GenerationProgress } from "./components/GenerationProgress";
@@ -237,15 +244,28 @@ export default function SourceTextPage({
 
   const totalTokens = totalFileTokens + textareaTokens;
 
-  // Calculate available tokens based on current settings (subtracts system prompt + output reserve)
+  // Per-quiz model override ("" = use the global AI model). Only this quiz's
+  // generation uses it; all other AI usage stays on the global model.
+  const globalModel = getSelectedModel();
+  const [quizModelOverride, setQuizModelOverrideState] = useState<ModelId | "">(
+    () => getQuizModelOverride()
+  );
+  const effectiveModel: ModelId = quizModelOverride || globalModel;
+
+  const handleQuizModelChange = (value: ModelId | "") => {
+    setQuizModelOverrideState(value);
+    setQuizModelOverride(value);
+  };
+
+  // Calculate available tokens based on the model that will generate this quiz
   const availableTokens = useMemo(() =>
     getAvailableTokens(
       settings.contentFocus,
       settings.difficultyLevel,
       settings.customInstructions,
-      settings.model
+      effectiveModel
     )
-  , [settings.contentFocus, settings.difficultyLevel, settings.customInstructions, settings.model]);
+  , [settings.contentFocus, settings.difficultyLevel, settings.customInstructions, effectiveModel]);
 
   const isOverLimit = totalTokens > availableTokens;
 
@@ -418,7 +438,7 @@ export default function SourceTextPage({
     };
 
     try {
-      const result = await generateQuestions(combinedText, settings, handleProgress);
+      const result = await generateQuestions(combinedText, settings, handleProgress, quizModelOverride || undefined);
 
       if (!result || result.length === 0) {
         setError("No questions were generated. Please try with different text.");
@@ -652,10 +672,28 @@ export default function SourceTextPage({
             <span className="text-indigo-400">{settings.amountOfOpenQuestions}</span> free-response ={" "}
             <span className="text-slate-100 font-medium">{totalQuestions} questions</span>
           </p>
+
+          {/* Per-quiz AI model (defaults to the global model) */}
+          <div className="mb-3 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+            <label htmlFor="quiz-model" className="text-xs font-medium text-slate-400">
+              AI model for this quiz
+            </label>
+            <select
+              id="quiz-model"
+              value={quizModelOverride}
+              onChange={(e) => handleQuizModelChange(e.target.value as ModelId | "")}
+              className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-100 transition-colors focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="">Global default — {MODELS[globalModel]?.label}</option>
+              {MODEL_LIST.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="flex flex-wrap gap-2">
-            <span className="px-2 py-1 bg-indigo-500/20 text-indigo-300 rounded text-xs font-medium">
-              {(MODELS[settings.model] ?? MODELS['gpt-4o-mini']).label}
-            </span>
             <span className="px-2 py-1 bg-slate-600/50 rounded text-xs text-slate-300">
               {settings.difficultyLevel === 'mixed' ? 'Mixed difficulty' : `${settings.difficultyLevel} difficulty`}
             </span>
@@ -687,7 +725,7 @@ export default function SourceTextPage({
             </div>
             <div className="text-sm text-slate-400">
               <span className="text-slate-300 font-medium">Cost:</span>{" "}
-              <span className="text-emerald-400">{estimateCost(totalTokens, settings.model)}</span>
+              <span className="text-emerald-400">{estimateCost(totalTokens, effectiveModel)}</span>
             </div>
           </div>
 
