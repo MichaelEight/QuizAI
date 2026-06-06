@@ -35,6 +35,14 @@ export class Instructions {
     - "question": string
   `;
 
+  // Shared rule that prevents length/detail from giving away the correct answer.
+  private static readonly ANSWER_BALANCE = `
+    ANSWER BALANCE (avoid giveaways):
+    - Keep all options (correct AND incorrect) similar in length and level of detail. The correct answer must NOT be the longest, most specific, or most elaborate option — length or detail should never reveal which one is correct.
+    - Make distractors just as plausible and detailed as the correct answer, using the same phrasing style and grammatical form.
+    - Most options should fall within a similar length range. Small variation is fine, but never let one option stand out as clearly longer than the rest.
+  `;
+
   // Helper to format answer count specification
   private static formatAnswerCount(min: number, max: number): string {
     if (min === max) {
@@ -56,6 +64,7 @@ export class Instructions {
     Each question MUST have EXACTLY ONE answer with "isCorrect": true.
     All other ${incorrectCount} answers MUST have "isCorrect": false.
     Do NOT create questions with multiple correct answers.
+${Instructions.ANSWER_BALANCE}
   `;
   }
 
@@ -75,6 +84,7 @@ export class Instructions {
     Each question MUST have AT LEAST TWO answers with "isCorrect": true.
     You can have 2 to ${maxCorrect} correct answers, with the remaining being "isCorrect": false.
     Do NOT create questions with only one correct answer.
+${Instructions.ANSWER_BALANCE}
   `;
   }
 
