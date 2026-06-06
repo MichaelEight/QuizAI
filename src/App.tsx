@@ -142,9 +142,12 @@ const PlusIcon = ({ className }: IconProps) => (
 
 type NavItem = { to: string; label: string; icon: (p: IconProps) => React.ReactElement; end?: boolean };
 
+// Desktop sidebar order — Settings sits where it belongs in the create flow:
+// Create (add source) → Settings (tune generation) → Quiz.
 const STUDY_NAV: NavItem[] = [
   { to: "/", label: "Dashboard", icon: HomeIcon, end: true },
   { to: "sourcePage", label: "Create", icon: CreateIcon },
+  { to: "settingsPage", label: "Settings", icon: SettingsIcon },
   { to: "quizPage", label: "Quiz", icon: QuizIcon },
   { to: "library", label: "Library", icon: LibraryIcon },
 ];
@@ -154,7 +157,13 @@ const PROGRESS_NAV: NavItem[] = [
   { to: "usage", label: "Usage", icon: UsageIcon },
 ];
 
-const TAB_NAV: NavItem[] = STUDY_NAV;
+// Mobile bottom bar — keep to the core destinations (Settings lives in "More").
+const TAB_NAV: NavItem[] = [
+  { to: "/", label: "Dashboard", icon: HomeIcon, end: true },
+  { to: "sourcePage", label: "Create", icon: CreateIcon },
+  { to: "quizPage", label: "Quiz", icon: QuizIcon },
+  { to: "library", label: "Library", icon: LibraryIcon },
+];
 
 /* ------------------------------- Brand mark -------------------------------- */
 
@@ -354,7 +363,6 @@ function AppContent() {
           </nav>
 
           <div className="space-y-3 border-t border-slate-800 px-3 py-4">
-            <SidebarLink item={{ to: "settingsPage", label: "Settings", icon: SettingsIcon }} />
             <div className="flex flex-col gap-2 px-1">
               <AiModelButton label={MODELS[globalModel]?.label ?? "AI Model"} onClick={() => setShowModelModal(true)} />
               <ApiKeyButton />
