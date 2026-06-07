@@ -50,7 +50,7 @@ export default function Homepage({ setTasks, setSourceText }: HomepageProps) {
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
             {hasActivity ? "Ready for another round?" : "Let's build your first quiz"}
           </h1>
-          <p className="mt-1.5 max-w-xl text-sm text-slate-400">
+          <p className="mt-1.5 max-w-3xl text-sm text-slate-400">
             Turn any notes, PDF, or text into an interactive quiz — then learn it
             through smart spaced repetition.
           </p>
