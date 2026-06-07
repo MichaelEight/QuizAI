@@ -2057,6 +2057,13 @@ export default function QuizPage({
           "Congratulations! You've mastered this question."}
       </div>
 
+      {/* Question ID — above the card */}
+      {currentTask && (
+        <p className="mb-2 px-1 font-mono text-[11px] text-slate-500">
+          Question ID: {currentTask.id}
+        </p>
+      )}
+
       {/* Question Card */}
       {currentTask && (
         <div className="relative bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg shadow-black/20 mb-6">
