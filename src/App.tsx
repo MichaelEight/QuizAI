@@ -273,11 +273,30 @@ function AppContent() {
   const [showImportExportModal, setShowImportExportModal] = useState(false);
   const [showModelModal, setShowModelModal] = useState(false);
   const [globalModel, setGlobalModelState] = useState<ModelId>(() => getSelectedModel());
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("quizai_sidebar_collapsed") === "1";
+    } catch {
+      return false;
+    }
+  });
   const location = useLocation();
 
   const changeGlobalModel = (id: ModelId) => {
     setGlobalModel(id);
     setGlobalModelState(id);
+  };
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem("quizai_sidebar_collapsed", next ? "1" : "0");
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
   };
 
   // Enable fast tooltips (500ms delay instead of browser default 2-3s)
@@ -330,11 +349,25 @@ function AppContent() {
 
       <div className="min-h-screen bg-slate-900 text-slate-100">
         {/* ============================ Desktop sidebar =========================== */}
-        <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r border-slate-800 bg-slate-900">
-          <div className="flex h-16 items-center px-5">
+        <aside
+          className={`hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r border-slate-800 bg-slate-900 transition-transform duration-300 ${
+            sidebarCollapsed ? "lg:-translate-x-full" : ""
+          }`}
+        >
+          <div className="flex h-16 items-center justify-between px-5">
             <Link to="/" aria-label="QuizAI home">
               <BrandMark />
             </Link>
+            <button
+              onClick={toggleSidebar}
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+              className="-mr-2 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m7 14l-7-7 7-7" />
+              </svg>
+            </button>
           </div>
 
           <div className="px-3">
@@ -380,8 +413,22 @@ function AppContent() {
           <ApiKeyButton />
         </header>
 
+        {/* Expand button — shown when the sidebar is collapsed (desktop only) */}
+        {sidebarCollapsed && (
+          <button
+            onClick={toggleSidebar}
+            title="Expand sidebar"
+            aria-label="Expand sidebar"
+            className="hidden lg:flex fixed left-3 top-3 z-50 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/90 p-2 text-slate-300 shadow-lg backdrop-blur-md transition-colors hover:bg-slate-700 hover:text-slate-100"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M6 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+
         {/* ============================== Main content =========================== */}
-        <div className="lg:pl-64">
+        <div className={`transition-[padding] duration-300 ${sidebarCollapsed ? "lg:pl-0" : "lg:pl-64"}`}>
           <main className="mx-auto w-full max-w-5xl px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-10">
             <Routes>
               <Route
