@@ -233,8 +233,9 @@ export function normalizeQuestionKey(question: string): string {
 // the prompt fails to prevent them.
 const META_QUESTION_PATTERNS: readonly RegExp[] = [
   /\bin the (text|passage|reading|excerpt|document|article|material|source)\b/i,
-  /\baccording to the (text|passage|author|document|reading|article)\b/i,
+  /\b(according to|consistent with|based on|supported by|true to) the (text|passage|author|document|reading|article|material|source|content)\b/i,
   /\b(appear|appeared|appears|mentioned|stated|listed|quoted|written|said)\b[^.?!]*\bin the (text|passage|reading|document|source|article)\b/i,
+  /\bzgodn\w*\s+z\s+(materia[lł]\w*|tekstem|[zź]r[oó]d[lł]\w*|tre[sś]ci\w*)\b/i,
   /\bw\s+(powy[zż]szym\s+)?tek[sś]cie\b/i,
   /\bwed[lł]ug\s+tekstu\b/i,
   /\bwymienion\w*\s+w\s+tek[sś]cie\b/i,

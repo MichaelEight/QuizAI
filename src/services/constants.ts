@@ -96,6 +96,7 @@ ${Instructions.ANSWER_BALANCE}
 
     QUESTION PHRASING (must match the multiple-answer structure):
     - Word the question so it clearly signals that MORE THAN ONE answer is correct (e.g. "Which of the following ARE...", "Select ALL that apply", "Which of these are true?").
+    - Ask which statements are CORRECT / TRUE about the subject. NEVER ask which statements are "consistent with / according to / supported by / found in the material/source/text" — judge correctness on the facts, not on matching a source.
     - The stem must NOT read like a single-answer question (avoid "What is the one...", "Which single...").
     - Make sure the correct options are genuinely, independently correct — not one true answer plus near-duplicates padded to reach two.
 ${Instructions.ANSWER_BALANCE}
@@ -349,8 +350,8 @@ EXAMPLES:
 // or "giveaway" questions.
 export const QUESTION_QUALITY_RULES = `
 QUESTION QUALITY RULES (MANDATORY — every question must satisfy ALL of these):
-1. SELF-CONTAINED: Test understanding of the SUBJECT MATTER. Each question must be answerable by someone who LEARNED the material, without seeing any source. NEVER refer to "the text", "the passage", "the author", "the document", "the reading", "the excerpt", "the fragment", "the lecture", "the slides", "above", or "as mentioned" in questions OR answers.
-2. NO META / WORDING-RECALL: Never ask which statements, sentences, phrases or words appeared in, were mentioned in, or were quoted from the source, nor anything about its structure, order, length or formatting. Test the IDEAS, not memory of exact wording. (FORBIDDEN example: "Which of these statements appeared in the text?")
+1. SELF-CONTAINED: Test understanding of the SUBJECT MATTER. Each question must be answerable by someone who LEARNED the topic, without seeing any source. NEVER refer to the source in ANY way — do not mention "the text", "the passage", "the author", "the document", "the reading", "the excerpt", "the fragment", "the lecture", "the slides", "the material", "the source", "the content", "above", or "as mentioned" (in any language) in questions OR answers.
+2. NO META / SOURCE-FRAMING: Never ask which statements are "correct according to / consistent with / based on / found in / mentioned in / true to / supported by" the source/material/text, nor which appeared in or were quoted from it, nor anything about its structure, order, length or formatting. Ask whether statements are simply CORRECT or TRUE about the subject — judged on the facts, not on matching a source. (FORBIDDEN: "Which statements are consistent with the material?", "Which of these appeared in the text?". CORRECT: "Which statements about X are true?")
 3. ONE CLEAR POINT: Each question targets a single, well-defined idea and has exactly one reasonable interpretation. No compound, vague, or trick questions.
 4. UNAMBIGUOUS CORRECTNESS: The correct option(s) must be indisputably correct based on the material; every distractor must be clearly incorrect on the merits — believable to someone who did not study, but wrong to someone who did. Never include a distractor that could be argued correct.
 5. HONEST DISTRACTORS: No "All of the above", "None of the above", joke options, or absurd throwaways. Every option is a serious, on-topic candidate.
