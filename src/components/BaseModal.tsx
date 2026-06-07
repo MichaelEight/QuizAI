@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -27,7 +28,9 @@ export function BaseModal({
 
   if (!isOpen) return null;
 
-  return (
+  // Portal to the body so the full-viewport backdrop isn't clipped by any
+  // transformed ancestor (e.g. a page's animate-fade-in wrapper).
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
@@ -39,6 +42,7 @@ export function BaseModal({
       <div className={`relative bg-slate-800 border border-slate-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 ${maxWidth} w-full mx-2 sm:mx-4 shadow-2xl shadow-black/50 animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto`}>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

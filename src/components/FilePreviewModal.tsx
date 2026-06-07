@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { UploadedFile } from "../services/fileExtractService";
 import { countTokens, formatNumber } from "../services/tokenCounterService";
 
@@ -52,7 +53,7 @@ export function FilePreviewModal({
   const charCount = editedContent.length;
   const tokenCount = countTokens(editedContent);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in">
       {/* Backdrop */}
       <div
@@ -119,6 +120,7 @@ export function FilePreviewModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
