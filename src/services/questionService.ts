@@ -293,9 +293,18 @@ function sanitizeQuestion(
 
   if (cleaned.length < 2) return null; // need at least two distinct options
   const correctCount = cleaned.filter((a) => a.isCorrect).length;
-  if (correctCount === cleaned.length) return null; // no wrong option to pick
-  if (expectedType === QuestionTypes.CLOSED && correctCount !== 1) return null;
-  if (expectedType === QuestionTypes.CLOSED_MULTI && correctCount < 2) return null;
+  if (correctCount < 1) return null; // need at least one correct option
+
+  if (expectedType === QuestionTypes.CLOSED_MULTI) {
+    // Multiple-choice needs 3+ options and 2+ correct (count may vary up to all).
+    if (cleaned.length < 3) return null;
+    if (correctCount < 2) return null;
+  } else if (expectedType === QuestionTypes.CLOSED) {
+    // Single-choice: exactly one correct (guarantees a wrong option, len >= 2).
+    if (correctCount !== 1) return null;
+  } else if (correctCount === cleaned.length) {
+    return null; // other closed types still need at least one wrong option
+  }
 
   return { question: text, answers: shuffle(cleaned) };
 }

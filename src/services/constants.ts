@@ -82,17 +82,19 @@ ${Instructions.ANSWER_BALANCE}
     min: number,
     max: number,
   ): string {
-    const countSpec = Instructions.formatAnswerCount(min, max);
-    const maxCorrect = min === max ? min : max;
+    // Multiple-choice needs at least 3 options (2+ correct AND room to vary).
+    const optMin = Math.max(3, min);
+    const optMax = Math.max(optMin, max);
+    const countSpec = Instructions.formatAnswerCount(optMin, optMax);
     return `
     Each closed question object must have:
     - "question": string,
-    - "answers": array of ${countSpec} items, where each item must be built in form: {"content": string, "isCorrect": boolean}
+    - "answers": array of ${countSpec} items (a multiple-choice question MUST have at least 3 options), where each item must be built in form: {"content": string, "isCorrect": boolean}
 
     CRITICAL REQUIREMENT - MULTIPLE CORRECT ANSWERS:
     Each question MUST have AT LEAST TWO answers with "isCorrect": true.
-    You can have 2 to ${maxCorrect} correct answers, with the remaining being "isCorrect": false.
-    Do NOT create questions with only one correct answer.
+    VARY the number of correct answers from question to question: for EACH question independently pick a random count between 2 and the number of options in that question. Across the whole set, mix it up — some questions with 2 correct, some with 3, some with more. Do NOT mark the same number correct every time (e.g. NOT always 3).
+    Never create a multiple-choice question with fewer than 3 options, or with only one correct answer.
 
     QUESTION PHRASING (must match the multiple-answer structure):
     - Word the question so it clearly signals that MORE THAN ONE answer is correct (e.g. "Which of the following ARE...", "Select ALL that apply", "Which of these are true?").
