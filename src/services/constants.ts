@@ -48,6 +48,8 @@ export class Instructions {
       - BAD (form gives it away): correct options say "Port X is used by [specific protocol]" while the distractor says "Port X is a typical mail port". The odd, vaguer shape reveals the wrong answer.
       - GOOD: the distractor also says "Port X is used by [a specific NON-mail protocol]" — same template and specificity, wrong only on the facts.
     - Make distractors just as plausible and detailed as the correct answer, using the same phrasing style and grammatical form.
+    - PLAUSIBLE NEAR-MISS DISTRACTORS: wrong options must be realistic, believable near-misses of the SAME kind as the correct ones — never vague, incomplete, or obviously off. If a correct option gives a specific value, range, name or number, distractors must give a DIFFERENT but realistic value of the same kind that is actually wrong. (BAD: correct "the optimal range is 18-27°C" paired with a vague distractor "the temperature should be low". GOOD: pair it with a wrong-but-realistic "the optimal range is 15-30°C".) The reader must need real subject knowledge to reject a distractor.
+    - INDEPENDENT OPTIONS: no option may be trivially derivable from another. Do NOT include an option whose truth follows directly from another (e.g. "the range is 18-27°C" together with "the minimum is 18°C"). Each option must test a distinct fact.
     - Most options should fall within a similar length range. Small variation is fine, but never let one option stand out as clearly longer than the rest.
   `;
 
