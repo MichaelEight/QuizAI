@@ -932,6 +932,9 @@ export default function QuizPage({
   const handleShowAnswer = async () => {
     if (!currentTask) return;
 
+    // Revealing ends the attempt — stop the timer.
+    gamification.stopTimer();
+
     // Mark as failed (same logic as wrong answer)
     setIncorrectAnswers((prev) => prev + 1);
 
