@@ -155,9 +155,10 @@ export default function QuizPage({
     savedProgress?.taskPool ?? [],
   );
   const [currentTask, setCurrentTask] = useState<Task | undefined>(
-    savedProgress?.currentTask
-      ? shuffleTaskAnswers(savedProgress.currentTask)
-      : undefined,
+    // Use the saved answer order as-is. It was already shuffled when the
+    // question first loaded; re-shuffling here would re-randomize on every
+    // page reload. New shuffles happen only when advancing to a new question.
+    savedProgress?.currentTask ?? undefined,
   );
   const [areAnswersChecked, setAreAnswersChecked] = useState<boolean>(
     savedProgress?.areAnswersChecked ?? false,
@@ -453,10 +454,23 @@ export default function QuizPage({
     revealedOpenAnswer,
   ]);
 
-  // Save progress on state changes
+  // Keep latest saveProgress for the unmount flush below
+  const saveProgressRef = useRef(saveProgress);
+  saveProgressRef.current = saveProgress;
+
+  // Save progress on state changes — debounced so typing in an open answer
+  // or spam-clicking close-ended answers doesn't fire a save (and flash the
+  // indicator) on every keystroke/click. Only saves once changes settle.
   useEffect(() => {
-    saveProgress();
+    const timeout = setTimeout(() => saveProgress(), 600);
+    return () => clearTimeout(timeout);
   }, [saveProgress]);
+
+  // Flush any pending debounced save on unmount so nothing is lost when
+  // navigating away within the debounce window.
+  useEffect(() => {
+    return () => saveProgressRef.current();
+  }, []);
 
   // Restore cached data from answerOverride when currentTask changes
   useEffect(() => {
