@@ -44,6 +44,9 @@ export class Instructions {
   private static readonly ANSWER_BALANCE = `
     ANSWER BALANCE (avoid giveaways):
     - Keep all options (correct AND incorrect) similar in length and level of detail. The correct answer must NOT be the longest, most specific, or most elaborate option — length or detail should never reveal which one is correct.
+    - SAME TEMPLATE & SPECIFICITY: every option (correct and incorrect) must follow the SAME sentence pattern and be EQUALLY specific and concrete. A distractor must name a specific thing exactly like the correct ones — never make a wrong option vaguer, more generic, hedged, or differently shaped than the correct ones. The form of an option must NEVER correlate with whether it is correct; the ONLY way to tell options apart must be subject knowledge.
+      - BAD (form gives it away): correct options say "Port X is used by [specific protocol]" while the distractor says "Port X is a typical mail port". The odd, vaguer shape reveals the wrong answer.
+      - GOOD: the distractor also says "Port X is used by [a specific NON-mail protocol]" — same template and specificity, wrong only on the facts.
     - Make distractors just as plausible and detailed as the correct answer, using the same phrasing style and grammatical form.
     - Most options should fall within a similar length range. Small variation is fine, but never let one option stand out as clearly longer than the rest.
   `;
