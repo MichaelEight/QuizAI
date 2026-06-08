@@ -22,6 +22,7 @@ import {
 } from "../services/translationService";
 import { QuizLanguage } from "../SettingsType";
 import { Task } from "../QuestionsTypes";
+import { version as APP_VERSION } from "../../package.json";
 
 interface QuizLibraryContextType {
   // State
@@ -197,6 +198,7 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
         isBackup: false,
         createdAt: now,
         updatedAt: now,
+        appVersion: APP_VERSION,
       };
 
       await storage.save(duplicate);
@@ -250,6 +252,7 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
         version: 1, // Reset version for translation
         createdAt: now,
         updatedAt: now,
+        appVersion: APP_VERSION,
       };
 
       await storage.save(translatedQuiz);
@@ -434,6 +437,7 @@ export function QuizLibraryProvider({ children }: QuizLibraryProviderProps) {
           closedQuestionCount: tasks.filter((t) => !t.question.isOpen).length,
           openQuestionCount: tasks.filter((t) => t.question.isOpen).length,
           totalQuestionCount: tasks.length,
+          appVersion: APP_VERSION,
         };
 
         await storage.saveNewVersion(quizId, newQuizData);

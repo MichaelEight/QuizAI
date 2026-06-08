@@ -1,5 +1,6 @@
 import { Task } from "../QuestionsTypes";
 import { QuizLanguage } from "../SettingsType";
+import { version as APP_VERSION } from "../../package.json";
 
 /**
  * Saved quiz with metadata for the library
@@ -33,6 +34,12 @@ export interface SavedQuiz {
   previousVersionId?: string; // ID of backup (previous version)
   isBackup?: boolean; // True if this is a backup version
   groupId?: string; // Groups all versions and translations together
+  appVersion?: string; // QuizAI app version the quiz was created with (absent => pre-1.8.3)
+}
+
+/** Human-readable label for the app version a quiz was created with. */
+export function getQuizAppVersionLabel(quiz: SavedQuiz): string {
+  return quiz.appVersion ? `v${quiz.appVersion}` : "pre-1.8.3";
 }
 
 /**
@@ -178,5 +185,6 @@ export function createSavedQuiz(data: CreateQuizData): SavedQuiz {
     createdAt: now,
     updatedAt: now,
     version: 1, // New quizzes start at version 1
+    appVersion: APP_VERSION,
   };
 }

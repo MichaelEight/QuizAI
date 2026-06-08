@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useQuizLibrary } from "./context/QuizLibraryContext";
-import { SavedQuiz, SortConfig, SortField, DatePreset, FilterConfig } from "./types/quizLibrary";
+import { SavedQuiz, SortConfig, SortField, DatePreset, FilterConfig, getQuizAppVersionLabel } from "./types/quizLibrary";
 import { Task } from "./QuestionsTypes";
 import { QuizLanguage } from "./SettingsType";
 import { SourceTextModal } from "./components/SourceTextModal";
@@ -972,6 +972,11 @@ export default function LibraryPage({
                     </span>
                     <span className="text-slate-500">
                       Updated {formatDate(quiz.updatedAt)}
+                    </span>
+                    <span
+                      className="px-2 py-0.5 bg-slate-700/60 rounded text-slate-400 text-xs"
+                      title="QuizAI version the quiz was created with">
+                      {getQuizAppVersionLabel(quiz)}
                     </span>
                     {getTranslations(quiz.id).length > 1 && (
                       <button
