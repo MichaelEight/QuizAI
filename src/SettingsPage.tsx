@@ -73,26 +73,26 @@ const EXAMPLE_QUESTIONS: Record<
 
 // Default values for each section
 const DEFAULT_QUESTION_AMOUNTS = {
-  amountOfClosedQuestions: 2,
-  amountOfOpenQuestions: 1,
+  amountOfClosedQuestions: 30,
+  amountOfOpenQuestions: 0,
 };
 
 const DEFAULT_QUESTION_OPTIONS = {
-  allowMultipleCorrectAnswers: false,
+  allowMultipleCorrectAnswers: true,
   forceMultipleCorrectAnswers: false,
   minAnswersPerQuestion: 4,
-  maxAnswersPerQuestion: 4,
+  maxAnswersPerQuestion: 6,
 };
 
 const DEFAULT_LEARNING_POOL = {
   defaultPoolSize: 2,
-  failedOriginalCopies: 3,
-  failedRetryCopies: 2,
+  failedOriginalCopies: 2,
+  failedRetryCopies: 1,
 };
 
 const DEFAULT_GENERATION_OPTIONS = {
   contentFocus: "important" as ContentFocus,
-  difficultyLevel: "mixed" as DifficultyLevel,
+  difficultyLevel: "hard" as DifficultyLevel,
   questionStyle: "conceptual" as QuestionStyle,
   customInstructions: "",
   quizLanguage: "english" as QuizLanguage,
@@ -1015,7 +1015,7 @@ function TextareaSetting({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={3}
-        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-y min-h-[4.5rem] max-h-[15rem]"
+        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-y min-h-[130px] max-h-[15rem]"
       />
     </div>
   );
