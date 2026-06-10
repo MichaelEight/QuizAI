@@ -347,7 +347,7 @@ function AppContent() {
         onChange={changeGlobalModel}
       />
 
-      <div className="min-h-screen bg-slate-900 text-slate-100">
+      <div className="min-h-screen overflow-x-clip bg-slate-900 text-slate-100">
         {/* ============================ Desktop sidebar =========================== */}
         <aside
           className={`hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r border-slate-800 bg-slate-900 transition-transform duration-300 ${

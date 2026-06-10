@@ -3,6 +3,9 @@
 /* Base dark theme styles */
 html {
   scroll-behavior: smooth;
+  /* Always reserve the vertical scrollbar gutter so toggling a scrollbar
+     (e.g. the learnt-star burst overflowing the card) never reflows page width. */
+  scrollbar-gutter: stable;
 }
 
 body {
