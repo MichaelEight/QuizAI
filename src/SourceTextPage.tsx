@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { useNavigate, Link } from "react-router";
-import { generateQuestions, ProgressEvent, ProgressCallback } from "./backendService";
-import { Task } from "./QuestionsTypes";
+import { Link } from "react-router";
+import { useGeneration } from "./context/GenerationContext";
 import { Settings } from "./SettingsType";
 import {
   extractTextFromFile,
@@ -27,7 +26,6 @@ import { GenerationProgress } from "./components/GenerationProgress";
 interface SourceTextPageProps {
   sourceText: string;
   setSourceText: (text: string) => void;
-  setTasks: (tasks: Task[]) => void;
   settings: Settings;
   uploadedFiles: UploadedFile[];
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>;
@@ -127,52 +125,28 @@ function ConfirmClearModal({ isOpen, onClose, onConfirm, fileCount }: ConfirmCle
 export default function SourceTextPage({
   sourceText,
   setSourceText,
-  setTasks,
   settings,
   uploadedFiles,
   setUploadedFiles,
 }: SourceTextPageProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Generation runs in app-level context so it survives page navigation.
+  // Aliased to the previous local names to keep the JSX below unchanged.
+  const {
+    isGenerating: isLoading,
+    progress: generationProgress,
+    elapsedTime,
+    error: genError,
+    start: startGeneration,
+  } = useGeneration();
   const [isExtracting, setIsExtracting] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showClearModal, setShowClearModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
 
   const totalQuestions = settings.amountOfClosedQuestions + settings.amountOfOpenQuestions;
-
-  // Progress tracking state
-  interface GenerationProgress {
-    currentType: string | null;
-    currentAttempt: number;
-    maxAttempts: number;
-    questionsReceived: number;
-    questionsTarget: number;
-    typeBreakdown: {
-      [key: string]: {
-        received: number;
-        target: number;
-        complete: boolean;
-      };
-    };
-    stage: string;
-  }
-
-  const [generationProgress, setGenerationProgress] = useState<GenerationProgress>({
-    currentType: null,
-    currentAttempt: 0,
-    maxAttempts: 3,
-    questionsReceived: 0,
-    questionsTarget: totalQuestions,
-    typeBreakdown: {},
-    stage: 'idle',
-  });
-
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   // Draft auto-save functionality
   useEffect(() => {
@@ -209,19 +183,6 @@ export default function SourceTextPage({
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Timer to update elapsed time during generation
-  useEffect(() => {
-    if (!isLoading || !startTime) {
-      setElapsedTime(0);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
-    }, 100); // Update every 100ms for smooth display
-
-    return () => clearInterval(interval);
-  }, [isLoading, startTime]);
 
   // Combine file content with manual text
   const combinedText = useMemo(() => {
@@ -371,89 +332,17 @@ export default function SourceTextPage({
     ));
   };
 
-  const handleGenerateButtonClick = async () => {
+  const handleGenerateButtonClick = () => {
     if (!canGenerate) return;
-
-    setIsLoading(true);
     setError(null);
-    setStartTime(Date.now());
-
-    // Initialize progress
-    setGenerationProgress({
-      currentType: null,
-      currentAttempt: 0,
-      maxAttempts: 3,
-      questionsReceived: 0,
-      questionsTarget: totalQuestions,
-      typeBreakdown: {},
-      stage: 'init',
+    // Kick off generation in the app-level context. It keeps running across
+    // navigation and shows a global "quiz ready" toast when done.
+    startGeneration({
+      text: combinedText,
+      settings,
+      modelOverride: quizModelOverride || undefined,
+      target: totalQuestions,
     });
-
-    // Progress callback
-    const handleProgress: ProgressCallback = (event: ProgressEvent) => {
-      setGenerationProgress(prev => {
-        const next = { ...prev };
-
-        switch (event.stage) {
-          case 'init':
-            next.stage = 'init';
-            break;
-
-          case 'attempt_start':
-            next.currentType = event.typeName ?? null;
-            next.currentAttempt = event.attempt ?? 0;
-            next.stage = 'generating';
-            break;
-
-          case 'questions_received':
-            next.questionsReceived = event.total ?? prev.questionsReceived;
-
-            // Update type breakdown
-            if (event.typeName) {
-              next.typeBreakdown[event.typeName] = {
-                received: event.total ?? 0,
-                target: event.target ?? 0,
-                complete: (event.total ?? 0) >= (event.target ?? 0),
-              };
-            }
-            break;
-
-          case 'type_complete':
-            if (event.typeName) {
-              next.typeBreakdown[event.typeName] = {
-                received: event.total ?? 0,
-                target: event.target ?? 0,
-                complete: true,
-              };
-            }
-            break;
-
-          case 'all_complete':
-            next.stage = 'complete';
-            break;
-        }
-
-        return next;
-      });
-    };
-
-    try {
-      const result = await generateQuestions(combinedText, settings, handleProgress, quizModelOverride || undefined);
-
-      if (!result || result.length === 0) {
-        setError("No questions were generated. Please try with different text.");
-        return;
-      }
-
-      setTasks(result);
-      navigate("/quizPage");
-    } catch (err) {
-      setError("Failed to generate questions. Please check your API key and try again.");
-      console.error("Error generating questions:", err);
-    } finally {
-      setIsLoading(false);
-      setStartTime(null);
-    }
   };
 
   return (
@@ -658,9 +547,9 @@ export default function SourceTextPage({
         </div>
 
         {/* Error Message */}
-        {error && (
+        {(error || genError) && (
           <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/20 rounded-lg">
-            <p className="text-rose-400 text-sm">{error}</p>
+            <p className="text-rose-400 text-sm">{error || genError}</p>
           </div>
         )}
 

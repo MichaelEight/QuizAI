@@ -24,6 +24,7 @@ import { ImportExportButton } from "./components/ImportExportButton";
 import { ImportExportModal } from "./components/ImportExportModal";
 import { SaveQuizModal } from "./components/SaveQuizModal";
 import { KeyboardShortcutsModal } from "./components/KeyboardShortcutsModal";
+import { GenerationProvider } from "./context/GenerationContext";
 import { useFastTooltips } from "./hooks/useFastTooltips";
 import { version } from "../package.json";
 import "./App.css";
@@ -361,6 +362,7 @@ function AppContent() {
         onChange={changeGlobalModel}
       />
 
+      <GenerationProvider setTasks={setTasks}>
       <div className="min-h-screen overflow-x-clip bg-slate-900 text-slate-100">
         {/* ============================ Desktop sidebar =========================== */}
         <aside
@@ -491,7 +493,6 @@ function AppContent() {
                   <SourceTextPage
                     sourceText={sourceText}
                     setSourceText={setSourceText}
-                    setTasks={setTasks}
                     settings={settings}
                     uploadedFiles={uploadedFiles}
                     setUploadedFiles={setUploadedFiles}
@@ -586,6 +587,7 @@ function AppContent() {
           </div>
         )}
       </div>
+      </GenerationProvider>
     </>
   );
 }
