@@ -23,6 +23,7 @@ import { getSelectedModel, setGlobalModel, MODELS, ModelId } from "./services/co
 import { ImportExportButton } from "./components/ImportExportButton";
 import { ImportExportModal } from "./components/ImportExportModal";
 import { SaveQuizModal } from "./components/SaveQuizModal";
+import { KeyboardShortcutsModal } from "./components/KeyboardShortcutsModal";
 import { useFastTooltips } from "./hooks/useFastTooltips";
 import { version } from "../package.json";
 import "./App.css";
@@ -325,6 +326,15 @@ function AppContent() {
     setShowImportExportModal(true);
   };
 
+  // Global keyboard-shortcuts modal, openable from any page (sidebar button,
+  // mobile quiz button, or the "?" key on the quiz page).
+  const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
+  useEffect(() => {
+    const open = () => setShowShortcutsModal(true);
+    window.addEventListener("quizai:open-shortcuts", open);
+    return () => window.removeEventListener("quizai:open-shortcuts", open);
+  }, []);
+
   return (
     <>
       <ApiKeyModal
@@ -340,6 +350,10 @@ function AppContent() {
         sourceText={sourceText}
       />
       <SaveQuizModal />
+      <KeyboardShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+      />
       <AiModelModal
         isOpen={showModelModal}
         onClose={() => setShowModelModal(false)}
@@ -378,6 +392,21 @@ function AppContent() {
               <PlusIcon className="h-4.5 w-4.5" />
               New Quiz
             </Link>
+            <button
+              onClick={() => isQuizActive && window.dispatchEvent(new Event("quizai:end-quiz"))}
+              aria-disabled={!isQuizActive}
+              title={isQuizActive ? "End current quiz" : "No active quiz"}
+              className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
+                isQuizActive
+                  ? "bg-rose-500 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-400 active:scale-[0.98]"
+                  : "cursor-not-allowed! bg-slate-800/50 text-slate-600"
+              }`}
+            >
+              <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              End Quiz
+            </button>
           </div>
 
           <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-6">
@@ -400,6 +429,21 @@ function AppContent() {
               <AiModelButton label={MODELS[globalModel]?.label ?? "AI Model"} onClick={() => setShowModelModal(true)} />
               <ApiKeyButton />
               <ImportExportButton onClick={() => setShowImportExportModal(true)} />
+              <button
+                onClick={() => setShowShortcutsModal(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm"
+                title="Keyboard shortcuts"
+              >
+                <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+                <span className="text-slate-300">Shortcuts</span>
+              </button>
             </div>
             <p className="px-3 text-[11px] text-slate-600">v{version}</p>
           </div>
