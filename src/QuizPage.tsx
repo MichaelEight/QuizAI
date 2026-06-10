@@ -289,10 +289,11 @@ export default function QuizPage({
   );
   const [isAnswerRevealed, setIsAnswerRevealed] = useState<boolean>(false);
 
-  // State for Hint and Explanation features
-  const [hint, setHint] = useState<string | null>(
-    savedProgress?.hint ?? null,
-  );
+  // State for Hint and Explanation features.
+  // Hint never auto-shows: it stays hidden until the user presses H / clicks Hint,
+  // even across reloads and when a question reappears. The text is cached on the
+  // task (answerOverride.hint) so pressing H reloads it instead of regenerating.
+  const [hint, setHint] = useState<string | null>(null);
   const [explanation, setExplanation] = useState<string | null>(
     savedProgress?.explanation ?? null,
   );
@@ -481,12 +482,12 @@ export default function QuizPage({
       return;
     }
 
-    // Restore cached data from answerOverride if it exists
+    // Restore cached data from answerOverride if it exists.
+    // NOTE: hint is intentionally NOT restored here — it must stay hidden until
+    // the user presses H. handleGetHint() still reads the cached hint on demand.
+    setHint(null);
     const override = currentTask.answerOverride;
     if (override) {
-      if (override.hint) {
-        setHint(override.hint);
-      }
       if (override.explanation) {
         setExplanation(override.explanation);
       }
@@ -1088,6 +1089,16 @@ export default function QuizPage({
     }
   };
 
+  // H / Hint button: hide if currently shown, otherwise load the cached hint
+  // (or generate one if none cached yet).
+  const toggleHint = () => {
+    if (hint) {
+      setHint(null);
+      return;
+    }
+    handleGetHint();
+  };
+
   const handleGetExplanation = async (forceRegenerate = false) => {
     if (!currentTask || !combinedText) return;
 
@@ -1665,7 +1676,7 @@ export default function QuizPage({
         combinedText
       ) {
         e.preventDefault();
-        handleGetHint();
+        toggleHint();
         return;
       }
 
@@ -1707,6 +1718,7 @@ export default function QuizPage({
     areAnswersChecked,
     isChecking,
     isLoadingHint,
+    hint,
     openAnswer,
     combinedText,
     handleAnswerToggle,
@@ -2834,7 +2846,7 @@ export default function QuizPage({
 
         {/* Hint */}
         <button
-          onClick={() => handleGetHint()}
+          onClick={toggleHint}
           disabled={
             areAnswersChecked || isChecking || isLoadingHint || !combinedText
           }
