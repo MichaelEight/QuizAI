@@ -68,14 +68,19 @@ function resolveMention(name: string, ctx: ChatContext): string {
 // otherwise replace inline @mentions with their quoted content.
 export function expandMessage(input: string, ctx: ChatContext): string {
   const trimmed = input.trim();
+  const expandMentions = (text: string): string =>
+    text.replace(/@(\w+)/g, (_full, name: string) => resolveMention(name, ctx));
   if (trimmed.startsWith("/")) {
     const cmdName = trimmed.slice(1).split(/\s+/)[0].toLowerCase();
     const command = SLASH_COMMANDS.find((c) => c.cmd === cmdName);
-    if (command) return command.build(ctx);
+    if (command) {
+      const base = command.build(ctx);
+      // Keep anything the user typed after the command (with @mentions resolved).
+      const rest = trimmed.slice(1 + cmdName.length).trim();
+      return rest ? `${base}\n\nAdditionally: ${expandMentions(rest)}` : base;
+    }
   }
-  return input.replace(/@(\w+)/g, (_full, name: string) =>
-    resolveMention(name, ctx),
-  );
+  return expandMentions(input);
 }
 
 /* ----------------------------- Chat persistence ---------------------------- */
