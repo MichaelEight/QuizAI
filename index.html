@@ -14,5 +14,17 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- GoatCounter analytics (cookie-less, GDPR-safe). Loads only outside localhost. -->
+    <script>
+      ;(function () {
+        var code = 'michaeleight' // shared site code across app.michaeleight.com
+        if (!code || location.hostname === 'localhost') return
+        var s = document.createElement('script')
+        s.async = true
+        s.src = 'https://gc.zgo.at/count.js'
+        s.dataset.goatcounter = 'https://' + code + '.goatcounter.com/count'
+        document.head.appendChild(s)
+      })()
+    </script>
   </body>
 </html>
