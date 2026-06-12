@@ -497,15 +497,20 @@ export default function QuizPage({
     }
   }, [currentTask?.id]); // Only when task ID changes
 
+  // Build (or rebuild) the practice pool whenever the question SET changes,
+  // as long as a quiz isn't already in progress. The dependency is the
+  // id-based tasks hash, so it fires on mount and when tasks arrive/replace
+  // asynchronously (e.g. right after an import) — but NOT when answers get
+  // cached mid-quiz (those keep the same ids). The previous mount-only effect
+  // missed late-arriving imported tasks, leaving an empty pool that made the
+  // first "Start" instantly end at 0/0.
+  const tasksHash = getTasksHash(tasks);
   useEffect(() => {
-    createPoolIfEmpty();
-  }, []);
-
-  const createPoolIfEmpty = () => {
-    if (taskPool.length === 0 && tasks?.length > 0 && !isQuizStarted) {
+    if (tasks.length > 0 && !isQuizStarted) {
       setTaskPool(createPool([...tasks], settings.defaultPoolSize));
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasksHash]);
 
   function resetRound() {
     setAreAnswersChecked(false);
