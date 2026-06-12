@@ -8,6 +8,22 @@ import { SourceTextModal } from "./components/SourceTextModal";
 import { BaseModal } from "./components/BaseModal";
 import { SuccessToast } from "./components/SuccessToast";
 import { VersionPickerModal } from "./components/VersionPickerModal";
+import {
+  exportToJson,
+  exportToLegacyZip,
+  downloadFile,
+} from "./services/legacyFormatService";
+import { generateOpenQuestionAnswer } from "./backendService";
+
+/** Build a filesystem-safe basename from a quiz title. */
+function quizFileBase(title: string): string {
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || "quizai-export";
+}
 
 interface LibraryPageProps {
   setTasks: (tasks: Task[]) => void;
@@ -113,6 +129,7 @@ export default function LibraryPage({
 
   // Loading states for operations
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null); // Store quiz ID being duplicated
+  const [isExporting, setIsExporting] = useState<string | null>(null); // Quiz ID being exported (legacy zip)
 
   // Dropdown menu state
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -462,6 +479,57 @@ export default function LibraryPage({
       setErrorMessage("Failed to restore previous version. Please try again.");
     } finally {
       setIsRestoring(false);
+    }
+  };
+
+  const handleExportJson = (quiz: SavedQuiz) => {
+    if (quiz.tasks.length === 0) {
+      setErrorMessage("This quiz has no questions to export.");
+      return;
+    }
+    const json = exportToJson(quiz.tasks);
+    downloadFile(json, `${quizFileBase(quiz.title)}.json`, "application/json");
+    setSuccessMessage(`Exported "${quiz.title}" as JSON`);
+  };
+
+  const handleExportLegacy = async (quiz: SavedQuiz) => {
+    if (quiz.tasks.length === 0) {
+      setErrorMessage("This quiz has no questions to export.");
+      return;
+    }
+
+    setIsExporting(quiz.id);
+    try {
+      // Legacy format needs a concrete answer for each open question.
+      const openAnswers = new Map<string, string>();
+      const openQuestions = quiz.tasks.filter((t) => t.question.isOpen);
+
+      for (const task of openQuestions) {
+        if (task.answerOverride?.acceptedOpenAnswer) {
+          openAnswers.set(task.id, task.answerOverride.acceptedOpenAnswer);
+        } else if (quiz.sourceText) {
+          const answer = await generateOpenQuestionAnswer(
+            quiz.sourceText,
+            task.question.value,
+            undefined,
+            undefined,
+            undefined,
+          );
+          openAnswers.set(task.id, answer);
+        } else {
+          openAnswers.set(task.id, "");
+        }
+      }
+
+      const zip = await exportToLegacyZip(quiz.tasks, openAnswers);
+      downloadFile(zip, `${quizFileBase(quiz.title)}.zip`);
+      setSuccessMessage(`Exported "${quiz.title}" as legacy format`);
+    } catch (err) {
+      console.error("Failed to export quiz:", err);
+      setErrorMessage("Failed to export quiz. Please try again.");
+    } finally {
+      setIsExporting(null);
+      setOpenMenuId(null);
     }
   };
 
@@ -1423,6 +1491,34 @@ export default function LibraryPage({
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                       </svg>
                                       View Source
+                                    </button>
+                                    <div className="my-1 border-t border-slate-700" />
+                                    <button
+                                      onClick={() => {
+                                        handleExportJson(quiz);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3">
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                      Export JSON
+                                    </button>
+                                    <button
+                                      onClick={() => handleExportLegacy(quiz)}
+                                      disabled={isExporting === quiz.id}
+                                      className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors flex items-center gap-3 disabled:opacity-50 disabled:cursor-wait">
+                                      {isExporting === quiz.id ? (
+                                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                      ) : (
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                        </svg>
+                                      )}
+                                      Export Legacy (.zip)
                                     </button>
                                     {quiz.previousVersionId && (
                                       <button
