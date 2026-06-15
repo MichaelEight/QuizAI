@@ -1661,6 +1661,10 @@ export default function QuizPage({
       // Don't handle shortcuts if quiz not started or ended
       if (!isQuizStarted || isQuizEnded) return;
 
+      // Let browser/OS combos through (e.g. Cmd/Ctrl+number to switch tabs,
+      // Cmd+S to save) — our single-key shortcuts must not intercept them.
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
       // TAB - Toggle chat (always available, even when chat is open)
       if (e.key === "Tab") {
         e.preventDefault();
