@@ -16,6 +16,7 @@ import { QuizLibraryProvider } from "./context/QuizLibraryContext";
 import { SaveQuizModalProvider } from "./context/SaveQuizModalContext";
 import { UsageProvider } from "./context/UsageContext";
 import { ApiKeyModal } from "./components/ApiKeyModal";
+import { AiWelcomeModal } from "./components/AiWelcomeModal";
 import { ApiKeyButton } from "./components/ApiKeyButton";
 import { AiModelButton } from "./components/AiModelButton";
 import { AiModelModal } from "./components/AiModelModal";
@@ -271,7 +272,7 @@ function AppContent() {
     saveToStorage(STORAGE_KEYS.UPLOADED_FILES, uploadedFiles);
   }, [uploadedFiles]);
 
-  const { showApiKeyModal, setShowApiKeyModal, hasApiKey } = useApiKey();
+  const { showApiKeyModal, setShowApiKeyModal } = useApiKey();
   const [showImportExportModal, setShowImportExportModal] = useState(false);
   const [showModelModal, setShowModelModal] = useState(false);
   const [globalModel, setGlobalModelState] = useState<ModelId>(() => getSelectedModel());
@@ -338,10 +339,11 @@ function AppContent() {
 
   return (
     <>
+      <AiWelcomeModal />
       <ApiKeyModal
         isOpen={showApiKeyModal}
         onClose={() => setShowApiKeyModal(false)}
-        allowClose={hasApiKey}
+        allowClose
       />
       <ImportExportModal
         isOpen={showImportExportModal}

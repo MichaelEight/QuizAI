@@ -11,6 +11,7 @@ import {
   SLASH_COMMANDS,
 } from "../services/chatService";
 import { Markdown } from "./Markdown";
+import { useApiKey } from "../context/ApiKeyContext";
 
 interface QuizChatBotProps {
   readonly context: ChatContext;
@@ -18,6 +19,7 @@ interface QuizChatBotProps {
   readonly isOpen: boolean;
   readonly onToggle: (open: boolean) => void;
   readonly quizKey: string; // tasks hash — scopes the cached chat to this quiz
+  readonly aiEnabled?: boolean; // false → show locked panel instead of chat
 }
 
 let messageIdCounter = 0;
@@ -31,7 +33,9 @@ export function QuizChatBot({
   isOpen,
   onToggle,
   quizKey,
+  aiEnabled = true,
 }: Readonly<QuizChatBotProps>) {
+  const { setShowApiKeyModal } = useApiKey();
   // Restore cached chat for the current quiz (survives page reloads).
   const [messages, setMessages] = useState<Map<string, ChatMessage[]>>(
     () => new Map(Object.entries(loadChatCache(quizKey))),
@@ -399,6 +403,26 @@ export function QuizChatBot({
             </div>
           </div>
 
+          {!aiEnabled ? (
+            <div className="flex flex-1 flex-col items-center justify-center px-6 py-8 text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500/20">
+                <svg className="h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <p className="mb-1 font-medium text-slate-100">AI chat is locked</p>
+              <p className="mb-4 text-sm text-slate-400">
+                Add an OpenAI API key to ask the assistant about this question.
+              </p>
+              <button
+                onClick={() => setShowApiKeyModal(true)}
+                className="rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-indigo-400 active:scale-[0.98]"
+              >
+                Add API Key
+              </button>
+            </div>
+          ) : (
+            <>
           {/* Commands help popover */}
           {showHelp && (
             <div className="absolute right-3 top-14 z-20 w-72 rounded-xl border border-slate-600 bg-slate-900 p-3 text-sm shadow-xl">
@@ -570,6 +594,8 @@ export function QuizChatBot({
               </button>
             </div>
           </div>
+            </>
+          )}
         </div>
       )}
     </>,

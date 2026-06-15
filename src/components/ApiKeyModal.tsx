@@ -12,7 +12,7 @@ const API_KEY_PREFIX = 'sk-';
 export function ApiKeyModal({
   isOpen,
   onClose,
-  allowClose = false,
+  allowClose = true,
 }: ApiKeyModalProps) {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
@@ -78,14 +78,16 @@ export function ApiKeyModal({
           </div>
           <div>
             <h2 className="text-xl font-bold text-slate-100">OpenAI API Key</h2>
-            <p className="text-sm text-slate-400">Required to generate questions</p>
+            <p className="text-sm text-slate-400">Unlocks all AI features</p>
           </div>
         </div>
 
         {/* Info */}
         <div className="mb-4 p-3 bg-slate-700/30 rounded-lg">
           <p className="text-sm text-slate-400">
-            Your API key is stored locally in your browser and only sent to OpenAI.
+            Unlocks quiz generation, hints, explanations, open-answer grading and
+            the AI chat. Your key is stored locally in your browser and only sent
+            to OpenAI.
           </p>
         </div>
 

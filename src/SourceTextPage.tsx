@@ -22,6 +22,7 @@ import {
 import { SuccessToast } from "./components/SuccessToast";
 import { BaseModal } from "./components/BaseModal";
 import { GenerationProgress } from "./components/GenerationProgress";
+import { useApiKey } from "./context/ApiKeyContext";
 
 interface SourceTextPageProps {
   sourceText: string;
@@ -145,6 +146,7 @@ export default function SourceTextPage({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showClearModal, setShowClearModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { hasApiKey, setShowApiKeyModal } = useApiKey();
 
   const totalQuestions = settings.amountOfClosedQuestions + settings.amountOfOpenQuestions;
 
@@ -652,7 +654,19 @@ export default function SourceTextPage({
           )}
         </div>
 
-        {/* Generate Button */}
+        {/* Generate Button — locked behind an API key (generation is AI-only) */}
+        {!hasApiKey ? (
+          <button
+            onClick={() => setShowApiKeyModal(true)}
+            aria-label="Add API key to generate questions"
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold bg-indigo-500 hover:bg-indigo-400 active:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 transition-all duration-200 active:scale-[0.99]"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Add API Key to Generate
+          </button>
+        ) : (
         <button
           onClick={handleGenerateButtonClick}
           disabled={!canGenerate || isLoading || isExtracting || isOverLimit}
@@ -685,14 +699,23 @@ export default function SourceTextPage({
             </>
           )}
         </button>
+        )}
 
         {/* Help Text */}
-        {!canGenerate && !isLoading && (
+        {!hasApiKey ? (
           <p className="mt-4 text-center text-sm text-slate-500">
-            {combinedText.trim().length === 0
-              ? "Upload files or enter text to generate questions"
-              : "Configure at least one question in Settings"}
+            Generating quizzes needs an OpenAI API key. You can still take saved
+            and imported quizzes without one.
           </p>
+        ) : (
+          !canGenerate &&
+          !isLoading && (
+            <p className="mt-4 text-center text-sm text-slate-500">
+              {combinedText.trim().length === 0
+                ? "Upload files or enter text to generate questions"
+                : "Configure at least one question in Settings"}
+            </p>
+          )
         )}
       </div>
 

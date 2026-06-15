@@ -36,6 +36,8 @@ import { ScoreBreakdownTemplate } from "./QuestionsTypes";
 import { DiffModal } from "./components/DiffModal";
 import { Markdown } from "./components/Markdown";
 import { compareQuizzes, QuizDiffSummary } from "./utils/quizDiff";
+import { useApiKey } from "./context/ApiKeyContext";
+import { AiLocked } from "./components/AiLocked";
 
 const QUIZ_PROGRESS_KEY = "quizai_quiz_progress";
 
@@ -202,6 +204,14 @@ export default function QuizPage({
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | null>(null);
 
   const { openSaveQuizModal } = useSaveQuizModal();
+  const { hasApiKey, setShowApiKeyModal } = useApiKey();
+
+  // Without an API key, AI grading is unavailable, so open questions can't be
+  // scored — only serve closed questions. Generation/hints/etc. stay locked too.
+  const playableTasks = useMemo<readonly Task[]>(
+    () => (hasApiKey ? tasks : tasks.filter((t) => !t.question.isOpen)),
+    [tasks, hasApiKey],
+  );
 
   // Track loaded quiz from library (for update functionality)
   const location = useLocation();
@@ -358,7 +368,10 @@ export default function QuizPage({
   const [showDiffModal, setShowDiffModal] = useState(false);
   const [diffSummary, setDiffSummary] = useState<QuizDiffSummary | null>(null);
 
-  const totalQuestions = tasks.length;
+  // Only playable questions count toward the quiz (open questions are excluded
+  // when no API key is configured, since they can't be graded without AI).
+  const totalQuestions = playableTasks.length;
+  const hiddenOpenCount = tasks.length - playableTasks.length;
 
   // Build chat context for AI chatbot
   const chatContext: ChatContext = useMemo(() => {
@@ -506,11 +519,11 @@ export default function QuizPage({
   // first "Start" instantly end at 0/0.
   const tasksHash = getTasksHash(tasks);
   useEffect(() => {
-    if (tasks.length > 0 && !isQuizStarted) {
-      setTaskPool(createPool([...tasks], settings.defaultPoolSize));
+    if (playableTasks.length > 0 && !isQuizStarted) {
+      setTaskPool(createPool([...playableTasks], settings.defaultPoolSize));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasksHash]);
+  }, [tasksHash, hasApiKey]);
 
   function resetRound() {
     setAreAnswersChecked(false);
@@ -535,7 +548,7 @@ export default function QuizPage({
     setLearntQuestions(new Set());
     setCorrectAnswers(0);
     setIncorrectAnswers(0);
-    setTaskPool(createPool([...tasks], settings.defaultPoolSize));
+    setTaskPool(createPool([...playableTasks], settings.defaultPoolSize));
     clearQuizProgress();
     clearChatCache();
     // Reset gamification session state
@@ -543,6 +556,11 @@ export default function QuizPage({
   }
 
   const handleCheckAnswersClick = async () => {
+    // Open questions need AI grading; without a key, prompt instead of failing.
+    if (currentTask?.question.isOpen && !hasApiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
     setIsChecking(true);
     const timeMs = gamification.stopTimer();
     const wasAlreadyLearnt = currentTask
@@ -1047,6 +1065,10 @@ export default function QuizPage({
   };
 
   const handleGetHint = async (forceRegenerate = false) => {
+    if (!hasApiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
     if (!currentTask || !combinedText) return;
 
     // Check cache first (unless forcing regeneration)
@@ -1105,6 +1127,10 @@ export default function QuizPage({
   };
 
   const handleGetExplanation = async (forceRegenerate = false) => {
+    if (!hasApiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
     if (!currentTask || !combinedText) return;
 
     // Check cache first (unless forcing regeneration)
@@ -1774,6 +1800,19 @@ export default function QuizPage({
     );
   }
 
+  // Quiz has questions, but all of them are open-ended and there's no API key
+  // to grade them — nothing playable. Prompt the user to add a key.
+  if (!hasApiKey && playableTasks.length === 0) {
+    return (
+      <div className="animate-fade-in max-w-2xl mx-auto py-16">
+        <AiLocked
+          title="This quiz needs an API key"
+          message="It only contains open-ended questions, which require an OpenAI API key for AI grading. Add a key to play, or open a quiz with multiple-choice questions."
+        />
+      </div>
+    );
+  }
+
   // Quiz not started
   if (!isQuizStarted) {
     return (
@@ -1803,6 +1842,16 @@ export default function QuizPage({
             </span>{" "}
             questions waiting for you
           </p>
+          {!hasApiKey && hiddenOpenCount > 0 && (
+            <div className="mb-8 -mt-4">
+              <AiLocked
+                variant="inline"
+                title={`${hiddenOpenCount} open-ended ${
+                  hiddenOpenCount === 1 ? "question is" : "questions are"
+                } hidden — add a key to grade them`}
+              />
+            </div>
+          )}
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={handleStartQuiz}
@@ -2497,6 +2546,12 @@ export default function QuizPage({
           {/* Explanation section */}
           <div className="mt-4 pt-4 border-t border-slate-700">
             {!explanation ? (
+              !hasApiKey ? (
+                <AiLocked
+                  variant="inline"
+                  title="AI explanations need an API key"
+                />
+              ) : (
               <button
                 onClick={() => handleGetExplanation()}
                 disabled={isLoadingExplanation || !combinedText}
@@ -2543,6 +2598,7 @@ export default function QuizPage({
                   </>
                 )}
               </button>
+              )
             ) : (
               <div className="animate-fade-in">
                 <div className="flex items-start gap-2">
@@ -3040,6 +3096,7 @@ export default function QuizPage({
           isOpen={isChatOpen}
           onToggle={setIsChatOpen}
           quizKey={getTasksHash(tasks)}
+          aiEnabled={hasApiKey}
         />
       )}
       </div>
