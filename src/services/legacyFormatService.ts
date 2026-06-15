@@ -83,6 +83,33 @@ export function parseLegacyFiles(files: { name: string; content: string }[]): Im
 }
 
 /**
+ * Extract the text content of every .txt entry inside a legacy ZIP archive.
+ * Recurses through any folder structure (JSZip flattens paths) and skips
+ * directories plus macOS archive junk (__MACOSX, ._ resource forks).
+ */
+export async function extractTxtFromZip(
+  file: Blob,
+): Promise<{ name: string; content: string }[]> {
+  const zip = await JSZip.loadAsync(file);
+
+  const txtEntries = Object.values(zip.files).filter(
+    (entry) =>
+      !entry.dir &&
+      entry.name.toLowerCase().endsWith('.txt') &&
+      !entry.name.startsWith('__MACOSX/') &&
+      !entry.name.split('/').pop()?.startsWith('._'),
+  );
+
+  return Promise.all(
+    txtEntries.map(async (entry) => ({
+      // Use the bare filename for nicer error messages.
+      name: entry.name.split('/').pop() || entry.name,
+      content: await entry.async('string'),
+    })),
+  );
+}
+
+/**
  * Parse JSON import (QuizAI native format)
  */
 export function parseJsonImport(content: string): ImportResult {

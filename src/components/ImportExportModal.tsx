@@ -6,6 +6,7 @@ import {
   parseJsonImport,
   exportToJson,
   exportToLegacyZip,
+  extractTxtFromZip,
   downloadFile,
 } from '../services/legacyFormatService';
 import { generateOpenQuestionAnswer } from '../backendService';
@@ -41,7 +42,7 @@ export function ImportExportModal({
     onClose();
   };
 
-  // Import Legacy (.txt files)
+  // Import Legacy (.txt files or a .zip of .txt files / folders)
   const handleLegacyImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -49,12 +50,30 @@ export function ImportExportModal({
     setStatus({ type: 'loading', message: 'Parsing files...' });
 
     try {
-      const fileContents = await Promise.all(
-        files.map(async (file) => ({
-          name: file.name,
-          content: await file.text(),
-        }))
-      );
+      const isZip = (file: File) =>
+        file.name.toLowerCase().endsWith('.zip') ||
+        file.type === 'application/zip' ||
+        file.type === 'application/x-zip-compressed';
+
+      // Expand each selection: read .txt files directly, unzip .zip archives
+      // and pull out every .txt inside (including nested folders).
+      const fileContents = (
+        await Promise.all(
+          files.map(async (file) =>
+            isZip(file)
+              ? extractTxtFromZip(file)
+              : [{ name: file.name, content: await file.text() }],
+          ),
+        )
+      ).flat();
+
+      if (fileContents.length === 0) {
+        setStatus({
+          type: 'error',
+          message: 'No .txt files found in the selected file(s)',
+        });
+        return;
+      }
 
       const result = parseLegacyFiles(fileContents);
 
@@ -231,14 +250,14 @@ export function ImportExportModal({
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-slate-200 font-medium">Import Legacy (.txt)</p>
-                <p className="text-xs text-slate-400">Select multiple .txt files from baza folder</p>
+                <p className="text-slate-200 font-medium">Import Legacy (.txt / .zip)</p>
+                <p className="text-xs text-slate-400">Select .txt files, or a .zip containing .txt files or folders</p>
               </div>
               <input
                 ref={legacyInputRef}
                 type="file"
                 multiple
-                accept=".txt"
+                accept=".txt,.zip,application/zip,application/x-zip-compressed"
                 onChange={handleLegacyImport}
                 className="hidden"
               />
