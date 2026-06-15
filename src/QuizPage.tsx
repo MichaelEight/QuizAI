@@ -16,6 +16,7 @@ import {
   generateMultipleScoreTemplates,
 } from "./backendService";
 import { QuizProgress } from "./components/QuizProgress";
+import { TimeStatDisplay } from "./components/TimerDisplay";
 import { useGamification } from "./context/GamificationContext";
 import { useQuizLibrary } from "./context/QuizLibraryContext";
 import {
@@ -57,6 +58,10 @@ interface QuizProgressState {
   hint: string | null;
   explanation: string | null;
   revealedOpenAnswer: string | null;
+  // Wall-clock timing (epoch ms). Persisted so reloads resume the same clocks.
+  quizStartedAt: number | null;
+  quizFinishedAt: number | null;
+  questionStartedAt: number | null;
 }
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -175,6 +180,18 @@ export default function QuizPage({
   );
   const [isQuizEnded, setIsQuizEnded] = useState<boolean>(
     savedProgress?.isQuizEnded ?? false,
+  );
+
+  // Wall-clock timers (epoch ms). Restored from progress so reloads continue
+  // from the original start rather than resetting to zero.
+  const [quizStartedAt, setQuizStartedAt] = useState<number | null>(
+    savedProgress?.quizStartedAt ?? null,
+  );
+  const [quizFinishedAt, setQuizFinishedAt] = useState<number | null>(
+    savedProgress?.quizFinishedAt ?? null,
+  );
+  const [questionStartedAt, setQuestionStartedAt] = useState<number | null>(
+    savedProgress?.questionStartedAt ?? null,
   );
 
   const [openAnswer, setOpenAnswer] = useState<string>(
@@ -441,6 +458,9 @@ export default function QuizPage({
         hint,
         explanation,
         revealedOpenAnswer,
+        quizStartedAt,
+        quizFinishedAt,
+        questionStartedAt,
       };
       saveQuizProgress(state);
       setSaveStatus('saved');
@@ -465,6 +485,9 @@ export default function QuizPage({
     hint,
     explanation,
     revealedOpenAnswer,
+    quizStartedAt,
+    quizFinishedAt,
+    questionStartedAt,
   ]);
 
   // Keep latest saveProgress for the unmount flush below
@@ -545,6 +568,9 @@ export default function QuizPage({
     setCurrentTask(undefined);
     setIsQuizStarted(false);
     setIsQuizEnded(false);
+    setQuizStartedAt(null);
+    setQuizFinishedAt(null);
+    setQuestionStartedAt(null);
     setLearntQuestions(new Set());
     setCorrectAnswers(0);
     setIncorrectAnswers(0);
@@ -562,7 +588,12 @@ export default function QuizPage({
       return;
     }
     setIsChecking(true);
-    const timeMs = gamification.stopTimer();
+    // Time on this question from when it appeared — survives reloads because
+    // questionStartedAt is persisted. Falls back to the in-memory timer.
+    const timeMs = questionStartedAt
+      ? Date.now() - questionStartedAt
+      : gamification.stopTimer();
+    gamification.stopTimer();
     const wasAlreadyLearnt = currentTask
       ? learntQuestions.has(currentTask.id)
       : false;
@@ -805,6 +836,7 @@ export default function QuizPage({
 
     if (taskPool.length === 0) {
       setIsQuizEnded(true);
+      setQuizFinishedAt(Date.now());
       // End quiz gamification
       gamification.endQuiz({
         correct: correctAnswers,
@@ -818,11 +850,14 @@ export default function QuizPage({
     // Shuffle answers each time a question is displayed
     setCurrentTask(shuffleTaskAnswers(nextTask));
     setTaskPool(remainingTasks);
-    // Start timer for the new question
+    // Start timers for the new question
+    setQuestionStartedAt(Date.now());
     gamification.startTimer();
   };
 
   const handleStartQuiz = () => {
+    setQuizStartedAt(Date.now());
+    setQuizFinishedAt(null);
     handleNextQuestionClick();
     setIsQuizStarted(true);
     gamification.startTimer();
@@ -958,11 +993,13 @@ export default function QuizPage({
     const remainingPool = taskPool.filter((t) => t.id !== currentTask.id);
     if (remainingPool.length === 0) {
       setIsQuizEnded(true);
+      setQuizFinishedAt(Date.now());
       setCurrentTask(undefined);
     } else {
       const [nextTask, ...rest] = remainingPool;
       setCurrentTask(shuffleTaskAnswers(nextTask));
       setTaskPool(rest);
+      setQuestionStartedAt(Date.now());
     }
   };
 
@@ -1923,6 +1960,8 @@ export default function QuizPage({
     const totalAnswers = correctAnswers + incorrectAnswers;
     const accuracyPercent =
       totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
+    const totalQuizMs =
+      quizStartedAt && quizFinishedAt ? quizFinishedAt - quizStartedAt : null;
 
     return (
       <>
@@ -1944,13 +1983,19 @@ export default function QuizPage({
           <h2 className="text-3xl font-bold text-slate-100 mb-2">
             Quiz Complete!
           </h2>
-          <p className="text-slate-400 mb-6">
+          <p className="text-slate-400 mb-4">
             You learnt all{" "}
             <span className="text-emerald-400 font-medium">
               {learntQuestions.size}
             </span>{" "}
             questions
           </p>
+
+          {totalQuizMs !== null && (
+            <div className="mb-6 flex justify-center">
+              <TimeStatDisplay label="Total time" timeMs={totalQuizMs} />
+            </div>
+          )}
 
           {/* Final Stats */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8 max-w-md mx-auto">
@@ -2120,8 +2165,12 @@ export default function QuizPage({
         incorrectAnswers={incorrectAnswers}
         streak={gamification.sessionStats.sessionStreak}
         points={gamification.sessionStats.sessionPoints}
-        timerStart={gamification.timerStart}
-        isTimerRunning={gamification.isTimerRunning}
+        timerStart={
+          areAnswersChecked || isAnswerRevealed ? null : questionStartedAt
+        }
+        isTimerRunning={!areAnswersChecked && !isAnswerRevealed}
+        quizStartTime={quizStartedAt}
+        quizEndTime={isQuizEnded ? quizFinishedAt : null}
       />
 
       {/* Screen reader announcements for state changes */}

@@ -3,14 +3,38 @@ import { useState, useEffect } from 'react';
 interface TimerDisplayProps {
   startTime: number | null;
   isRunning?: boolean;
+  /**
+   * "question" (default) = per-question timer with slow/warning colors.
+   * "total" = whole-quiz timer, neutral colors, always mm:ss.
+   * When a frozen end time is given, the timer stops there instead of "now".
+   */
+  variant?: 'question' | 'total';
+  /** Freeze the elapsed value at this epoch ms (e.g. when the quiz finished). */
+  endTime?: number | null;
 }
 
-export function TimerDisplay({ startTime, isRunning = true }: TimerDisplayProps) {
+export function TimerDisplay({
+  startTime,
+  isRunning = true,
+  variant = 'question',
+  endTime = null,
+}: TimerDisplayProps) {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
-    if (!startTime || !isRunning) {
+    if (!startTime) {
       setElapsed(0);
+      return;
+    }
+
+    // Frozen at a fixed end time — no ticking needed.
+    if (endTime !== null) {
+      setElapsed(endTime - startTime);
+      return;
+    }
+
+    if (!isRunning) {
+      setElapsed(Date.now() - startTime);
       return;
     }
 
@@ -23,28 +47,38 @@ export function TimerDisplay({ startTime, isRunning = true }: TimerDisplayProps)
     }, 100);
 
     return () => clearInterval(interval);
-  }, [startTime, isRunning]);
+  }, [startTime, isRunning, endTime]);
 
   if (!startTime) {
     return null;
   }
 
   const seconds = elapsed / 1000;
-  const isWarning = seconds > 30;
-  const isSlow = seconds > 20;
+  const isTotal = variant === 'total';
+  const isWarning = !isTotal && seconds > 30;
+  const isSlow = !isTotal && seconds > 20;
 
-  // Format time
+  // Format time. Per-question shows tenths under a minute; total always mm:ss
+  // (and h:mm:ss past an hour).
   const formatTime = () => {
-    if (seconds < 60) {
+    if (!isTotal && seconds < 60) {
       return `${seconds.toFixed(1)}s`;
     }
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+    const total = Math.floor(seconds);
+    const hrs = Math.floor(total / 3600);
+    const mins = Math.floor((total % 3600) / 60);
+    const secs = total % 60;
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs
+        .toString()
+        .padStart(2, '0')}`;
+    }
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
     <div
+      title={isTotal ? 'Total quiz time' : 'Time on this question'}
       className={`
         flex items-center gap-1.5 px-2.5 py-1 rounded-lg border
         ${isWarning

@@ -12,6 +12,9 @@ interface QuizProgressProps {
   points?: number;
   timerStart?: number | null;
   isTimerRunning?: boolean;
+  // Whole-quiz timer (epoch ms)
+  quizStartTime?: number | null;
+  quizEndTime?: number | null;
 }
 
 export function QuizProgress({
@@ -23,12 +26,15 @@ export function QuizProgress({
   points = 0,
   timerStart = null,
   isTimerRunning = false,
+  quizStartTime = null,
+  quizEndTime = null,
 }: QuizProgressProps) {
   const learntPercentage = totalQuestions > 0 ? (learntCount / totalQuestions) * 100 : 0;
   const totalAnswers = correctAnswers + incorrectAnswers;
   const correctPercentage = totalAnswers > 0 ? (correctAnswers / totalAnswers) * 100 : 50;
 
-  const showGamification = streak > 0 || points > 0 || timerStart !== null;
+  const showGamification =
+    streak > 0 || points > 0 || timerStart !== null || quizStartTime !== null;
 
   return (
     <div className="space-y-4 mb-8">
@@ -38,6 +44,11 @@ export function QuizProgress({
           <div className="flex items-center gap-2">
             <StreakDisplay streak={streak} animate />
             <TimerDisplay startTime={timerStart} isRunning={isTimerRunning} />
+            <TimerDisplay
+              startTime={quizStartTime}
+              endTime={quizEndTime}
+              variant="total"
+            />
           </div>
           <PointsDisplay points={points} />
         </div>
