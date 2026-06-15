@@ -424,7 +424,7 @@ export default function SettingsPage({
                 handleChange("amountOfClosedQuestions", value)
               }
               min={0}
-              max={100}
+              max={500}
             />
 
             <NumberSetting
@@ -433,7 +433,7 @@ export default function SettingsPage({
               value={settings.amountOfOpenQuestions}
               onChange={(value) => handleChange("amountOfOpenQuestions", value)}
               min={0}
-              max={100}
+              max={500}
             />
           </div>
         </div>
